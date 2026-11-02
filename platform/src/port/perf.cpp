@@ -96,7 +96,7 @@ constexpr const char* turnKinds[] = {"unclassified", "draw-selected", "late-skip
 static_assert(sizeof(turnKinds) / sizeof(*turnKinds) == static_cast<unsigned>(TurnKind::Count));
 struct TurnCost {
     unsigned turns = 0, cpuSamples = 0, bothReasons = 0, phaseTurns = 0;
-    int64_t work = 0, sampledWork = 0, cpu = 0, draw = 0, anim = 0, audio = 0, finish = 0, record = 0;
+    int64_t work = 0, sampledWork = 0, cpu = 0, draw = 0, anim = 0, audio = 0, finish = 0, record = 0, movement = 0;
 } sTurnCosts[static_cast<unsigned>(TurnKind::Count)];
 struct TurnPhases {
     int64_t last = 0;
@@ -138,13 +138,13 @@ void report(int64_t now) {
         for (unsigned i = 0; i < static_cast<unsigned>(TurnKind::Count); ++i) {
             const TurnCost& c = sTurnCosts[i];
             if (!c.turns) continue;
-            port_log("turn-cost: kind=%s turns=%u cpu_samples=%u both_reasons=%u phase_turns=%u work_us=%llu sampled_work_us=%llu cpu_us=%llu draw_us=%llu anim_us=%llu audio_objects_us=%llu finish_wait_us=%llu record_us=%llu",
+            port_log("turn-cost: kind=%s turns=%u cpu_samples=%u both_reasons=%u phase_turns=%u work_us=%llu sampled_work_us=%llu cpu_us=%llu draw_us=%llu anim_us=%llu audio_objects_us=%llu finish_wait_us=%llu record_us=%llu movement_us=%llu",
                      turnKinds[i], c.turns, c.cpuSamples, c.bothReasons, c.phaseTurns,
                      static_cast<unsigned long long>(c.work / 1000), static_cast<unsigned long long>(c.sampledWork / 1000),
                      static_cast<unsigned long long>(c.cpu),
                      static_cast<unsigned long long>(c.draw / 1000), static_cast<unsigned long long>(c.anim / 1000),
                      static_cast<unsigned long long>(c.audio / 1000), static_cast<unsigned long long>(c.finish / 1000),
-                     static_cast<unsigned long long>(c.record / 1000));
+                     static_cast<unsigned long long>(c.record / 1000), static_cast<unsigned long long>(c.movement / 1000));
         }
     }
     for (TurnCost& c : sTurnCosts) c = TurnCost{};
@@ -289,6 +289,7 @@ void port_perf_frame_work_done(void) {
         cost.anim += sTurn.ns[PORT_GAME_PHASE_CALC_ANIM];
         cost.audio += sTurn.ns[PORT_GAME_PHASE_AUDIO_OBJECTS];
         cost.finish += sTurn.ns[PORT_GAME_PHASE_GX_FINISH_WAIT];
+        cost.movement += sTurn.ns[PORT_GAME_PHASE_UPDATE_NERVE];
         cost.record += sRecordThisFrame;
         if (work >= 45000000 && slowTurnLog() && sSlowTurnsLogged < 400) {
             uint32_t top[3] = {0, 0, 0};

@@ -199,7 +199,7 @@ static void quietDiagnostics() {
 }
 struct CostRow {
     unsigned turns = 0, cpuSamples = 0, bothReasons = 0, phaseTurns = 0;
-    unsigned long long work = 0, sampledWork = 0, cpu = 0, draw = 0, anim = 0, audio = 0, finish = 0, record = 0;
+    unsigned long long work = 0, sampledWork = 0, cpu = 0, draw = 0, anim = 0, audio = 0, finish = 0, record = 0, movement = 0;
 };
 static CostRow costRow(const char* kind) {
     const std::string prefix = std::string("turn-cost: kind=") + kind + " ";
@@ -208,8 +208,8 @@ static CostRow costRow(const char* kind) {
     require(turnCostLogs.find(prefix, at + 1) == std::string::npos, "a report contains one row per policy");
     CostRow row;
     require(std::sscanf(turnCostLogs.c_str() + at + prefix.size(),
-        "turns=%u cpu_samples=%u both_reasons=%u phase_turns=%u work_us=%llu sampled_work_us=%llu cpu_us=%llu draw_us=%llu anim_us=%llu audio_objects_us=%llu finish_wait_us=%llu record_us=%llu",
-        &row.turns, &row.cpuSamples, &row.bothReasons, &row.phaseTurns, &row.work, &row.sampledWork, &row.cpu, &row.draw, &row.anim, &row.audio, &row.finish, &row.record) == 12,
+        "turns=%u cpu_samples=%u both_reasons=%u phase_turns=%u work_us=%llu sampled_work_us=%llu cpu_us=%llu draw_us=%llu anim_us=%llu audio_objects_us=%llu finish_wait_us=%llu record_us=%llu movement_us=%llu",
+        &row.turns, &row.cpuSamples, &row.bothReasons, &row.phaseTurns, &row.work, &row.sampledWork, &row.cpu, &row.draw, &row.anim, &row.audio, &row.finish, &row.record, &row.movement) == 13,
         "report exposes totals with matching CPU sample counts and explicit units");
     return row;
 }
@@ -223,10 +223,12 @@ static void turnCosts() {
     PORT_GAME_PROGRESS(PORT_GAME_PHASE_CALC_ANIM);
     wallNs += 4000000;
     PORT_GAME_PROGRESS(PORT_GAME_PHASE_AUDIO_OBJECTS);
-    wallNs += 2000000; cpuUs += 6000;
+    wallNs += 1000000;
+    PORT_GAME_PROGRESS(PORT_GAME_PHASE_UPDATE_NERVE);
+    wallNs += 1000000; cpuUs += 6000;
     port_perf_record(700000);
     port_perf_frame_work_done();
-    require(wallReads - firstWall == 6 && cpuReads - firstCpu == 2,
+    require(wallReads - firstWall == 7 && cpuReads - firstCpu == 2,
             "policy cost accounting reuses existing wall and CPU samples");
 
     wallNs += 29000000; cpuUs += 9000; // Outside work: must not enter any policy's CPU total.
@@ -265,7 +267,7 @@ static void turnCosts() {
     const auto required = costRow("required-draw"), backlog = costRow("backlog-skip"), unknown = costRow("unclassified");
     require(drawn.turns == 1 && drawn.cpuSamples == 1 && drawn.work == 11000 && drawn.cpu == 6000 && drawn.bothReasons == 0,
             "selected draw totals exclude between-turn CPU and preserve matched spans");
-    require(drawn.draw == 3000 && drawn.anim == 4000 && drawn.audio == 2000 && drawn.finish == 0 && drawn.record == 700,
+    require(drawn.draw == 3000 && drawn.anim == 4000 && drawn.audio == 1000 && drawn.movement == 1000 && drawn.finish == 0 && drawn.record == 700,
             "selected draw reports real checkpoint durations without conflating recording");
     require(late.turns == 1 && late.cpuSamples == 1 && late.bothReasons == 1 && late.work == 5000 && late.cpu == 3000 && late.finish == 5000,
             "late skip retains its work and overlapping pipeline condition");

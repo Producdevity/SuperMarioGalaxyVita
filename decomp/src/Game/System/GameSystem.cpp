@@ -370,6 +370,7 @@ void GameSystem::updateSceneController() {
     bool isResetProcessing = SingletonHolder< GameSystemResetAndPowerProcess >::get()->isActive();
 
     mObjHolder->updateAudioSystem();
+    PORT_GAME_PROGRESS(PORT_GAME_PHASE_UPDATE_NERVE);
 
     if (isResetProcessing) {
         isSceneUpdate = false;

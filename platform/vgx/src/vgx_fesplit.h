@@ -24,6 +24,9 @@
 //                 ("fesplit: MISMATCH"), a summary every 600 frames. The split's output is what is drawn.
 //   GXV_SPLIT_CORE=<n>  core of the finishing thread (Vita; default 1, the back end's); -1: not pinned
 //   GXV_SPLIT_PRIO=<n>  its priority (Vita; default one step above the back end's: see vgx_galaxy.cpp, SplitThreadInit)
+//   GXV_SPLIT_POLL_US=<n>  while the player builds a frame, the finishing thread looks for work every n microseconds
+//                      (default 200) instead of being woken by the player: a wake-up is a kernel call (5 % of the
+//                      player's time on the console, at one every 16 draws). 0: woken as before.
 // The split is off while a diagnostic that inspects the moved work per draw is on (GXV_STATS detail,
 // GXV_TRACE, GXV_TRACE_DRAWS, GXV_MERGEFAST=2, GXV_SOFTNEON=2).
 #pragma once

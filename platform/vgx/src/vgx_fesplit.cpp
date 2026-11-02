@@ -63,6 +63,7 @@ constexpr uint32_t kJobWords = sizeof(DrawJob) / 4;
 
 int g_mode = -1;  // GXV_SPLIT
 int g_core = 1;   // GXV_SPLIT_CORE
+int g_pollUs = 0; // GXV_SPLIT_POLL_US
 void (*g_threadInit)(int) = nullptr;
 bool g_started = false;
 
@@ -90,6 +91,7 @@ void GiveChunk(Chunk* c) {
 std::atomic<uint32_t> g_published{0}; // operations the player has made visible
 std::atomic<uint32_t> g_done{0};      // operations the finishing thread has done
 std::atomic<bool> g_bSleeping{false}, g_aWaiting{false};
+std::atomic<bool> g_framing{false};   // (written by the player) it is sending a frame's operations: the finishing thread polls
 std::mutex& g_mtx = *new std::mutex;
 std::condition_variable& g_cvB = *new std::condition_variable;
 std::condition_variable& g_cvA = *new std::condition_variable;
@@ -417,6 +419,10 @@ void ThreadMain() {
                         g_bCpuUs.store(port_thread_cpu_us(), std::memory_order_relaxed);
                     }
                 }
+                if (g_pollUs > 0 && g_framing.load(std::memory_order_relaxed)) {
+                    std::this_thread::sleep_for(std::chrono::microseconds(g_pollUs));
+                    continue;
+                }
                 g_bSleeping.store(true, std::memory_order_seq_cst);
                 if (g_published.load(std::memory_order_seq_cst) == done) {
                     std::unique_lock<std::mutex> lk(g_mtx);
@@ -587,6 +593,7 @@ void FrameBegin() {
         g_mode = static_cast<int>(EnvInt("GXV_SPLIT", dflt));
         if (g_mode < 0 || g_mode > 2) g_mode = 0;
         g_core = static_cast<int>(EnvInt("GXV_SPLIT_CORE", 1));
+        g_pollUs = static_cast<int>(std::min<long>(std::max<long>(EnvInt("GXV_SPLIT_POLL_US", 200), 0), 2000));
     }
     g_finished = false;
     g_jobs = 0;
@@ -717,7 +724,13 @@ uint32_t Job(const DrawJob& j, const DrawStateRef& st) {
     CopyWords(Begin(OP_JOB, kJobWords), &j, kJobWords);
     End(kJobWords);
     Publish();
-    if (++g_jobsSinceWake >= 16) {
+    if (g_pollUs > 0) {
+        // (one wake-up per frame: from here on the finishing thread polls, until FinishFrame)
+        if (!g_framing.load(std::memory_order_relaxed)) {
+            g_framing.store(true, std::memory_order_relaxed);
+            Wake(false);
+        }
+    } else if (++g_jobsSinceWake >= 16) {
         g_jobsSinceWake = 0;
         Wake(false);
     }
@@ -756,6 +769,7 @@ void FinishFrame(CmdBuf& buf) {
     }
     cmds.resize(o);
     if (V) Compare(buf);
+    g_framing.store(false, std::memory_order_relaxed);
     std::swap(buf.draws, F->draws);
     std::swap(buf.idx, F->idx);
     std::swap(buf.uni, F->uni);

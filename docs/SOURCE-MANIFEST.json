@@ -19048,11 +19048,11 @@
     },
     {
       "path": "platform/vgx/src/vgx_fesplit.cpp",
-      "sha256": "91a6c80c0301e77e96e56dcca40ecf7b84f989c025eb31dc0d761628b7ae1b35"
+      "sha256": "27053ce58a95591b2cd83608ba111bf92e5222cbe26af0e06b4de6a36e1df89a"
     },
     {
       "path": "platform/vgx/src/vgx_fesplit.h",
-      "sha256": "f50a11098c4f5bddfa680d5df3a08426facb016271f592ae518aa207c3baf7f1"
+      "sha256": "954c826fecfac3c4a1367b625338ca2ad4b75c964e02ab503cf8d46994692d79"
     },
     {
       "path": "platform/vgx/src/vgx_guestmem.cpp",

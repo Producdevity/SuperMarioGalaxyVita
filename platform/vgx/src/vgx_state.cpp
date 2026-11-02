@@ -1401,15 +1401,16 @@ namespace {
 struct StreamDigest {
     FILE* f = nullptr;
     XXH3_state_t st;
-    StreamDigest() {
-        if (const char* path = diag::Env("GXV_STREAMDIGEST"); path && *path) f = std::fopen(path, "w");
-        XXH3_64bits_reset(&st);
-    }
 };
 StreamDigest* Digest() {
-    static StreamDigest* d = [] {
+    static StreamDigest* d = []() -> StreamDigest* {
+        const char* path = diag::Env("GXV_STREAMDIGEST");
+        FILE* f = path && *path ? std::fopen(path, "w") : nullptr;
+        if (!f) return nullptr;
         StreamDigest* s = new StreamDigest;
-        return s->f ? s : nullptr;
+        s->f = f;
+        XXH3_64bits_reset(&s->st);
+        return s;
     }();
     return d;
 }

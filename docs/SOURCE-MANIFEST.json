@@ -19088,7 +19088,7 @@
     },
     {
       "path": "platform/vgx/src/vgx_state.cpp",
-      "sha256": "a80043049be9021a3d01f72fd7a46c72cd92038ca03cbc015fad38c339c38588"
+      "sha256": "e993b4f4e65567d6f6c1a40091e86c0153da2e1239c37a33e4a3048d96e314fd"
     },
     {
       "path": "platform/vgx/src/vgx_state.h",
@@ -19645,6 +19645,10 @@
     {
       "path": "tests/vgx_shader_list.cpp",
       "sha256": "0eb5a589b634984f9808bb8a8ef51d96e5ad95ccf813bce4bfb98f168be22c5e"
+    },
+    {
+      "path": "tests/vgx_statelist.cpp",
+      "sha256": "af6d70f077307f8342a3290c49ecd8b99ef685683c4116e1d4a5bd611a81378a"
     },
     {
       "path": "tests/vgx_tevwrap_elide.cpp",
@@ -20533,6 +20537,10 @@
     {
       "path": "tools/test_vgx_shader_list.sh",
       "sha256": "24cda9e7df5f73729537684e576a7d96ab6bd66189e1eb989b5f99d5aeacfc35"
+    },
+    {
+      "path": "tools/test_vgx_statelist.sh",
+      "sha256": "a868015fe4351d5c68ac9a83b4a1db69478f9ceb269fa7152a0bd901d47696e8"
     },
     {
       "path": "tools/test_vgx_tevwrap_elide.sh",

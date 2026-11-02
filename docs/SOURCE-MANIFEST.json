@@ -14984,7 +14984,7 @@
     },
     {
       "path": "decomp/src/Game/System/DrawSyncManager.cpp",
-      "sha256": "ffd9038f98e3bc59e168e58f735fb89f6dc2865483b88380d9a47a5714e86064"
+      "sha256": "3ac22c323a32a60847711c1ff573f3d6003c148e55920351b6ca9985a0058ceb"
     },
     {
       "path": "decomp/src/Game/System/FileHolder.cpp",

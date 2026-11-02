@@ -160,9 +160,11 @@ void DrawSyncManager::reset(bool preparing) {
 
 void DrawSyncManager::drawSyncCallbackSub(u16 token) {
     if (token == 0) {
+#ifndef TARGET_PC
         if ((mFlags & 2) == 0) {
             OSSendMessage(&mQueue, reinterpret_cast< OSMessage >(token), OS_MESSAGE_BLOCK);
         }
+#endif
 
         return;
     }
@@ -171,9 +173,11 @@ void DrawSyncManager::drawSyncCallbackSub(u16 token) {
         if (mTokenRanges[i].mCallback != nullptr && mTokenRanges[i].mStart <= token && token <= mTokenRanges[i].mEnd) {
             mTokenRanges[i].mCallback->drawSyncCallback(token);
 
+#ifndef TARGET_PC
             if ((mFlags & 2) == 0) {
                 OSSendMessage(&mQueue, reinterpret_cast< OSMessage >(token), OS_MESSAGE_BLOCK);
             }
+#endif
 
             break;
         }
@@ -183,6 +187,11 @@ void DrawSyncManager::drawSyncCallbackSub(u16 token) {
 void DrawSyncManager::pushBreakPoint() {
     if ((mFlags & 3) == 0) {
         GXFlush();
+#ifdef TARGET_PC
+        // The thread's messages only keep the FIFO behind GXEnableBreakPt, which does nothing in the port (gx_fifo.cpp);
+        // each woke the thread at a higher priority than the game's: two guest thread switches per break point and token.
+        return;
+#endif
         GXFifoObj fifoObj;
         GXGetCPUFifo(&fifoObj);
 

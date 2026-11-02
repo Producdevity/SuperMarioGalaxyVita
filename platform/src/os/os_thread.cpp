@@ -723,6 +723,14 @@ s32 OSEnableScheduler(void) {
 
 void OSYieldThread(void) {
     BOOL enabled = OSDisableInterrupts();
+    // Nothing ready at this thread's priority or above (the game yields after every material display list it rewrites):
+    // SelectThread would queue this thread and take it straight back.
+    OSThread* current = __OSCurrentThread;
+    if (current && current->state == OS_THREAD_STATE_RUNNING && __cntlzw(RunQueueBits) > current->priority) {
+        if (Reschedule <= 0 && !sInIrq) RunQueueHint = FALSE;
+        OSRestoreInterrupts(enabled);
+        return;
+    }
     SelectThread(TRUE);
     OSRestoreInterrupts(enabled);
 }

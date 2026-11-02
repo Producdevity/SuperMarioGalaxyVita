@@ -18816,7 +18816,7 @@
     },
     {
       "path": "platform/src/os/os_thread.cpp",
-      "sha256": "4ab491ff59a4299f3d6b820f859c0a10215c0b17f942819eef6b7e0874ea8d7e"
+      "sha256": "d6500ebe3cc1466289db1fb3eea844fb5161b60c91efb2c442f3b72a31dcf5ec"
     },
     {
       "path": "platform/src/port/boot.cpp",
@@ -19341,6 +19341,10 @@
     {
       "path": "tests/os_vita_memory.cpp",
       "sha256": "6c9964e086f4ab261ad0b65d1b3a84c5f204f3856a2b0af75c19f57476825651"
+    },
+    {
+      "path": "tests/os_yield.cpp",
+      "sha256": "288656ce31152beff4b4b772a8d7e4e6726c941b6c4ea6195052a794ab0bf6cb"
     },
     {
       "path": "tests/phase_cpu.cpp",
@@ -20337,6 +20341,10 @@
     {
       "path": "tools/test_os_vita_memory.sh",
       "sha256": "85ecc1246ee2c9d9a4dc468ad5859d45aeaadee7c2f9f76a1b661a80518df200"
+    },
+    {
+      "path": "tools/test_os_yield.sh",
+      "sha256": "0ccdf75429183dc3f7373ea8828f57463ad5a46ae8cee4d661c76bf08138926b"
     },
     {
       "path": "tools/test_phase_cpu.sh",

@@ -256,7 +256,9 @@ uint8_t* BeginVertices(uint32_t layoutMask, uint32_t count);
 // `foldedFrom`: the vertices were decoded into the layout FoldGuess chose (`layoutMask`, with both colour slots)
 // instead of the stream's own (`foldedFrom`). When the draw turns out not to fold, nothing is drawn and the
 // arena is as it was before BeginVertices; the result is false then, and the caller decodes again, plainly.
-bool EmitDraw(uint8_t gxPrim, uint32_t layoutMask, uint32_t count, uint32_t foldedFrom = 0xFFFFFFFFu);
+// `copyFrom`: the vertices are not written yet but are a copy of these bytes (split::CopiesVertices), which stay as they
+// are until split::Settle(split::Issued()) after the call returns.
+bool EmitDraw(uint8_t gxPrim, uint32_t layoutMask, uint32_t count, uint32_t foldedFrom = 0xFFFFFFFFu, const uint8_t* copyFrom = nullptr);
 // The layout to decode the next draw's vertices into: with both colour slots when the last draws folded their
 // registers (a particle run) and the next is small enough to, so that EmitDraw need not lay them out again.
 // `layoutMask` itself when no guess is made.

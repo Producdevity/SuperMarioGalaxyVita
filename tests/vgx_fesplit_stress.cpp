@@ -3,9 +3,11 @@
 // GXV_SPLIT=2 must report no mismatches. Built with -fsanitize=thread it checks the hand-over between the two threads.
 //   vgx_fesplit_stress [frames] [seed]
 // (Random register values within what the front end accepts without guest memory: no texture loads, palette loads
-// or EFB copy triggers through BP; copies are queued directly, textures are bound as pictures of copies.)
+// or EFB copy triggers through BP; copies are queued directly, textures are bound as pictures of copies. The one guest
+// memory is a few display lists of the display-list cache, whose vertex data is rewritten now and then.)
 #include "vgx_state.h"
 #include "vgx_fesplit.h"
+#include "vgx_hle.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -117,6 +119,49 @@ void State() {
     }
 }
 
+// Display lists of triangle strips with indexed positions: small enough for the cache to copy their vertices into every
+// frame's arena (the finishing thread does, with the split on). Half of them name a position matrix per vertex. A rewrite
+// of their positions rebuilds the cache's entry, possibly before the finishing thread has copied it for an earlier call.
+alignas(4096) uint8_t g_ram[2 * 4096];
+constexpr unsigned kLists = 6, kStrips = 8, kListVerts = kStrips * 4, kListBytes = 128, kPositions = 4096;
+uint32_t g_listBytes[kLists];
+void Put32(uint8_t* p, uint32_t v) {
+    for (unsigned i = 0; i != 4; ++i) p[i] = static_cast<uint8_t>(v >> (24 - 8 * i));
+}
+void InitLists() {
+    for (unsigned l = 0; l < kLists; ++l) {
+        const bool mtx = l < kLists / 2;
+        uint8_t* p = g_ram + l * kListBytes;
+        for (unsigned s = 0; s < kStrips; ++s) {
+            *p++ = 0x98; *p++ = 0; *p++ = 4;
+            for (unsigned j = 0; j < 4; ++j) {
+                const unsigned i = l * kListVerts + s * 4 + j;
+                if (mtx) *p++ = static_cast<uint8_t>(Rn(20) * 3);
+                *p++ = static_cast<uint8_t>(i >> 8);
+                *p++ = static_cast<uint8_t>(i);
+            }
+        }
+        g_listBytes[l] = static_cast<uint32_t>(p - (g_ram + l * kListBytes));
+    }
+    for (unsigned i = 0; i < kLists * kListVerts; ++i)
+        for (unsigned k = 0; k < 3; ++k) Put32(g_ram + kPositions + i * 12 + k * 4, F2u(k == 2 ? Rf(-3, -1) : Rf(-1, 1)));
+    vgx::g.cpArrayStale = 0;
+    vgx::hle::RegisterGuestRam(g_ram, sizeof g_ram);
+}
+void CachedList() {
+    const unsigned l = Rn(kLists);
+    if (Rn(6) == 0) {
+        uint8_t* p = g_ram + kPositions + (l * kListVerts + Rn(kListVerts)) * 12;
+        Put32(p, F2u(Rf(-1, 1)));
+        vgx::hle::NotifyGuestWrite(p, 4);
+    }
+    vgx::SetVcd(0, l < kLists / 2 ? 1 : 0);
+    vgx::SetVcd(9, 3);
+    vgx::SetVat(0, 9, 1, 4, 0);
+    vgx::g.arrays[9] = {g_ram + kPositions, kLists * kListVerts * 12, 12, false};
+    vgx::CallList(g_ram + l * kListBytes, g_listBytes[l]);
+}
+
 void Draws() {
     static const uint8_t kPrims[] = {0x80, 0x80, 0x80, 0x90, 0x98, 0xA0, 0xA8, 0xB8};
     static const uint32_t kLayouts[] = {0, vgx::VL_NRM, vgx::VL_COL0, vgx::VL_COL0 | vgx::VL_COL1, vgx::VL_TEX0, vgx::VL_NRM | vgx::VL_TEX0 | vgx::VL_COL0,
@@ -163,10 +208,13 @@ int main(int argc, char** argv) {
     vgx::g.efbW = 640;
     vgx::g.efbH = 456;
     vgx::QueueSetTarget();
+    InitLists();
     for (g_frame = 1; g_frame <= frames; ++g_frame) {
         const unsigned ops = 40 + Rn(400);
         for (unsigned i = 0; i < ops; ++i) {
-            if (Rn(3) == 0) Draws();
+            const uint32_t r = Rn(12);
+            if (r < 3) Draws();
+            else if (r < 5) CachedList();
             else State();
         }
         vgx::g.dispCopySrc = vgx::EfbRect{0, 0, 640, 456};

@@ -51,7 +51,7 @@ int64_t NowNs() {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
-enum : uint32_t { OP_NEXT = 1, OP_SETFS, OP_SETVS, OP_PROJ, OP_MTX, OP_LIGHT, OP_TEV, OP_STATE, OP_JOB, OP_XFORM };
+enum : uint32_t { OP_NEXT = 1, OP_SETFS, OP_SETVS, OP_PROJ, OP_MTX, OP_LIGHT, OP_TEV, OP_STATE, OP_JOB, OP_XFORM, OP_COPY };
 constexpr uint32_t kChunkWords = 1u << 14; // 64 KiB; the largest operation (a full matrix palette) is 626 words
 struct Chunk {
     uint32_t w[kChunkWords];
@@ -64,6 +64,8 @@ constexpr uint32_t kJobWords = sizeof(DrawJob) / 4;
 int g_mode = -1;  // GXV_SPLIT
 int g_core = 1;   // GXV_SPLIT_CORE
 int g_pollUs = 0; // GXV_SPLIT_POLL_US
+bool g_copy = true; // GXV_SPLIT_COPY
+bool g_bounds = true; // GXV_SPLIT_BOUNDS
 void (*g_threadInit)(int) = nullptr;
 bool g_started = false;
 
@@ -145,6 +147,7 @@ struct Finisher {
     int lastDraw = -1;
     uint32_t lastRecSerial = 0, records = 0;
     std::vector<uint32_t> results; // per job: the record it made, or ~0 (merged)
+    const uint8_t* xfV = nullptr;  // the vertices of the last OP_XFORM (a job with bounds follows its own)
     uint32_t rowMismatches = 0;    // (GXV_SPLIT=2) the matrix rows the player computed differ from the builder's
     void ResetFrame() {
         uni.clear();
@@ -171,8 +174,9 @@ struct Shadow {
     std::vector<uint32_t> results;
     size_t scan = 0; // commands of the frame's list copied into `cmds` so far
     struct Xf { size_t off; uint32_t bytes; size_t at; };
-    std::vector<Xf> xf;          // transformed vertex ranges, and where the expected bytes are in xfData
+    std::vector<Xf> xf;          // copied or transformed vertex ranges, and where the expected bytes are in xfData
     std::vector<uint8_t> xfData;
+    size_t copyOff = ~static_cast<size_t>(0); // the range of the last Copy, until its Xform (xf.back())
     uint32_t rowMismatches = 0;
     // totals
     uint64_t frames = 0, badFrames = 0, jobs = 0, badRecords = 0, badCmds = 0, badIdx = 0, badUni = 0, badXf = 0, badRows = 0, badResults = 0;
@@ -184,6 +188,7 @@ struct Shadow {
         results.clear();
         xf.clear();
         xfData.clear();
+        copyOff = ~static_cast<size_t>(0);
         for (int b = 0; b < UB_COUNT; ++b) { blockOff[b] = kNoBlock; blockLen[b] = 0; }
         lastDraw = -1;
         records = 0;
@@ -352,6 +357,7 @@ void Run(uint32_t type, const uint32_t* p) {
     case OP_JOB: {
         DrawJob j;
         CopyWords(&j, p, kJobWords);
+        if (j.bounds & BOUNDS) SmallDrawExtent(j, F->xfV, &s.xfReg[0x20], F->rs, (j.bounds & BOUNDS_ALPHATEST) != 0);
         FinishCtx c{&F->draws, &F->idx, nullptr, F->blockOff, &F->lastDraw, &F->lastRecSerial, &F->records, false};
         const DrawStateRef st{F->vsId, F->useFs, F->texMask, F->serial, &F->rs, F->tex};
         F->results.push_back(j.kind == JOB_STATIC ? FinishStatic(c, j, st) : FinishDraw(c, j, st));
@@ -361,6 +367,12 @@ void Run(uint32_t type, const uint32_t* p) {
         uint64_t a = p[0] | (static_cast<uint64_t>(p[1]) << 32);
         uint8_t* v = reinterpret_cast<uint8_t*>(static_cast<uintptr_t>(a));
         SoftTransformWith(v, p[2], MakeLayout(p[3]), reinterpret_cast<const float*>(p + 4), reinterpret_cast<const float*>(p + 16));
+        F->xfV = v;
+        break;
+    }
+    case OP_COPY: {
+        const uint64_t d = p[0] | (static_cast<uint64_t>(p[1]) << 32), from = p[2] | (static_cast<uint64_t>(p[3]) << 32);
+        std::memcpy(reinterpret_cast<void*>(static_cast<uintptr_t>(d)), reinterpret_cast<const void*>(static_cast<uintptr_t>(from)), p[4]);
         break;
     }
     default:
@@ -575,6 +587,16 @@ void Compare(CmdBuf& buf) {
 void SetThreadInit(void (*fn)(int core)) { g_threadInit = fn; }
 
 uint32_t StolenOps() { return g_stolen.load(std::memory_order_relaxed); }
+
+bool CopiesVertices() { return g_on && g_copy; }
+bool FindsBounds() { return g_on && g_bounds; }
+uint32_t Issued() { return g_produced; }
+void Settle(uint32_t ticket) {
+    // (operations not done yet are the last `outstanding` ones sent; an older ticket's are done, whatever the wrap-around)
+    const uint32_t outstanding = g_produced - g_done.load(std::memory_order_acquire);
+    if (g_produced - ticket >= outstanding) return;
+    Drain();
+}
 void Counters(int64_t& finisherCpuUs, int64_t& playerWaitNs, uint32_t& frames) {
     finisherCpuUs = g_bCpuUs.load(std::memory_order_relaxed);
     playerWaitNs = g_waitNs.load(std::memory_order_relaxed);
@@ -594,6 +616,8 @@ void FrameBegin() {
         if (g_mode < 0 || g_mode > 2) g_mode = 0;
         g_core = static_cast<int>(EnvInt("GXV_SPLIT_CORE", 1));
         g_pollUs = static_cast<int>(std::min<long>(std::max<long>(EnvInt("GXV_SPLIT_POLL_US", 200), 0), 2000));
+        g_copy = EnvInt("GXV_SPLIT_COPY", 1) != 0;
+        g_bounds = EnvInt("GXV_SPLIT_BOUNDS", 1) != 0;
     }
     g_finished = false;
     g_jobs = 0;
@@ -685,6 +709,24 @@ void Tev(uint16_t fsId, const FsKey& fs, const uint16_t texW[8], const uint16_t 
     }
 }
 
+void Copy(size_t offset, const uint8_t* src, uint32_t bytes) {
+    uint8_t* const v = Pending().vtx.data() + offset;
+    if (Verify()) {
+        const size_t at = V->xfData.size();
+        V->xfData.insert(V->xfData.end(), src, src + bytes);
+        V->xf.push_back(Shadow::Xf{offset, bytes, at});
+        V->copyOff = offset;
+    }
+    uint32_t* p = Begin(OP_COPY, 5);
+    const uint64_t d = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(v)), from = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(src));
+    p[0] = static_cast<uint32_t>(d);
+    p[1] = static_cast<uint32_t>(d >> 32);
+    p[2] = static_cast<uint32_t>(from);
+    p[3] = static_cast<uint32_t>(from >> 32);
+    p[4] = bytes;
+    End(5);
+}
+
 void Xform(size_t offset, uint32_t count, uint32_t layoutMask) {
     CmdBuf& buf = Pending();
     uint8_t* const v = buf.vtx.data() + offset;
@@ -693,13 +735,18 @@ void Xform(size_t offset, uint32_t count, uint32_t layoutMask) {
     const float* nm = g.xfNrm[(pi & 31) < 30 ? (pi & 31) : 29];
     const bool nrm = (layoutMask & VL_NRM) != 0;
     if (Verify()) {
-        // (the expected bytes: the same transform, here, on a copy)
+        // (the expected bytes: the same transform, here, on a copy; of the copy's source when the finishing thread copies them)
         const VtxLayout L = MakeLayout(layoutMask);
         const uint32_t bytes = count * L.stride;
-        const size_t at = V->xfData.size();
-        V->xfData.insert(V->xfData.end(), v, v + bytes);
-        SoftTransformWith(V->xfData.data() + at, count, L, m, nm);
-        V->xf.push_back(Shadow::Xf{offset, bytes, at});
+        if (V->copyOff == offset && V->xf.back().bytes == bytes) {
+            SoftTransformWith(V->xfData.data() + V->xf.back().at, count, L, m, nm);
+        } else {
+            const size_t at = V->xfData.size();
+            V->xfData.insert(V->xfData.end(), v, v + bytes);
+            SoftTransformWith(V->xfData.data() + at, count, L, m, nm);
+            V->xf.push_back(Shadow::Xf{offset, bytes, at});
+        }
+        V->copyOff = ~static_cast<size_t>(0);
     }
     const uint32_t n = 16 + (nrm ? 9u : 0u);
     uint32_t* p = Begin(OP_XFORM, n);
@@ -717,8 +764,13 @@ uint32_t Job(const DrawJob& j, const DrawStateRef& st) {
     if (Verify()) {
         ShadowSync(Pending().cmds);
         V->scan = Pending().cmds.size() + 1; // (the placeholder the caller pushes next)
+        V->copyOff = ~static_cast<size_t>(0);
+        DrawJob sj = j;
+        // (from the shadow's transform of the draw's vertices, and the player's projection and render state)
+        if ((sj.bounds & BOUNDS) && !V->xf.empty())
+            SmallDrawExtent(sj, V->xfData.data() + V->xf.back().at, &g.xfReg[0x20], *st.rs, (sj.bounds & BOUNDS_ALPHATEST) != 0);
         FinishCtx c{&V->draws, &V->idx, &V->cmds, V->blockOff, &V->lastDraw, &V->lastRecSerial, &V->records, false};
-        V->results.push_back(j.kind == JOB_STATIC ? FinishStatic(c, j, st) : FinishDraw(c, j, st));
+        V->results.push_back(sj.kind == JOB_STATIC ? FinishStatic(c, sj, st) : FinishDraw(c, sj, st));
     }
     SendState(st);
     CopyWords(Begin(OP_JOB, kJobWords), &j, kJobWords);

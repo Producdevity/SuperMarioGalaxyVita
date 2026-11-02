@@ -19,6 +19,7 @@
 //   GXV_DLCACHE=verify  hash on every call and report an entry whose
 //                           bytes changed without a write notification
 // Counters: per frame in the CSV (dlHit, dlBuild, dlRehash, dlBypass), totals in vgx_stats.txt.
+#include "vgx_fesplit.h"
 #include "vgx_guestmem.h"
 #include "vgx_state.h"
 
@@ -81,6 +82,7 @@ struct Entry {
     uint32_t totalVerts = 0;
     uint32_t bufId = 0;            // static buffer in the back end (0: vertices are copied into the frame arena per use)
     uint32_t bufBytes = 0;
+    uint32_t ticket = 0;           // (front-end split) its last copies: split::Settle before verts change
     bool promotable = false;       // the list as a whole is too large for the CPU-transform-and-merge path
     // ---- policy
     uint64_t lastUse = 0;
@@ -243,6 +245,7 @@ void ReleaseBuffer(Entry& e) {
 }
 // Moves the entry's geometry into a static buffer of the back end.
 void Promote(Entry& e) {
+    split::Settle(e.ticket);
     // With absolute indices every primitive of the buffer is addressed from the buffer's
     // start: that needs one stride for all of them and 16 bits to be enough. (Lists with
     // more than one primitive are rare in this game; one that does not qualify stays in
@@ -439,7 +442,7 @@ bool SameState(const Entry& e) {
     return true;
 }
 
-void Emit(const Entry& e, uint32_t nbytes) {
+void Emit(Entry& e, uint32_t nbytes) {
     stats::Frame& fr = stats::Cur();
     ++fr.streams;
     fr.streamBytes += nbytes;
@@ -455,18 +458,23 @@ void Emit(const Entry& e, uint32_t nbytes) {
         }
         return;
     }
+    const bool deferred = split::CopiesVertices();
     for (const Seg& s : e.segs) {
         uint8_t* out = BeginVertices(s.layoutMask, s.count);
         if (!out) continue; // (BeginVertices' guard refused the arena: this segment is not drawn)
-        std::memcpy(out, e.verts.data() + s.offset, static_cast<size_t>(s.count) * s.stride);
+        const uint8_t* const src = e.verts.data() + s.offset;
+        if (!deferred) std::memcpy(out, src, static_cast<size_t>(s.count) * s.stride);
         SetPendingPosMtxMax(s.posMtxMax);
-        EmitDraw(s.prim, s.layoutMask, s.count); // (GXV_CHARAA: bounds from the vertices themselves, few by construction)
+        // (GXV_CHARAA: bounds from the vertices themselves, few by construction)
+        EmitDraw(s.prim, s.layoutMask, s.count, 0xFFFFFFFFu, deferred ? src : nullptr);
         ++fr.primsDL;
         fr.vertsDL += s.count;
     }
+    if (deferred) e.ticket = split::Issued();
 }
 
 void Free(Entry* e) {
+    split::Settle(e->ticket);
     ReleaseBuffer(*e);
     g_ctr.liveBytes -= e->verts.capacity();
     delete e;
@@ -673,6 +681,7 @@ void CallList(const uint8_t* list, uint32_t nbytes) {
     e->list = list;
     e->nbytes = nbytes;
     std::memcpy(e->vcd, g.vcd, 21);
+    split::Settle(e->ticket);
     const bool pure = Build(*e, list, nbytes);
     g_ctr.liveBytes += e->verts.capacity();
     const bool ok = pure;

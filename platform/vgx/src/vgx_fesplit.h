@@ -9,7 +9,9 @@
 //     PushBlock in vgx_draw.cpp);
 //   - the draw records: merging a primitive into the previous record, making new records, building
 //     the index arena (the tail of EmitDraw, EmitStaticDraw, EmitStaticRun);
-//   - the CPU transform of small primitives' vertices (SoftTransform), done in place in the arena.
+//   - the CPU transform of small primitives' vertices (SoftTransform), done in place in the arena;
+//   - copying the vertices of the display-list cache's entries into the arena (the player reserves the room);
+//   - the pixel bounds of small draws without a depth test (DrawRec::exX, cover), from the transformed vertices.
 // The player sends these as an ordered stream of operations (with copies of the register values the
 // blocks are built from); its command list holds a placeholder for every draw. At the end of the frame
 // it waits for the finishing thread to catch up, replaces the placeholders by the records that thread
@@ -27,6 +29,8 @@
 //   GXV_SPLIT_POLL_US=<n>  while the player builds a frame, the finishing thread looks for work every n microseconds
 //                      (default 200) instead of being woken by the player: a wake-up is a kernel call (5 % of the
 //                      player's time on the console, at one every 16 draws). 0: woken as before.
+//   GXV_SPLIT_COPY=0   the player copies the display-list cache's vertices itself
+//   GXV_SPLIT_BOUNDS=0 the player works out the small draws' bounds itself (on a transformed copy of their vertices)
 // The split is off while a diagnostic that inspects the moved work per draw is on (GXV_STATS detail,
 // GXV_TRACE, GXV_TRACE_DRAWS, GXV_MERGEFAST=2, GXV_SOFTNEON=2).
 #pragma once
@@ -64,11 +68,15 @@ struct DrawStateRef {
     const TexBind* tex; // [8]
 };
 enum : uint8_t { JOB_DYNAMIC = 0, JOB_STATIC = 1 };
+// DrawJob::bounds: work out exX..exH and cover from the draw's transformed vertices (SmallDrawExtent); the fragment
+// shader's alpha test is on.
+enum : uint8_t { BOUNDS = 1, BOUNDS_ALPHATEST = 2 };
 struct DrawJob {
     uint8_t kind = JOB_DYNAMIC;
     uint8_t gxPrim = 0, prim = 0, cover = 0;
     uint8_t prevIsDraw = 0; // (split) the command before this draw's placeholder is a draw's
-    uint8_t pad[3] = {};
+    uint8_t bounds = 0;     // (split) BOUNDS*
+    uint8_t pad[2] = {};
     uint32_t layoutMask = 0, count = 0, idxCount = 0;
     // dynamic: where the vertices are (absolute indices: chunk and first vertex; else the byte offset) and their stride
     uint32_t chunk = 0, first = 0, vtxStart = 0, stride = 0;
@@ -94,6 +102,9 @@ uint32_t FinishStatic(FinishCtx& c, const DrawJob& j, const DrawStateRef& st);
 // The shader warm-up list's program / variant bookkeeping of a new record (NewDrawRec), for the split path,
 // where the player does it for every draw (a merged draw has its record's variant: no difference).
 void NoteVariant(const DrawStateRef& st, uint32_t layoutMask);
+// A small draw's pixels (j.exX..exH, which hold the scissor on entry) and j.cover, from its eye-space vertices `v`
+// (j.count of them, j.stride apart), the projection registers (XF 0x20..0x26) and the render state.
+void SmallDrawExtent(DrawJob& j, const uint8_t* v, const uint32_t* proj, const RenderState& rs, bool alphaTest);
 
 // ---- the split (vgx_fesplit.cpp), called on the player thread
 extern bool g_on; // this frame runs split (decided at the frame's start)
@@ -103,6 +114,15 @@ void Proj(bool stale);
 uint64_t Mtx(uint16_t vsId, const VsKey& vs, bool soft, bool stale);
 void Light(uint16_t vsId, const VsKey& vs, bool stale);
 void Tev(uint16_t fsId, const FsKey& fs, const uint16_t texW[8], const uint16_t texH[8], bool fold, bool stale);
+// Whether the vertices of the display-list cache are copied by the finishing thread (Copy) this frame, and whether it
+// works out the small draws' bounds (DrawJob::bounds).
+bool CopiesVertices();
+bool FindsBounds();
+// The pending vertices at byte `offset` are a copy of `bytes` bytes at `src`, which must stay as they are until
+// Settle(Issued()) returns (called after the draw was sent).
+void Copy(size_t offset, const uint8_t* src, uint32_t bytes);
+uint32_t Issued();
+void Settle(uint32_t ticket);
 // The pending vertices at byte `offset` (count, layout) are to be transformed with the current position matrix.
 void Xform(size_t offset, uint32_t count, uint32_t layoutMask);
 // A draw: returns the index its placeholder (Cmd{CMD_DRAW, index}) carries.

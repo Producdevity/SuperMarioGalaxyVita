@@ -19040,19 +19040,19 @@
     },
     {
       "path": "platform/vgx/src/vgx_dlcache.cpp",
-      "sha256": "103b1dfb7ff4eb1e9513adf5fb34495e4cd6f51326255a8e8565b1f15671132a"
+      "sha256": "fbc53fa00dac36017b65e0c0834b6b828b628540cc3bb56ffad4a78c90974882"
     },
     {
       "path": "platform/vgx/src/vgx_draw.cpp",
-      "sha256": "89383a45fa6a93df5ef0c3eb583463313e5500b5ae01e3ec02f8ca25beec76d6"
+      "sha256": "04e87d9eef5a9f75c4db822cf4b632403477b3f7dea8af22ac1a2db875757733"
     },
     {
       "path": "platform/vgx/src/vgx_fesplit.cpp",
-      "sha256": "27053ce58a95591b2cd83608ba111bf92e5222cbe26af0e06b4de6a36e1df89a"
+      "sha256": "ac770b43f305cde56748907a5878137eceb06eb767e24bb4019c8093a5018ca3"
     },
     {
       "path": "platform/vgx/src/vgx_fesplit.h",
-      "sha256": "954c826fecfac3c4a1367b625338ca2ad4b75c964e02ab503cf8d46994692d79"
+      "sha256": "b4045c12d97833a1ddb94946cdba7e69dddaa75518476fc56fd7f459a867a25f"
     },
     {
       "path": "platform/vgx/src/vgx_guestmem.cpp",
@@ -19092,7 +19092,7 @@
     },
     {
       "path": "platform/vgx/src/vgx_state.h",
-      "sha256": "832830e77dde7a389f6903c4a1ac6ae54908d03175e90bf6686f8d6d22846199"
+      "sha256": "71e702f16b41383145d587ed9ec5eaa9b8ebb9b5a94687253ec8b33a5eee97d0"
     },
     {
       "path": "platform/vgx/src/vgx_static_crowd.h",
@@ -19564,7 +19564,7 @@
     },
     {
       "path": "tests/vgx_fesplit_stress.cpp",
-      "sha256": "b307b40ad19a103b74733ebbf912dc868aa78485d11c6937f372c372ae260dc6"
+      "sha256": "a911412e9647f5db8742a6e05803a6a2cb44666165992ca78689bc2074c48b3e"
     },
     {
       "path": "tests/vgx_fixed_cap_test.cpp",

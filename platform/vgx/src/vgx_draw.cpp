@@ -1939,14 +1939,14 @@ static DrawRec* NewDrawRec(split::FinishCtx& c, uint8_t prim, uint32_t layoutMas
 }
 
 // The pixels of a small draw (see DrawRec::exX): the bounding box, in EFB pixels, of its
-// eye-space vertices under the current projection and viewport. `rect` is set when the draw
+// eye-space vertices under the projection `proj` (XF 0x20..0x26) and the viewport of `rs`. `rect` is set when the draw
 // is four vertices that make an axis-aligned rectangle on whole pixels, ordered so that its two
 // triangles tile it. False: not known (a vertex behind the eye, values out of range).
-static bool SmallDrawBounds(uint8_t gxPrim, const uint8_t* v, uint32_t count, uint32_t stride, EfbRect& box, bool& rect) {
-    const RenderState& rs = cur.rs;
+static bool SmallDrawBounds(uint8_t gxPrim, const uint8_t* v, uint32_t count, uint32_t stride, const uint32_t* proj, const RenderState& rs, EfbRect& box,
+                            bool& rect) {
     float p[4];
-    for (int i = 0; i < 4; ++i) p[i] = u2f(g.xfReg[0x20 + i]);
-    const bool ortho = (g.xfReg[0x26] & 1) != 0;
+    for (int i = 0; i < 4; ++i) p[i] = u2f(proj[i]);
+    const bool ortho = (proj[6] & 1) != 0;
     float px[4], py[4];
     float x0 = 1e30f, y0 = 1e30f, x1 = -1e30f, y1 = -1e30f;
     for (uint32_t i = 0; i < count; ++i, v += stride) {
@@ -1990,6 +1990,14 @@ static bool SmallDrawBounds(uint8_t gxPrim, const uint8_t* v, uint32_t count, ui
     if (sxn[0] * syn[0] == sxn[o0] * syn[o0]) return true; // (the two pairs are the two diagonals)
     rect = true;
     return true;
+}
+
+void split::SmallDrawExtent(DrawJob& j, const uint8_t* v, const uint32_t* proj, const RenderState& rs, bool alphaTest) {
+    EfbRect box;
+    bool rect = false;
+    if (!SmallDrawBounds(j.gxPrim, v, j.count, j.stride, proj, rs, box, rect)) return;
+    j.exX = box.x; j.exY = box.y; j.exW = box.w; j.exH = box.h;
+    j.cover = (rect && !rs.blend && rs.colorWrite && !alphaTest && rs.cull == CULL_NONE && box.w > 0 && box.h > 0) ? 1 : 0;
 }
 
 // ================================================================ character edge smoothing (GXV_CHARAA)
@@ -2501,11 +2509,17 @@ static inline void FinishOrSend(const split::DrawJob& j) {
     else split::FinishDraw(c, j, st);
 }
 
-bool EmitDraw(uint8_t gxPrim, uint32_t layoutMask, uint32_t count, uint32_t foldedFrom) {
+bool EmitDraw(uint8_t gxPrim, uint32_t layoutMask, uint32_t count, uint32_t foldedFrom, const uint8_t* copyFrom) {
     VtxLayout L = LayoutOf(layoutMask);
     g_buf.vtx.resize(g_pendingVtxStart + static_cast<size_t>(count) * L.stride);
     auto drop = [&] { g_buf.vtx.resize(g_pendingVtxStart); };
+    // (the vertices the finishing thread would copy, for the player to read them)
+    auto place = [&] {
+        if (copyFrom) std::memcpy(g_buf.vtx.data() + g_pendingVtxStart, copyFrom, static_cast<size_t>(count) * L.stride);
+        copyFrom = nullptr;
+    };
     if (count == 0) return true;
+    if (!split::g_on) place();
 
     const uint8_t prim = PrimKind(gxPrim);
     const uint32_t idxCount = PrimIndexCount(gxPrim, count);
@@ -2526,31 +2540,38 @@ bool EmitDraw(uint8_t gxPrim, uint32_t layoutMask, uint32_t count, uint32_t fold
         return false;
     }
     if (cur.cullAll && prim == PRIM_TRIANGLES) { drop(); return true; }
-    if (ChaOn()) CharaNote(g_buf.vtx.data() + g_pendingVtxStart, count, L.stride, L.mask); // (GXV_CHARAA: model-space vertices still)
+    if (ChaOn()) {
+        place();
+        CharaNote(g_buf.vtx.data() + g_pendingVtxStart, count, L.stride, L.mask); // (GXV_CHARAA: model-space vertices still)
+    }
     // (front-end split: the finishing thread transforms the vertices, once they are where they stay, below)
     const bool split = split::g_on;
     if (cur.soft && !split) SoftTransform(g_buf.vtx.data() + g_pendingVtxStart, count, L);
+    split::DrawJob j;
+    j.gxPrim = gxPrim;
+    j.count = count;
+    j.stride = L.stride;
     // Where its pixels are, for the bookkeeping of the EFB's contents (pass isolation): worked out
     // for the small draws that are not depth-tested (screen-space quads: post-processing, HUD).
-    EfbRect ext{cur.rs.scX, cur.rs.scY, cur.rs.scW, cur.rs.scH};
-    uint8_t cover = 0;
+    // (split: by the finishing thread, from the vertices it transforms)
+    j.exX = cur.rs.scX; j.exY = cur.rs.scY; j.exW = cur.rs.scW; j.exH = cur.rs.scH;
     if (cur.soft && prim == PRIM_TRIANGLES && count <= 16 && (!cur.rs.depthTest || cur.rs.depthFunc == CMP_ALWAYS)) {
-        EfbRect box;
-        bool rect = false;
-        const uint8_t* bv = g_buf.vtx.data() + g_pendingVtxStart;
-        alignas(16) uint8_t eye[16 * 112]; // (split: a transformed copy; 16 vertices of at most 108 bytes)
-        if (split) {
-            std::memcpy(eye, bv, static_cast<size_t>(count) * L.stride);
-            SoftTransform(eye, count, L);
-            bv = eye;
-        }
-        if (SmallDrawBounds(gxPrim, bv, count, L.stride, box, rect)) {
-            ext = box;
-            const RenderState& rs = cur.rs;
-            cover = (rect && !rs.blend && rs.colorWrite && !cur.fs.alphaTestOn && rs.cull == CULL_NONE && box.w > 0 && box.h > 0) ? 1 : 0;
+        if (split::FindsBounds()) {
+            j.bounds = split::BOUNDS | (cur.fs.alphaTestOn ? split::BOUNDS_ALPHATEST : 0);
+        } else {
+            const uint8_t* bv = g_buf.vtx.data() + g_pendingVtxStart;
+            alignas(16) uint8_t eye[16 * 112]; // (split: a transformed copy; 16 vertices of at most 108 bytes)
+            if (split) {
+                place();
+                std::memcpy(eye, bv, static_cast<size_t>(count) * L.stride);
+                SoftTransform(eye, count, L);
+                bv = eye;
+            }
+            split::SmallDrawExtent(j, bv, &g.xfReg[0x20], cur.rs, cur.fs.alphaTestOn);
         }
     }
     if (cur.fold) {
+        place();
         const uint32_t m = FoldRegs(layoutMask, count);
         if (m == 0xFFFFFFFFu) {
             // (cannot happen with the callers there are: draw it unfolded, with the registers in the block)
@@ -2565,22 +2586,18 @@ bool EmitDraw(uint8_t gxPrim, uint32_t layoutMask, uint32_t count, uint32_t fold
     g_bvSnap.pendingStart = ~static_cast<size_t>(0);
     // (a record holds at most 65,535 vertices: such a primitive cannot be merged either)
     if (count > 0xFFFF) { drop(); return true; }
+    if (copyFrom) split::Copy(g_pendingVtxStart, copyFrom, count * L.stride);
     if (cur.soft && split) split::Xform(g_pendingVtxStart, count, layoutMask);
 
-    split::DrawJob j;
     j.kind = split::JOB_DYNAMIC;
-    j.gxPrim = gxPrim;
     j.prim = prim;
-    j.cover = cover;
     j.layoutMask = layoutMask;
-    j.count = count;
     j.idxCount = idxCount;
     const bool abs = AbsoluteIndices();
     j.chunk = abs ? static_cast<uint16_t>(g_buf.vtxChunks.size() - 1) : 0;
     j.first = abs ? g_pendingFirst : 0;
     j.vtxStart = static_cast<uint32_t>(g_pendingVtxStart);
     j.stride = L.stride;
-    j.exX = ext.x; j.exY = ext.y; j.exW = ext.w; j.exH = ext.h;
     FinishOrSend(j);
     ++g_frameDraws;
     {

@@ -19004,7 +19004,7 @@
     },
     {
       "path": "platform/vgx/src/vgx_backend_gl.cpp",
-      "sha256": "f26d31aaf35044002080b789cb6a29b8db8056071f79b11b93ea434ab8d2cb07"
+      "sha256": "e7237c262bfa2b913e9a9a35ef8ddc93054847350f8ef4e8f5d35130e93ee271"
     },
     {
       "path": "platform/vgx/src/vgx_backend_null.cpp",
@@ -19496,7 +19496,7 @@
     },
     {
       "path": "tests/vgx_backend_quiet.cpp",
-      "sha256": "c855c5427a437a291a405a1da8ab2c03a3065aea6fcdd7f4633c39ad782e220e"
+      "sha256": "41079de932e3e23ef40388410e765ea0fc0c2b10847cb2252f6fb7c182ace7a8"
     },
     {
       "path": "tests/vgx_backend_quiet.py",

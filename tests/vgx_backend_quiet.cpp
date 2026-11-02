@@ -13,7 +13,7 @@ unsigned errorCallsDuringExecute = 0;
 bool executing = false;
 vgx::backend::Counts frameCounts;
 constexpr const char* diagnosticNames[] = {
-    "GXV_PROF", "GXV_SCENELOG", "GXV_PASSTIME", "GXV_PASSTIME_AT", "GXV_DRAWTIME", "GXV_DRAWTIME_AT",
+    "GXV_PROF", "GXV_SCENELOG", "GXV_SCENELOG_EVERY", "GXV_SCENEGPU", "GXV_PASSTIME", "GXV_PASSTIME_AT", "GXV_DRAWTIME", "GXV_DRAWTIME_AT",
     "GXV_GLSTATS", "GXV_STATS_RAM", "GXV_CONSTATTR_LOG", "GXV_VALIDATE", "GXV_CUT", "GXV_PROBE", "GXV_SIM_COMPILE_MS", "GXV_SIM_CACHE",
     "GXV_GLMEM", "GXV_PROGRESS_DUMP", "GXV_SIM_COMPILE_SLEEP"
 };

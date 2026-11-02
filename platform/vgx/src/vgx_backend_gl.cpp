@@ -392,7 +392,22 @@ void Invalidate() {
 }
 // Called before every draw and clear.
 bool g_sceneLog = false; // GXV_SCENELOG=<frame>: one line per scene of that frame
+// GXV_SCENEGPU=1 with GXV_SCENELOG: the GPU finishes each scene of that frame (glFinish) before the next begins; a line under
+// each scene tells how long it was recorded and how much longer the GPU took to finish it.
+inline double NowMs();
+double g_sceneMark = 0;
+void SceneGpuTime() {
+    static const bool on = DiagnosticInt("GXV_SCENEGPU", 0) != 0;
+    if (!on) return;
+    const double t0 = NowMs();
+    glFinish();
+    const double t1 = NowMs();
+    if (g_sceneMark > 0 && C.scenes > 0)
+        std::fprintf(stderr, "[scene]     %u: recorded in %.2f ms, then %.2f ms until the GPU finished it\n", C.scenes - 1, t0 - g_sceneMark, t1 - t0);
+    g_sceneMark = t1;
+}
 void LogScene() {
+    SceneGpuTime();
     int w = g_rtW, h = g_rtH;
     const char* what = "EFB";
     if (S.fbo != g_efbFbo) {
@@ -5074,7 +5089,9 @@ static void ExecuteFrame(const CmdBuf& buf) {
     g_dprofOn = profMode == 3;
     const double tFrame = prof ? Now() : 0.0;
     static const int64_t sceneLogFrame = DiagnosticInt("GXV_SCENELOG", -1);
-    g_sceneLog = sceneLogFrame >= 0 && static_cast<int64_t>(buf.frame) == sceneLogFrame;
+    static const int64_t sceneLogEvery = DiagnosticInt("GXV_SCENELOG_EVERY", 0); // (and every n-th frame after it)
+    const int64_t sinceLog = static_cast<int64_t>(buf.frame) - sceneLogFrame;
+    g_sceneLog = sceneLogFrame >= 0 && sinceLog >= 0 && (sinceLog == 0 || (sceneLogEvery > 0 && sinceLog % sceneLogEvery == 0));
     ++g_serial;
     EvictPrograms();
     AutoQualityFrame(); // (a new render scale, if the controller wants one, takes effect here: between frames)
@@ -5313,6 +5330,10 @@ static void ExecuteFrame(const CmdBuf& buf) {
         }
         case CMD_COPY_DISP: CopyDisp(buf.copyDisp[c.arg]); break;
         case CMD_PRESENT:
+            if (g_sceneLog) {
+                SceneGpuTime();
+                g_sceneMark = 0;
+            }
             for (PoolFbo& f : g_pool) f.uses = 0;
             EvictIdlePool(); // (render-target memory: objects no frame has used for a while)
             g_stats.programsUsedThisFrame = g_progsThisFrame;

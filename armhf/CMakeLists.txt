@@ -41,7 +41,7 @@ list(APPEND HARNESS_SRCS "${ROOT}/vita/runtime/flat_view.cpp")
 # Vita: clang-vita-toolchain.cmake vita_flags (minus -D__vita__/newlib/-nostdlibinc, see below) + vita/CMakeLists.txt.
 set(ARCH_FLAGS -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=hard -mthumb -fsigned-char -fno-short-enums -femulated-tls -fno-pic -munaligned-access)
 set(GAME_FLAGS
-  -w -O2 -fshort-wchar -fsigned-char -fno-strict-aliasing -fwrapv -ffp-contract=on -fno-fast-math -fms-extensions -ferror-limit=0
+  -w -O2 -fshort-wchar -fno-builtin-wcslen -fsigned-char -fno-strict-aliasing -fwrapv -ffp-contract=on -fno-fast-math -fms-extensions -ferror-limit=0
   "SHELL:-include ${ROOT}/vita/include/vita_source_prelude.h"
   "SHELL:-include ${ROOT}/platform/include/port/compat.h"
   -Wno-register -Wno-multichar -Wno-invalid-offsetof -Wno-c++11-narrowing

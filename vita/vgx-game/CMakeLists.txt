@@ -72,7 +72,7 @@ target_include_directories(galaxy_native PRIVATE "${root}/platform/include" "${r
 target_include_directories(galaxy_native PRIVATE "${root}/platform/vgx/src" "${root}/vita/runtime")
 target_compile_features(galaxy_native PRIVATE cxx_std_20)
 target_compile_options(galaxy_native PRIVATE -O2 -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=hard -mthumb
-    -fsigned-char -fshort-wchar -fno-fast-math -ffunction-sections -fdata-sections)
+    -fsigned-char -fshort-wchar -fno-builtin-wcslen -fno-fast-math -ffunction-sections -fdata-sections)
 set_source_files_properties(entry.cpp settings_runtime.cpp PROPERTIES COMPILE_OPTIONS "-fno-short-enums")
 set_source_files_properties(main.cpp PROPERTIES COMPILE_OPTIONS "-fshort-enums")
 # The SDK converter appends SCE metadata to RX before the next load segment.

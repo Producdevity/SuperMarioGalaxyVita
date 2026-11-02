@@ -55,6 +55,7 @@ endif()
 
 set(PORT_COMMON_FLAGS
   -fshort-wchar
+  -fno-builtin-wcslen  # (vita/CMakeLists.txt: Clang may turn 16-bit length loops into the C library's 32-bit wcslen)
   -fsigned-char
   -fno-strict-aliasing
   -fwrapv

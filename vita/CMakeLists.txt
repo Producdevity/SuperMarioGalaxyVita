@@ -67,8 +67,10 @@ target_include_directories(vita_source_options INTERFACE
   "${DECOMP}/libs/RVLFaceLib/include")
 target_compile_definitions(vita_source_options INTERFACE TARGET_PC=1 NDEBUG=1 VERSION=0)
 # Keep upstream behavior flags, not Strikers' translated-code optimizations.
+# -fno-builtin-wcslen: newer Clang (22, not the release's 18) turns 16-bit string-length loops into calls to wcslen,
+# and newlib's wcslen counts 32-bit characters.
 target_compile_options(vita_source_options INTERFACE
-  -O2 -fshort-wchar -fsigned-char -fno-strict-aliasing -fwrapv -ffp-contract=on
+  -O2 -fshort-wchar -fno-builtin-wcslen -fsigned-char -fno-strict-aliasing -fwrapv -ffp-contract=on
   -fno-fast-math -fms-extensions -ferror-limit=0
   "-ffile-prefix-map=${GALAXY_ROOT}/=" "-ffile-prefix-map=${GALAXY_ROOT}=."
   "-ffile-prefix-map=${VITASDK}=vitasdk"

@@ -12,7 +12,7 @@
     },
     {
       "path": "CMakeLists.txt",
-      "sha256": "1f37a6029323eefa2a65376c825b575be89bbaec7fb33b23336387b9e3236ae7"
+      "sha256": "5aebaf5b9f12ee6b6a2da6c94ca6075ad036becc5288ccbcd4512599c228267f"
     },
     {
       "path": "LICENSE",
@@ -24,7 +24,7 @@
     },
     {
       "path": "armhf/CMakeLists.txt",
-      "sha256": "4234abdda505672e5d07b75bb7c07fe50d5718bd36686183df091590e9dd3871"
+      "sha256": "cf08161b864dbb87956e313a8ae4249238cacd3fddf5248d0444cc544a6a863a"
     },
     {
       "path": "armhf/glue/audio_out.cpp",
@@ -20788,7 +20788,7 @@
     },
     {
       "path": "vita/CMakeLists.txt",
-      "sha256": "4ee57c49908713657d14c0a718bfe675cb79eb55fac8677cf89678862000abcf"
+      "sha256": "b8a8cef28b86a02fcf93fc45229c6ebfcb17c6f90d1457584a3546ea8add1df8"
     },
     {
       "path": "vita/bringup/CMakeLists.txt",
@@ -20992,7 +20992,7 @@
     },
     {
       "path": "vita/vgx-game/CMakeLists.txt",
-      "sha256": "8387f0620a5db6178df8c415f2d3e577ab5f42292f973fc8893e7b4f476d6a9f"
+      "sha256": "5674220c77327a62a3d3d05ac23c4ab4111ffc23580642a346c4ee8cb3d74fbb"
     },
     {
       "path": "vita/vgx-game/coldtrace_export.cpp",

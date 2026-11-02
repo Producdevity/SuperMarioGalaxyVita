@@ -4362,6 +4362,7 @@ void FrontPresent(bool direct, void (*onDecoded)()) {
     }
     g.texDirty = true; // re-resolve bindings at least once per frame
     g.texSlotDirty = 0xFF;
+    if (diag::kEnabled) StreamDigestPicture(g_frame);
     ++g_frame;
     g_traceNow = -1; // (TraceFrame: asked again for the new frame)
     // Everything of this frame has been read from guest memory: the game

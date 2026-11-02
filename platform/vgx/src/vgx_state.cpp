@@ -1397,8 +1397,35 @@ void BpCheckNoop(uint32_t rv) {
 }
 } // namespace
 
+namespace {
+struct StreamDigest {
+    FILE* f = nullptr;
+    XXH3_state_t st;
+    StreamDigest() {
+        if (const char* path = diag::Env("GXV_STREAMDIGEST"); path && *path) f = std::fopen(path, "w");
+        XXH3_64bits_reset(&st);
+    }
+};
+StreamDigest* Digest() {
+    static StreamDigest* d = [] {
+        StreamDigest* s = new StreamDigest;
+        return s->f ? s : nullptr;
+    }();
+    return d;
+}
+} // namespace
+void StreamDigestPicture(uint64_t frame) {
+    if (StreamDigest* d = Digest()) {
+        std::fprintf(d->f, "%llu %016llx\n", static_cast<unsigned long long>(frame), static_cast<unsigned long long>(XXH3_64bits_digest(&d->st)));
+        XXH3_64bits_reset(&d->st);
+    }
+}
+
 uint32_t ProcessStream(const uint8_t* p, uint32_t nbytes, bool inList) {
     const uint8_t* const end = p + nbytes;
+    // (GXV_STREAMDIGEST: the commands are hashed once complete, up to `digested`; a list call by the list's bytes)
+    StreamDigest* const digest = diag::kEnabled && !inList ? Digest() : nullptr;
+    const uint8_t* digested = p;
     ++stats::Cur().streams;
     stats::Cur().streamBytes += nbytes;
     // GXV_DLTRACE=<frame>: one line per command stream of that frame.
@@ -1423,6 +1450,10 @@ uint32_t ProcessStream(const uint8_t* p, uint32_t nbytes, bool inList) {
     const int bpFast = !diag::kEnabled && bpFastMode == 2 ? 1 : bpFastMode;
     while (p < end) {
         const uint8_t* const cmdStart = p;
+        if (digest) {
+            XXH3_64bits_update(&digest->st, digested, static_cast<size_t>(cmdStart - digested));
+            digested = cmdStart;
+        }
         const uint8_t cmd = *p++;
         if (cmd == 0x00) {
             // (display lists are padded with zeros to a multiple of 32 bytes: skip a word at a time)
@@ -1500,6 +1531,11 @@ uint32_t ProcessStream(const uint8_t* p, uint32_t nbytes, bool inList) {
             } else if (addr && size) {
                 uint32_t avail = 0;
                 const uint8_t* list = Hooks().resolve ? Hooks().resolve(addr, &avail) : nullptr;
+                if (digest) {
+                    XXH3_64bits_update(&digest->st, &size, 4);
+                    if (list && avail >= size) XXH3_64bits_update(&digest->st, list, size);
+                    digested = p;
+                }
                 if (list && avail >= size) CallList(list, size);
                 else VGX_LOG_N(16, "CALL_DL %08X + %u: not mapped\n", addr, size);
             }
@@ -1529,7 +1565,9 @@ uint32_t ProcessStream(const uint8_t* p, uint32_t nbytes, bool inList) {
             if (inList) break; // (the top-level stream resynchronises a byte at a time, like the console would not)
         }
     }
-    return static_cast<uint32_t>((cut ? cut : (p < end ? p : end)) - start);
+    const uint8_t* const consumed = cut ? cut : (p < end ? p : end);
+    if (digest && consumed > digested) XXH3_64bits_update(&digest->st, digested, static_cast<size_t>(consumed - digested));
+    return static_cast<uint32_t>(consumed - start);
 }
 
 

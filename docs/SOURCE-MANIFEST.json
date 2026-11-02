@@ -19044,7 +19044,7 @@
     },
     {
       "path": "platform/vgx/src/vgx_draw.cpp",
-      "sha256": "04e87d9eef5a9f75c4db822cf4b632403477b3f7dea8af22ac1a2db875757733"
+      "sha256": "5a2518c80720106e1b8777ca3973ba5d461655d4014a21ea18b4bed349f3a1bf"
     },
     {
       "path": "platform/vgx/src/vgx_fesplit.cpp",
@@ -19088,11 +19088,11 @@
     },
     {
       "path": "platform/vgx/src/vgx_state.cpp",
-      "sha256": "c9133d76098f9573f049a6eff7aea38a69fda7b9c9fddd423e81628291d6e46c"
+      "sha256": "a80043049be9021a3d01f72fd7a46c72cd92038ca03cbc015fad38c339c38588"
     },
     {
       "path": "platform/vgx/src/vgx_state.h",
-      "sha256": "71e702f16b41383145d587ed9ec5eaa9b8ebb9b5a94687253ec8b33a5eee97d0"
+      "sha256": "54a65eec19a52972dfecd1381bba2d625bf9f40fab8c46d8c1b2198cb770865a"
     },
     {
       "path": "platform/vgx/src/vgx_static_crowd.h",

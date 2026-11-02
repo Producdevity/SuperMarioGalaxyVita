@@ -217,6 +217,12 @@ void ResetState();
 // by the end of the buffer is left for the caller to present again with the rest of it).
 // inList: the bytes are a display list (a CALL_DL inside it is ignored, as on the console).
 uint32_t ProcessStream(const uint8_t* data, uint32_t nbytes, bool inList = true);
+// GXV_STREAMDIGEST=<file> (diagnostic): one line per picture, "<frame> <hash>", of what the game sent for it: the command stream
+// with every display-list call replaced by the list's bytes, so that runs whose lists lie elsewhere (or in the other of a
+// list's two buffers) agree when they send the same. For changes to the game's thread that must leave every picture as it was.
+// (Not every picture repeats between two runs of one build on the ARM harness: those of the loading, and in the Comet
+// Observatory one every 50-250 pictures, differ in a few bytes. Compare against two reference runs.)
+void StreamDigestPicture(uint64_t frame);
 // A display list of state commands only, from its pre-parsed form (vgx_state.cpp); false: not handled, use ProcessStream.
 bool StateListCall(const uint8_t* list, uint32_t nbytes);
 bool StateListFastHit(const uint8_t* list, uint32_t nbytes);  // (CallList's shortcut for the common case)

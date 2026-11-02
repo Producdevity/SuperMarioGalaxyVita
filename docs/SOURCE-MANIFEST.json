@@ -18812,7 +18812,7 @@
     },
     {
       "path": "platform/src/os/os_mem.cpp",
-      "sha256": "7c051ab155c657dc3d1b8a4901a220b956a7915f520d31b3e93dae7fdafb614f"
+      "sha256": "040ec4da1b5ea1f5ba615a726091644b323e8397f3feaf7fab047a3566f73766"
     },
     {
       "path": "platform/src/os/os_thread.cpp",
@@ -19329,6 +19329,10 @@
     {
       "path": "tests/os_memory.cpp",
       "sha256": "af5285be431fa10d4090264f038d4a653e27bb0057bc49ba01b040fe2a1b1129"
+    },
+    {
+      "path": "tests/os_region_lookup.cpp",
+      "sha256": "b6a0f504937adce0436a18ad7bcc4d0def0b3b1375c76bf6088680eb4c2cc612"
     },
     {
       "path": "tests/os_vita_heaps.cpp",
@@ -20325,6 +20329,10 @@
     {
       "path": "tools/test_os_memory.sh",
       "sha256": "b13390a33abf7c4854cf677f8bda26225b04d3942e523d56bf707a4a83205a64"
+    },
+    {
+      "path": "tools/test_os_region_lookup.sh",
+      "sha256": "786054dc006d7ddeb2023921608a46a58319e8da794bda2394948dc348bb4e03"
     },
     {
       "path": "tools/test_os_vita_memory.sh",

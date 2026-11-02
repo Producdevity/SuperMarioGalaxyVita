@@ -75,9 +75,7 @@ void addRegion(uintptr_t base, uintptr_t alias, uint32_t physical, uint32_t size
     // Readers never see a partially initialized region; published entries are immutable.
     sRegionCount.store(count + 1, std::memory_order_release);
 }
-const Region* nativeRegion(const void* p, size_t bytes, uintptr_t* start = nullptr) {
-    const uintptr_t address = (uintptr_t)p;
-    if (!address) return nullptr;
+__attribute__((noinline)) const Region* scanRegions(uintptr_t address, size_t bytes, uintptr_t* start) {
     const unsigned count = sRegionCount.load(std::memory_order_acquire);
     for (unsigned i = 0; i < count; ++i) {
         const Region& r = sRegions[i];
@@ -85,6 +83,17 @@ const Region* nativeRegion(const void* p, size_t bytes, uintptr_t* start = nullp
         if (r.alias && contains(r.alias, r.size, address, bytes)) { if (start) *start = r.alias; return &r; }
     }
     return nullptr;
+}
+const Region* nativeRegion(const void* p, size_t bytes, uintptr_t* start = nullptr) {
+    const uintptr_t address = (uintptr_t)p;
+    if (!address) return nullptr;
+    // MEM1 and MEM2 (entries 0 and 1) hold nearly every pointer looked up. port_mem_init registers them before the game's
+    // threads exist, so they need no acquire load (a barrier on the Cortex-A9); the scan finds the same first entry.
+    if (sRegionCount.load(std::memory_order_relaxed) >= 2) {
+        for (const Region* r = sRegions; r != sRegions + 2; ++r)
+            if (contains(r->base, r->size, address, bytes)) { if (start) *start = r->base; return r; }
+    }
+    return scanRegions(address, bytes, start);
 }
 const Region* physicalRegion(uint32_t address) {
     const unsigned count = sRegionCount.load(std::memory_order_acquire);

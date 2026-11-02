@@ -269,11 +269,12 @@ extern "C" int port_vita_game_entry(int argc, char** argv) {
     port_log("kind=native_galaxy_vgx; build %s %s", __DATE__, __TIME__);
     LoadEnvFile(SMG_DATA "/env.txt");
     // Version 1.1 player defaults: Mario's eyes (final TEV byte wrap), the Settings menu and button
-    // remapping, the truthful loading bar, and the NEON audio mixing kernels (bit-identical PCM to the
+    // remapping, the truthful loading bar, and the faster audio mixing kernels (bit-identical PCM to the
     // scalar code; they run on the game thread). Set only when env.txt has not: NAME=0 turns one off.
     // Steady 30 (pacing, dynamic quality aimed at 30, half-size effects) is a Settings choice; the other
     // performance experiments stay off unless env.txt asks for them.
-    for (const char* name : {"GXV_TEVWRAP", "GXV_SETTINGS", "GXV_REMAP", "GXV_BOOTGUARD", "GXV_DSPNEON", "GXV_DSPFIR", "GXV_DSPRAMP"})
+    for (const char* name : {"GXV_TEVWRAP", "GXV_SETTINGS", "GXV_REMAP", "GXV_BOOTGUARD", "GXV_DSPNEON", "GXV_DSPFIR", "GXV_DSPRAMP",
+                             "GXV_DSPRESAMPLE", "GXV_DSPAFC"})
         setenv(name, "1", 0);
     LoadInputScript(SMG_DATA "/input.txt");
     {

@@ -18587,6 +18587,10 @@
       "sha256": "0f6489335d4ba8186b709cfb78c6551bd2753c45f5147fdfe76c6623db21f08a"
     },
     {
+      "path": "platform/src/audio/dsp_afc_kernel.h",
+      "sha256": "54eb18911eb82758845d29b3157da2197eb50b66b07735be03bdedcebfe6a362"
+    },
+    {
       "path": "platform/src/audio/dsp_fir_kernel.h",
       "sha256": "5e20f97d913565ae19b0ce9a7bb7578aa5c791fb7673ee4fce42196c76aafb9e"
     },
@@ -18596,11 +18600,15 @@
     },
     {
       "path": "platform/src/audio/dsp_mixer.cpp",
-      "sha256": "f28c5af3e05297d7ebe68ca4cded072c59e92591080a05e570955b33db513478"
+      "sha256": "6c4d3512ce6114464609ba8bd74ef0199ba11f09c26fa5b5a9920c5f314560ad"
     },
     {
       "path": "platform/src/audio/dsp_ramp_kernel.h",
       "sha256": "25f2b911cc9af87edc9cce365046b8a2d0097b2df3f7422a55f8976ad4f2389d"
+    },
+    {
+      "path": "platform/src/audio/dsp_resample_kernel.h",
+      "sha256": "f4536de821fc6d5aa08f96589942373447dd30bf4d128f99d9e2a9b3eb7ec516"
     },
     {
       "path": "platform/src/dvd/dol_data.cpp",
@@ -19233,6 +19241,10 @@
     {
       "path": "tests/dsp_ramp_oracle.cpp",
       "sha256": "1416f9aec10944ec0fd66722b071efff004a9f1ff39d9151824932f17c7ab844"
+    },
+    {
+      "path": "tests/dsp_voice_input.cpp",
+      "sha256": "9e8a2f483026972e900c33da9fa1089b68b4306c20d834b0b27534f89b8fc4e8"
     },
     {
       "path": "tests/dvd_errors.cpp",
@@ -20275,6 +20287,10 @@
       "sha256": "306aef61dc75e0a846fe86ea6f66948b434d37b93c16a0f33153bfcc4a692aba"
     },
     {
+      "path": "tools/test_dsp_voice_input.sh",
+      "sha256": "f8c66a6fe9159b6fb87c2aee05ab58f128411e1379f56914b72b5c518b491d78"
+    },
+    {
       "path": "tools/test_dvd_errors.sh",
       "sha256": "22a526d02ff848b75b750eb687f826a18ddcd30016bcaf5a146a6c32412e0d05"
     },
@@ -20988,7 +21004,7 @@
     },
     {
       "path": "vita/vgx-game/entry.cpp",
-      "sha256": "9a8e17bc91a9d1c8c4791c3afaa75621ddbacc0d8e8ea2e6d968ae631cda2fa6"
+      "sha256": "cbc205fe4a711a612cd755d475a52d4b340707fc8e4a30d0131ca4144822d2ef"
     },
     {
       "path": "vita/vgx-game/fd_guard.cpp",

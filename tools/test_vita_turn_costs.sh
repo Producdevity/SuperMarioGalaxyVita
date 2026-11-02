@@ -9,7 +9,7 @@ if test "$part" = host-perf; then
   common=(-std=c++20 -O1 -g -D__vita__ -DPORT_LOGGING=1 -I"$root/platform/include"
     -fsanitize=address,undefined -fno-omit-frame-pointer)
   "${CXX:-clang++}" "${common[@]}" "$root/tests/vita_perf_audit.cpp" -pthread -o "$out/perf"
-  for scenario in cpu-scope cpu-failure stale-player forced-count cheap-skips backlog turn-costs forced-costs fast-skip-costs double-done disabled-costs paced; do
+  for scenario in cpu-scope cpu-failure stale-player forced-count cheap-skips backlog turn-costs forced-costs fast-skip-costs double-done disabled-costs paced matdl matdl-forced; do
     GXV_WORKLOAD_PROBE=0 "$out/perf" "$scenario"
   done
   "${CXX:-clang++}" "${common[@]}" -DPORT_RUNTIME_DIAGNOSTICS=0 -UPORT_LOGGING -DPORT_LOGGING=0 \

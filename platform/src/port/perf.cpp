@@ -105,6 +105,8 @@ struct TurnPhases {
     TurnKind kind = TurnKind::Unclassified;
     bool bothSkipReasons = false;
 } sTurn;
+thread_local bool sMatDlDefer = false;  // (port_matdl_defer: set by port_frameskip_turn for the turn it starts; the frame loop's thread only)
+std::atomic<uint32_t> sMatDlDeferTurns{0}, sMatDlLate{0};  // (the log's "matdl:" line)
 unsigned sSlowTurnsLogged = 0;
 bool slowTurnLog() {
     static const bool v = alwaysLog() || port_handheld() != 0;
@@ -147,6 +149,10 @@ void report(int64_t now) {
                      static_cast<unsigned long long>(c.record / 1000), static_cast<unsigned long long>(c.movement / 1000));
         }
     }
+    if (const uint32_t turns = sMatDlDeferTurns.exchange(0, std::memory_order_relaxed), late = sMatDlLate.exchange(0, std::memory_order_relaxed);
+        verbose && (turns || late))
+        port_log("matdl: %u turns left their material display-list updates to a later turn; %u models were updated before a picture "
+                 "instead (a wrong guess of the next turn's kind)", turns, late);
     for (TurnCost& c : sTurnCosts) c = TurnCost{};
     sWork = sRecord = sPrepare = sRenderCpu = sUpload = sGpuWait = Stat();
     sFrames = sRenderFrames = 0;
@@ -233,6 +239,7 @@ const char* port_game_progress_name(uint32_t phase) {
 }
 
 void port_perf_frame_begin(void) {
+    sMatDlDefer = false;
     if (port_autoq_game_begin) port_autoq_game_begin(); // target-only CPU sample, also in the quiet player build
     vgx::workload::BeginTurn();
 #if PORT_MTX_PROFILE_COMPILED
@@ -581,8 +588,27 @@ extern "C" int port_turn_skipped(void) {
     return on && sTurnSkipped.load(std::memory_order_relaxed);
 }
 
+// Material display lists in turns without a picture (ModelManager::calcAnim): every update of a model's material lists writes
+// them anew into the other of their two buffers (J3DDisplayListObj::beginDL), and only the update of the last turn before a
+// picture is ever drawn. A turn whose next turn has no picture either leaves its updates out (port_matdl_defer); the next drawn
+// turn makes those still owed before it draws (ModelManager::updateDeferredDL). The next turn's kind is known while the game is
+// behind (the debt at its cap, the run of skips at its limit) and under PETARI_FORCE_SKIP; otherwise it is predicted from the
+// debt and the durations of recent turns, and a wrong guess only moves the updates to the start of the drawn turn.
+// PETARI_MATDL_DEFER=0 updates them in every turn, as before.
+extern "C" int port_matdl_defer(void) { return sMatDlDefer ? 1 : 0; }
+extern "C" void port_matdl_late(unsigned models) { sMatDlLate.fetch_add(models, std::memory_order_relaxed); }
+extern "C" void port_matdl_cancel(void) { sMatDlDefer = false; }
+static bool MatDlDeferOn() {
+    static const bool on = [] {
+        const char* e = getenv("PETARI_MATDL_DEFER");
+        return !(e && *e == '0');
+    }();
+    return on;
+}
+
 int port_frameskip_turn(int allowed) {
     if (PORT_RUNTIME_DIAGNOSTICS) sTurn.kind = allowed ? TurnKind::DrawSelected : TurnKind::RequiredDraw;
+    sMatDlDefer = false;
     // Testing (the harness has a virtual clock and never falls behind): PETARI_FORCE_SKIP=N leaves out N turns of every N+1.
     static const int forced = [] {
         const char* e = getenv("PETARI_FORCE_SKIP");
@@ -591,6 +617,8 @@ int port_frameskip_turn(int allowed) {
     if (forced > 0 && allowed) {
         static int phase = 0;
         phase = (phase + 1) % (forced + 1);
+        sMatDlDefer = MatDlDeferOn() && (phase + 1) % (forced + 1) != 0;
+        if (sMatDlDefer) sMatDlDeferTurns.fetch_add(1, std::memory_order_relaxed);
         if (!phase) return 0;
         sSkippedTurns.fetch_add(1, std::memory_order_relaxed);
         if (PORT_RUNTIME_DIAGNOSTICS) sTurn.kind = TurnKind::ForcedSkip;
@@ -623,9 +651,16 @@ int port_frameskip_turn(int allowed) {
     static const int64_t period = 16683350;  // ns
     static int64_t last = 0, debt = 0;
     static int run = 0;
+    static int64_t estDrawn = 2 * period, estSkipped = period;  // recent turns' durations (port_matdl_defer's prediction)
+    static int lastKind = -1;
     const int64_t now = port_host_time_ns();
     const int64_t dt = last ? now - last : period;
     last = now;
+    if (lastKind >= 0 && dt <= 15 * period) {
+        int64_t& est = lastKind ? estSkipped : estDrawn;
+        est += (dt - est) / 4;
+    }
+    lastKind = -1;
     if (dt > 15 * period || !allowed) {  // a load, a pause, a scene change: nothing to catch up with
         debt = 0;
         run = 0;
@@ -636,6 +671,12 @@ int port_frameskip_turn(int allowed) {
     if (debt > 4 * period) debt = 4 * period;
     const bool behind = debt >= period / 2 && run < maxRun;
     const bool gpuBusy = pipeDepth > 0 && port_vgx_backend_pending && port_vgx_backend_pending() >= static_cast<unsigned>(pipeDepth) && run < maxPipeRun;
+    // (the next turn skips as late when the debt it will start with is still over half a refresh, with a margin of 2 ms, and the
+    // run of skips allows one more)
+    const auto nextLate = [&](bool skipped) {
+        const int64_t next = debt + (skipped ? estSkipped : estDrawn) - period;
+        return MatDlDeferOn() && next >= period / 2 + period / 8 && (skipped ? run : 0) < maxRun;
+    };
     if (behind || gpuBusy) {
         ++run;
         sSkippedTurns.fetch_add(1, std::memory_order_relaxed);
@@ -643,12 +684,18 @@ int port_frameskip_turn(int allowed) {
             sTurn.kind = behind ? TurnKind::LateSkip : TurnKind::BacklogSkip;
             sTurn.bothSkipReasons = behind && gpuBusy;
         }
+        lastKind = 1;
+        sMatDlDefer = behind && nextLate(true);
+        if (sMatDlDefer) sMatDlDeferTurns.fetch_add(1, std::memory_order_relaxed);
         // 2: late, catch up (the turn does not wait for its retrace: a wait would make every skipped turn last a
         // whole refresh, the debt would never be paid, and the title screen ran at a fixed 15 pictures a second
         // on the console); 1: not late, the turn takes its retrace.
         return behind ? 2 : 1;
     }
     run = 0;
+    lastKind = 0;
+    sMatDlDefer = nextLate(false);
+    if (sMatDlDefer) sMatDlDeferTurns.fetch_add(1, std::memory_order_relaxed);
     return 0;
 }
 uint32_t port_frameskip_count(void) { return sSkippedTurns.load(std::memory_order_relaxed); }

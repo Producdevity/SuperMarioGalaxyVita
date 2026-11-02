@@ -1,4 +1,5 @@
 #include "Game/System/GameSystem.hpp"
+#include "Game/LiveActor/ModelManager.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/NameObj/NameObjRegister.hpp"
 #include "Game/Screen/HomeButtonLayout.hpp"
@@ -231,6 +232,7 @@ bool GameSystem::isPreparedReset() const {
 
 #ifdef TARGET_PC
 extern "C" int port_frameskip_turn(int allowed);
+extern "C" void port_matdl_cancel(void);
 extern "C" void port_turn_skipped_set(int v);
 #if defined(__vita__)
 extern "C" void port_settings_game_boundary(int safe);
@@ -276,6 +278,9 @@ void GameSystem::frameLoop() {
     if (const int skip = port_frameskip_turn(!mSceneController->isChangingScene())) {
         port_turn_skipped_set(1);  // (GameScene::calcAnim leaves out the view and draw-list pass: nothing is drawn)
         update();
+        if (mSceneController->isChangingScene()) {
+            port_matdl_cancel();  // (a scene change began in this turn: its models may go before the next picture)
+        }
         PORT_GAME_PROGRESS(PORT_GAME_PHASE_CALC_ANIM);
         calcAnim();
         port_turn_skipped_set(0);
@@ -294,10 +299,18 @@ void GameSystem::frameLoop() {
     PORT_GAME_PROGRESS(PORT_GAME_PHASE_BEGIN_RENDER);
     MainLoopFramework::sManager->beginRender();
     PORT_GAME_PROGRESS(PORT_GAME_PHASE_DRAW);
+#ifdef TARGET_PC
+    ModelManager::updateDeferredDL();  // (material display lists that turns without a picture left out: port_matdl_defer)
+#endif
     draw();
     PORT_GAME_PROGRESS(PORT_GAME_PHASE_END_RENDER);
     MainLoopFramework::sManager->endRender();
     update();
+#ifdef TARGET_PC
+    if (mSceneController->isChangingScene()) {
+        port_matdl_cancel();
+    }
+#endif
     PORT_GAME_PROGRESS(PORT_GAME_PHASE_CALC_ANIM);
     calcAnim();
     PORT_GAME_PROGRESS(PORT_GAME_PHASE_CAPTURE);

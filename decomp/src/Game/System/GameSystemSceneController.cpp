@@ -1,4 +1,5 @@
 #include "Game/System/GameSystemSceneController.hpp"
+#include "Game/LiveActor/ModelManager.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/NameObj/NameObjHolder.hpp"
 #include "Game/Scene/IntermissionScene.hpp"
@@ -362,6 +363,9 @@ void GameSystemSceneController::exeWaitDrawDoneScene() {
 
 void GameSystemSceneController::exeDestroyScene() {
     if (mSpine->mStep == 0) {
+#ifdef TARGET_PC
+        ModelManager::dropDeferredDL();
+#endif
         mIntermissionScene->setCurrentSceneControllerState("[destroy Scene: %s]", mCurrSceneControlInfo.mScene);
         MR::startFunctionAsyncExecute(MR::Functor(this, &GameSystemSceneController::destroyScene), 17, "\x83\x56\x81\x5b\x83\x93\x94\x6a\x8a\xfc");
     }
@@ -466,6 +470,9 @@ bool GameSystemSceneController::isPreparedReset() {
 }
 
 void GameSystemSceneController::restartGameAfterResetting() {
+#ifdef TARGET_PC
+    ModelManager::dropDeferredDL();
+#endif
     tryDestroyFileCacheHeap(true);
     SingletonHolder< HeapMemoryWatcher >::get()->destroyGameHeap();
 

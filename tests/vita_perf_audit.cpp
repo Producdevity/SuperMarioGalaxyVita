@@ -146,6 +146,56 @@ static void forcedCount() {
     require(skipped == 6, "forced skip fixture omits exactly three of every four pictures");
     require(port_frameskip_count() == skipped, "forced skips must also appear in the public skip total");
 }
+// Material display-list deferral (port_matdl_defer): a turn leaves its updates out only when the next turn has no picture either.
+// A wrong guess costs time but not correctness, so the checks are: exact where the next turn's kind is certain, and none on time.
+static void matDlDefer() {
+    setenv("PETARI_PIPE_DEPTH", "0", 1);
+    // Behind for good (turns longer than a refresh: the debt reaches its cap): D S S S, leaving them out in D, S1 and S2.
+    int prevDefer = 0;
+    unsigned deferred = 0, wrong = 0, counted = 0;
+    for (unsigned i = 0; i < 400; ++i) {
+        port_perf_frame_begin();
+        const int decision = port_frameskip_turn(1);
+        const int defer = port_matdl_defer();
+        if (i >= 40) {
+            ++counted;
+            deferred += defer != 0;
+            wrong += prevDefer && decision == 0;
+        }
+        prevDefer = defer;
+        wallNs += decision ? 18000000 : 30000000;
+    }
+    require(wrong == 0, "behind for good: no turn before a drawn turn leaves its updates out");
+    require(deferred * 4 >= counted * 3 - 4 && deferred * 4 <= counted * 3 + 4, "behind for good: three turns of every four leave them out");
+    std::printf("matdl-behind: %u of %u turns deferred, %u wrong guesses\n", deferred, counted, wrong);
+    // On time again: nothing left out once the turn durations it predicts from have followed (a few turns).
+    wallNs += 300000000;
+    unsigned onTime = 0;
+    for (unsigned i = 0; i < 200; ++i) {
+        port_perf_frame_begin();
+        port_frameskip_turn(1);
+        if (i >= 20) onTime += port_matdl_defer() != 0;
+        wallNs += 16000000;
+    }
+    require(onTime == 0, "on time: nothing is left out");
+    // A scene change resets the decision.
+    port_perf_frame_begin();
+    port_frameskip_turn(0);
+    require(port_matdl_defer() == 0, "a scene change's turns leave nothing out");
+}
+static void matDlForced() {
+    setenv("PETARI_FORCE_SKIP", "3", 1);
+    int prevDefer = -1;
+    for (unsigned i = 0; i < 40; ++i) {
+        port_perf_frame_begin();
+        const int decision = port_frameskip_turn(1);
+        if (prevDefer >= 0) require((prevDefer != 0) == (decision != 0), "forced pattern: a turn leaves its updates out exactly when the next one skips");
+        prevDefer = port_matdl_defer();
+        wallNs += 10000000;
+    }
+    port_perf_frame_begin();
+    require(port_matdl_defer() == 0, "a turn that the frame loop has not classified yet leaves nothing out");
+}
 static void skipCostModel(int64_t drawnNs, int64_t skippedNs) {
     require(drawnNs >= 16683350 && skippedNs > 0, "model uses explicit positive turn intervals, with drawn turns at least one refresh");
     setenv("PETARI_PIPE_DEPTH", "0", 1);
@@ -389,6 +439,8 @@ int main(int argc, char** argv) {
     else if (!std::strcmp(argv[1], "fast-skip-costs")) fastSkipCosts();
     else if (!std::strcmp(argv[1], "double-done")) doubleDone();
     else if (!std::strcmp(argv[1], "disabled-costs")) disabledCosts();
+    else if (!std::strcmp(argv[1], "matdl")) matDlDefer();
+    else if (!std::strcmp(argv[1], "matdl-forced")) matDlForced();
     else if (!std::strcmp(argv[1], "cost-model")) {
         require(argc == 4, "cost model requires drawn and skipped complete-turn intervals in nanoseconds");
         skipCostModel(std::strtoll(argv[2], nullptr, 10), std::strtoll(argv[3], nullptr, 10));

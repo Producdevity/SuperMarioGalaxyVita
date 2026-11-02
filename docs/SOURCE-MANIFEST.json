@@ -2472,7 +2472,7 @@
     },
     {
       "path": "decomp/include/Game/LiveActor/ModelManager.hpp",
-      "sha256": "0743be3cfc6b0206dea6cecbe850731c6d0b1330dea02df1ae5289aaf2af5cb1"
+      "sha256": "06ccbd935477568ab83c24d7af6f606b76357c42600e8d33556efd79b9073bf9"
     },
     {
       "path": "decomp/include/Game/LiveActor/ModelObj.hpp",
@@ -11588,7 +11588,7 @@
     },
     {
       "path": "decomp/src/Game/LiveActor/ModelManager.cpp",
-      "sha256": "5dcd7b3bbe8c43e9675cb45a8df26013c1f82ebb4d261fd2df668ab260096ff3"
+      "sha256": "7c19111b6923d62945266519374447e308e12219b9a0697875a05cb2e9dd8977"
     },
     {
       "path": "decomp/src/Game/LiveActor/ModelObj.cpp",
@@ -15088,7 +15088,7 @@
     },
     {
       "path": "decomp/src/Game/System/GameSystem.cpp",
-      "sha256": "fc1869fc981f57fbaf557200b8b797e45e8b468a6829bae06e2a5ca569e48c29"
+      "sha256": "325e00db62c625dd42e8ca0595e0b3f9306954fac66d3274c849dd8c6a181c6c"
     },
     {
       "path": "decomp/src/Game/System/GameSystemDimmingWatcher.cpp",
@@ -15124,7 +15124,7 @@
     },
     {
       "path": "decomp/src/Game/System/GameSystemSceneController.cpp",
-      "sha256": "27ae098b14f3c908d5e18a541c591a37b3c7e0fad8541a35c99097f8e1b7ff26"
+      "sha256": "4ea8049c6d6134f67f5567ae81196a56a65f9c7fefa32952985bc0b600ba4137"
     },
     {
       "path": "decomp/src/Game/System/GameSystemStationedArchiveLoader.cpp",
@@ -18860,7 +18860,7 @@
     },
     {
       "path": "platform/src/port/perf.cpp",
-      "sha256": "300e9dc26484172907263fccffd29ef721b70aa51fd977200d5d0b9341177030"
+      "sha256": "d03357f400aeec755d362247c8e1bcc5e06bb41a9b7cfe29f869bbd7ed2fdf31"
     },
     {
       "path": "platform/src/port/phase_cpu.h",
@@ -19788,7 +19788,7 @@
     },
     {
       "path": "tests/vita_perf_audit.cpp",
-      "sha256": "73b3bc70c527381307d2c0c46464ce196adcb61e73c60d1a0269841d36ca4214"
+      "sha256": "ac7c9c8313e8e6c4bf58b51f7e33451c2ac87f8d13a5ed15404be3cc15ed113f"
     },
     {
       "path": "tests/vita_quiet_fps.cpp",
@@ -20680,7 +20680,7 @@
     },
     {
       "path": "tools/test_vita_turn_costs.sh",
-      "sha256": "275f57d96ca289cfacd13e4d22679f75969e48ee0d64bf46b5eee213d2b3f673"
+      "sha256": "bf801bf20ec0b496d3f7f5226c9270f872ca12f65bfcb792f216f5820d88e88c"
     },
     {
       "path": "tools/test_vitagl_no_present.sh",

@@ -15,6 +15,37 @@
 #include "Game/Util/ObjUtil.hpp"
 #include <JSystem/J3DGraphAnimator/J3DModel.hpp>
 #include <cstdio>
+#ifdef TARGET_PC
+extern "C" int port_matdl_defer(void);  // (platform/src/port/perf.cpp)
+extern "C" void port_matdl_late(unsigned models);
+
+namespace {
+    // (a fixed array: `new` here allocates from the game's current heap, a scene's, which goes with the scene)
+    ModelManager* sDeferredDL[4096];
+    u32 sDeferredCount = 0;
+}
+
+void ModelManager::updateDeferredDL() {
+    unsigned late = 0;
+    for (u32 i = 0; i < sDeferredCount; i++) {
+        if (sDeferredDL[i]->mDLDeferred) {
+            sDeferredDL[i]->updateDL(true);
+            ++late;
+        }
+    }
+    sDeferredCount = 0;
+    if (late) {
+        port_matdl_late(late);
+    }
+}
+
+void ModelManager::dropDeferredDL() {
+    for (u32 i = 0; i < sDeferredCount; i++) {
+        sDeferredDL[i]->mDLDeferred = false;
+    }
+    sDeferredCount = 0;
+}
+#endif
 
 ModelManager::ModelManager()
     : mBtkPlayer(), mBrkPlayer(), mBtpPlayer(), mBpkPlayer(), mBvaPlayer(), mXanimeResourceTable(), mXanimePlayer(), mModel(), mModelResourceHolder(),
@@ -52,6 +83,18 @@ void ModelManager::update() {
 
 void ModelManager::calcAnim() {
     calc();
+#ifdef TARGET_PC
+    // A turn without a picture whose next turn has none either: that turn writes the material display lists again before
+    // anything is drawn with them, so this update would never be seen (port_matdl_defer). If no later turn makes it, the
+    // next drawn turn does, before it draws. A model's first update is always made (what it sets up may be read sooner).
+    if (mDLMade && (mDLDeferred || sDeferredCount < sizeof(sDeferredDL) / sizeof(*sDeferredDL)) && port_matdl_defer()) {
+        if (!mDLDeferred) {
+            mDLDeferred = true;
+            sDeferredDL[sDeferredCount++] = this;
+        }
+        return;
+    }
+#endif
     updateDL(true);
 }
 
@@ -68,6 +111,12 @@ void ModelManager::newDifferedDLBuffer() {
 }
 
 void ModelManager::updateDL(bool isDiffDL) {
+#ifdef TARGET_PC
+    if (isDiffDL) {
+        mDLDeferred = false;
+        mDLMade = true;
+    }
+#endif
     OSLockMutex(&MR::MutexHolder< 0 >::sMutex);
 
     bool isUpdateDL = mDisplayListMaker != nullptr && mDisplayListMaker->isValidDiff();

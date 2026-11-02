@@ -81,4 +81,12 @@ public:
     /* 0x1C */ J3DModel* mModel;
     /* 0x20 */ ResourceHolder* mModelResourceHolder;
     /* 0x24 */ DisplayListMaker* mDisplayListMaker;
+#ifdef TARGET_PC
+    // (port) Makes the material display-list updates that turns without a picture left out (calcAnim), before a picture;
+    // forgets them before the scene that owns them is destroyed.
+    static void updateDeferredDL();
+    static void dropDeferredDL();
+    bool mDLDeferred = false;
+    bool mDLMade = false;  // updateDL has written the material display lists at least once
+#endif
 };

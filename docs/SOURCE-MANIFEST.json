@@ -6576,7 +6576,7 @@
     },
     {
       "path": "decomp/libs/JSystem/include/JSystem/J3DGraphBase/J3DGD.hpp",
-      "sha256": "557ab65c979dfe44403a8243a607780c90de304fe4ce663f1d8f564b0e4e1354"
+      "sha256": "535cf3d12629c90451408a23112939d73c5a9dd76c7891e6a40753a218e9f079"
     },
     {
       "path": "decomp/libs/JSystem/include/JSystem/J3DGraphBase/J3DMatBlock.hpp",
@@ -15700,7 +15700,7 @@
     },
     {
       "path": "decomp/src/JSystem/J3DGraphBase/J3DGD.cpp",
-      "sha256": "cba8a083658cd4275fc4fbdbb23eaa4f1e79af408ac9a769a78aabe18beb1cd7"
+      "sha256": "a32ca6e9c34b9c7468ccc309f496403adcf71de7821ed1a78bcd1a021053e29f"
     },
     {
       "path": "decomp/src/JSystem/J3DGraphBase/J3DMatBlock.cpp",
@@ -17576,7 +17576,7 @@
     },
     {
       "path": "decomp/src/RVL_SDK/gd/GDBase.c",
-      "sha256": "a8fd9cc681bd76733b66a0ec15fb8ec5a8e6b29ddc3e1165c2ab24e8edad77b0"
+      "sha256": "ebf4d7ec5a5861f31a1bfe28910d421d147e5b726434bee0e959fc5d608316d4"
     },
     {
       "path": "decomp/src/RVL_SDK/gd/GDGeometry.c",
@@ -19243,6 +19243,10 @@
       "sha256": "d071c367cab1d5320857864a2296e594f33a6ee31766dc43a3f299e5b02e7618"
     },
     {
+      "path": "tests/gd_material_writers.cpp",
+      "sha256": "7b8ab31d29853064c0896c90f0e038127ebdc17232e65c9615b7506822f88513"
+    },
+    {
       "path": "tests/gd_write.cpp",
       "sha256": "285d7eba7396a1dac0815faf080b37fc1f18442f05ad2fd1b38e6792165706a1"
     },
@@ -20265,6 +20269,10 @@
     {
       "path": "tools/test_dvd_errors.sh",
       "sha256": "22a526d02ff848b75b750eb687f826a18ddcd30016bcaf5a146a6c32412e0d05"
+    },
+    {
+      "path": "tools/test_gd_material_writers.sh",
+      "sha256": "6688fd43cce9a95db19b3e14bed00278eeffc1a2f68b6633ad2a239447207a45"
     },
     {
       "path": "tools/test_gd_write.sh",

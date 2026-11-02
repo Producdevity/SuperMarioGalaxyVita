@@ -456,8 +456,15 @@ void J3DGDSetTevKColor(GXTevKColorID reg, GXColor color) {
     regBG = BP_TEV_COLOR_REG_BG(color.b, color.g, 1, 0xE1 + reg * 2);
 
     GDOverflowCheck(0xa);
+#ifdef TARGET_PC
+    // Material diffs rewrite these every frame: one cursor load for the whole sequence.
+    GDLObj* const dl = __GDCurrentDL;
+    u8* p = __PortGDWriteBP(dl->ptr, regRA);
+    dl->ptr = __PortGDWriteBP(p, regBG);
+#else
     J3DGDWriteBPCmd(regRA);
     J3DGDWriteBPCmd(regBG);
+#endif
 }
 
 void J3DGDSetTevColorS10(GXTevRegID reg, GXColorS10 color) {
@@ -468,10 +475,18 @@ void J3DGDSetTevColorS10(GXTevRegID reg, GXColorS10 color) {
     regBG = BP_TEV_COLOR_REG_BG(color.b & 0x7FF, color.g & 0x7FF, 0, 0xE1 + reg * 2);
 
     GDOverflowCheck(0x14);
+#ifdef TARGET_PC
+    GDLObj* const dl = __GDCurrentDL;
+    u8* p = __PortGDWriteBP(dl->ptr, regRA);
+    p = __PortGDWriteBP(p, regBG);
+    p = __PortGDWriteBP(p, regBG);
+    dl->ptr = __PortGDWriteBP(p, regBG);
+#else
     J3DGDWriteBPCmd(regRA);
     J3DGDWriteBPCmd(regBG);
     J3DGDWriteBPCmd(regBG);
     J3DGDWriteBPCmd(regBG);
+#endif
 }
 
 void J3DGDSetFog(GXFogType type, f32 startz, f32 endz, f32 nearz, f32 farz, GXColor color) {

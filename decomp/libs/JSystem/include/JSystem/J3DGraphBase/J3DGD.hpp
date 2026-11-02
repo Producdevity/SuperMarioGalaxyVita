@@ -38,9 +38,22 @@ inline void J3DGDWrite_f32(f32 data) {
     J3DGDWrite_u32(fid.u);
 }
 
+#ifdef TARGET_PC
+// One BP command at p; the caller keeps the cursor in a register across several (see port/gd_write.h).
+static inline u8* __PortGDWriteBP(u8* p, u32 regval) {
+    p[0] = 0x61;
+    return __PortGDWriteBE32(p + 1, regval);
+}
+#endif
+
 static inline void J3DGDWriteBPCmd(u32 regval) {
+#ifdef TARGET_PC
+    GDLObj* const dl = __GDCurrentDL;
+    dl->ptr = __PortGDWriteBP(dl->ptr, regval);
+#else
     J3DGDWrite_u8(0x61);
     J3DGDWrite_u32(regval);
+#endif
 }
 
 inline void J3DGDWriteXFCmd(u16 addr, u32 val) {

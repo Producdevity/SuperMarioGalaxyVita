@@ -58,6 +58,13 @@ bool DiskGravity::calcOwnGravityVector(TVec3f* pDest, f32* pDistance, const TVec
     TVec3f relativePos;
     relativePos = rPosition - mWorldPosition;
 
+#ifdef TARGET_PC
+    // (an accepted position is within mWorldRadius of the centre across the disk and within the range of the disk or its rim)
+    if (isOutOfReach(relativePos.squared(), mWorldRadius, mWorldPosition)) {
+        return false;
+    }
+#endif
+
     f32 centralAxisY = relativePos.dot(mWorldNormal);
 
     if (!mEnableBothSide && centralAxisY < 0.0f)

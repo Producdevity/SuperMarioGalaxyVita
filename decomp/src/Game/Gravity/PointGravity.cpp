@@ -11,6 +11,11 @@ PointGravity::PointGravity() : PlanetGravity(), mOrigPosition(0, 0, 0), mTransla
 
 bool PointGravity::calcOwnGravityVector(TVec3f* pDest, f32* pScalar, const TVec3f& rPosition) const {
     TVec3f direction = mTranslation - rPosition;
+#ifdef TARGET_PC
+    if (isOutOfReach(direction.squared(), 0.0f, mTranslation)) {
+        return false;
+    }
+#endif
     f32 distance = direction.length();
 
     // Epsilon-equals zero? If so, direction is the zero vector.

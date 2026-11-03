@@ -1,5 +1,8 @@
 #include "Game/Gravity.hpp"
 #include "Game/Util.hpp"
+#ifdef TARGET_PC
+#include <cstring>
+#endif
 
 void PlanetGravity_FORCE_MATCH_SDATA2() {
     (void)1.0f;
@@ -25,6 +28,33 @@ void PlanetGravity::setPriority(s32 priority) {
     mPriority = priority;
 }
 
+#ifdef TARGET_PC
+extern "C" int port_gravity_cull_mode(void);  // (platform/src/port/perf.cpp)
+extern "C" void port_gravity_cull_verified(int rejectedEarly, int mismatching);
+
+bool PlanetGravity::sOutOfReachTest = false;
+bool PlanetGravity::sOutOfReachHit = false;
+
+namespace {
+    s32 sCullMode = -1;
+
+    // PETARI_GRAVITY_CULL=2: each field evaluated without and with isOutOfReach; the results must be the same, bit for bit.
+    bool calcOwnGravityVectorVerified(const PlanetGravity* pGravity, TVec3f* pDest, f32* pScalar, const TVec3f& rPosition) {
+        TVec3f gravity = *pDest;
+        f32 scalar = *pScalar;
+        PlanetGravity::sOutOfReachTest = false;
+        const bool inReach = pGravity->calcOwnGravityVector(pDest, pScalar, rPosition);
+        PlanetGravity::sOutOfReachTest = true;
+        PlanetGravity::sOutOfReachHit = false;
+        const bool tested = pGravity->calcOwnGravityVector(&gravity, &scalar, rPosition);
+        PlanetGravity::sOutOfReachTest = false;
+        const bool same = inReach == tested && (!inReach || (memcmp(&gravity, pDest, sizeof(gravity)) == 0 && memcmp(&scalar, pScalar, sizeof(scalar)) == 0));
+        port_gravity_cull_verified(PlanetGravity::sOutOfReachHit, !same);
+        return inReach;
+    }
+}  // namespace
+#endif
+
 bool PlanetGravity::calcGravity(TVec3f* pDest, const TVec3f& rPosition) const {
     // Calculate raw gravity vector
     f32 radius = 0.0f;
@@ -33,6 +63,16 @@ bool PlanetGravity::calcGravity(TVec3f* pDest, const TVec3f& rPosition) const {
     gravity.y = 0.0f;
     gravity.z = 0.0f;
 
+#ifdef TARGET_PC
+    if (sCullMode < 0) {
+        sCullMode = port_gravity_cull_mode();
+        sOutOfReachTest = sCullMode == 1;
+    }
+    if (sCullMode == 2) {
+        if (!calcOwnGravityVectorVerified(this, &gravity, &radius, rPosition))
+            return false;
+    } else
+#endif
     if (!calcOwnGravityVector(&gravity, &radius, rPosition))
         return false;
 

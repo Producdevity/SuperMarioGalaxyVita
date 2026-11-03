@@ -107,6 +107,7 @@ struct TurnPhases {
 } sTurn;
 thread_local bool sMatDlDefer = false;  // (port_matdl_defer: set by port_frameskip_turn for the turn it starts; the frame loop's thread only)
 std::atomic<uint32_t> sMatDlDeferTurns{0}, sMatDlLate{0};  // (the log's "matdl:" line)
+uint32_t sGravityCompared = 0, sGravityEarly = 0, sGravityMismatching = 0;  // (PETARI_GRAVITY_CULL=2; the game's guest threads, one at a time)
 unsigned sSlowTurnsLogged = 0;
 bool slowTurnLog() {
     static const bool v = alwaysLog() || port_handheld() != 0;
@@ -153,6 +154,11 @@ void report(int64_t now) {
         verbose && (turns || late))
         port_log("matdl: %u turns left their material display-list updates to a later turn; %u models were updated before a picture "
                  "instead (a wrong guess of the next turn's kind)", turns, late);
+    if (sGravityCompared) {
+        port_log("gravity: %u fields evaluated with and without the reach test, %u rejected by it, %u results different", sGravityCompared,
+                 sGravityEarly, sGravityMismatching);
+        sGravityCompared = sGravityEarly = sGravityMismatching = 0;
+    }
     for (TurnCost& c : sTurnCosts) c = TurnCost{};
     sWork = sRecord = sPrepare = sRenderCpu = sUpload = sGpuWait = Stat();
     sFrames = sRenderFrames = 0;
@@ -586,6 +592,18 @@ extern "C" int port_turn_skipped(void) {
         return e && *e == '1';
     }();
     return on && sTurnSkipped.load(std::memory_order_relaxed);
+}
+
+// Gravity fields out of reach of a position are rejected before their arithmetic (PlanetGravity::isOutOfReach).
+// PETARI_GRAVITY_CULL=0 evaluates every field in full, as before; 2 evaluates each both ways and logs disagreements ("gravity:").
+extern "C" int port_gravity_cull_mode(void) {
+    const char* e = getenv("PETARI_GRAVITY_CULL");
+    return e && *e ? atoi(e) : 1;
+}
+extern "C" void port_gravity_cull_verified(int rejectedEarly, int mismatching) {
+    ++sGravityCompared;
+    sGravityEarly += rejectedEarly ? 1 : 0;
+    if (mismatching && sGravityMismatching++ < 20) port_log("gravity: a field's result differs with the reach test");
 }
 
 // Material display lists in turns without a picture (ModelManager::calcAnim): every update of a model's material lists writes

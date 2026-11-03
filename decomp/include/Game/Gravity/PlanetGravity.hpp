@@ -38,6 +38,29 @@ public:
     void setPriority(s32 priority);
     void updateIdentityMtx();
 
+#ifdef TARGET_PC
+    // (port) True only for a position that calcOwnGravityVector rejects anyway: every position a field accepts lies within
+    // extent + mRange + mDistant of rCentre (extent: the shape's own size). At any position nearly all of a galaxy's fields are
+    // far away, and this skips their square roots and divisions. The limit is widened far beyond the rounding of the shapes'
+    // arithmetic, including that of a centre far from the origin. Off with PETARI_GRAVITY_CULL=0 (2: verified, see calcGravity).
+    bool isOutOfReach(f32 distanceSquared, f32 extent, const TVec3f& rCentre) const {
+        if (!sOutOfReachTest || !(mRange >= 0.0f)) {
+            return false;
+        }
+
+        f32 limit = (__builtin_fabsf(extent) + mRange + mDistant) * 1.001f +
+                    (__builtin_fabsf(rCentre.x) + __builtin_fabsf(rCentre.y) + __builtin_fabsf(rCentre.z)) * 1e-5f + 1.0f;
+        if (distanceSquared > limit * limit && distanceSquared <= __FLT_MAX__) {
+            sOutOfReachHit = true;
+            return true;
+        }
+        return false;
+    }
+
+    static bool sOutOfReachTest;
+    static bool sOutOfReachHit;  // (set by a rejection; read by PETARI_GRAVITY_CULL=2)
+#endif
+
     /* 0x4 */ f32 mRange;
     /* 0x8 */ f32 mDistant;
     /* 0xC */ s32 mPriority;

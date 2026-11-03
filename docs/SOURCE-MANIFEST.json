@@ -2308,7 +2308,7 @@
     },
     {
       "path": "decomp/include/Game/Gravity/PlanetGravity.hpp",
-      "sha256": "d86f650300dff16e2ffb449156b94f8f528a75821912aef7a7495b7ce5034a39"
+      "sha256": "b7a7a56c176f1005283aa1b50e441d68e420729bfebe90ccc83184e43c680ee0"
     },
     {
       "path": "decomp/include/Game/Gravity/PlanetGravityManager.hpp",
@@ -11396,11 +11396,11 @@
     },
     {
       "path": "decomp/src/Game/Gravity/CubeGravity.cpp",
-      "sha256": "99e9d14497ab2816a3790800aafc3a96718d178c26f3ce318176dd40faccb6cc"
+      "sha256": "384f3c4e92c842d2520103e348fd4a478e4d9625274640ccd66bd6b819f76d3a"
     },
     {
       "path": "decomp/src/Game/Gravity/DiskGravity.cpp",
-      "sha256": "d7a3d0806b761697986770b52de31db6daeb593353663fc09261df9c59b472d0"
+      "sha256": "4de2269d739eb710d7381e30714843bd07c691dfc884019d2f654db5f27debf6"
     },
     {
       "path": "decomp/src/Game/Gravity/DiskTorusGravity.cpp",
@@ -11428,7 +11428,7 @@
     },
     {
       "path": "decomp/src/Game/Gravity/PlanetGravity.cpp",
-      "sha256": "3e4e96585bd58207d259cebeb7856f3ab750419be18abe32623b0748afb10c6e"
+      "sha256": "e02b3dea44c4ed34b9d18b6016c69193a88421f3dec51ce477371965e12aa407"
     },
     {
       "path": "decomp/src/Game/Gravity/PlanetGravityManager.cpp",
@@ -11436,7 +11436,7 @@
     },
     {
       "path": "decomp/src/Game/Gravity/PointGravity.cpp",
-      "sha256": "00c06b6b6e7508140c210df894c63a9cb8cab147e0d62cf833439f98353544b4"
+      "sha256": "0cffb9a66dd56c605562dc61f4ce4157d71f3cf14dc9b1c808d043b1e5546aa9"
     },
     {
       "path": "decomp/src/Game/Gravity/SegmentGravity.cpp",
@@ -18860,7 +18860,7 @@
     },
     {
       "path": "platform/src/port/perf.cpp",
-      "sha256": "d03357f400aeec755d362247c8e1bcc5e06bb41a9b7cfe29f869bbd7ed2fdf31"
+      "sha256": "6aa4a95de6cdd1b73a9b9bcb6adee693b9a69df5ae139918bec6060974c8f7ac"
     },
     {
       "path": "platform/src/port/phase_cpu.h",
@@ -19265,6 +19265,10 @@
     {
       "path": "tests/gd_write_driver.cpp",
       "sha256": "8f67ad01ee18f2b144bfd9d2f71f4d6a830a5341a528ea807cc7b96da6a72136"
+    },
+    {
+      "path": "tests/gravity_reach.cpp",
+      "sha256": "578daceca2990b31871786060791aef085325c5f581f6d943db41765afa4ed9f"
     },
     {
       "path": "tests/gx_copy_pixels_benchmark.cpp",
@@ -20305,6 +20309,10 @@
     {
       "path": "tools/test_gd_write.sh",
       "sha256": "a39b1cd9ab444c90aa4e336755664cab97e4dbe78c03f888176ccb41fe31c9b5"
+    },
+    {
+      "path": "tools/test_gravity_reach.sh",
+      "sha256": "ac8d657d0d2895bdbb73e08e70e02c35ca1ae8fcbd3abb1df1ee2e72c803a976"
     },
     {
       "path": "tools/test_gx_cpu_xf.sh",

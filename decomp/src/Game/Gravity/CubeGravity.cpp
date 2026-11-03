@@ -312,6 +312,32 @@ bool CubeGravity::calcCornerGravity(const TVec3f& rPosition, s32 area, TVec3f* p
 }
 
 bool CubeGravity::calcOwnGravityVector(TVec3f* pDest, f32* pScalar, const TVec3f& rPosition) const {
+#ifdef TARGET_PC
+    // (port) Out of reach (see PlanetGravity::isOutOfReach), measured along the cube's axes: an accepted position is within range of
+    // a corner, of a face's plane where the regions keep the other two projections within the cube, or of an edge's line where they
+    // keep the projection along it within the cube; each of these points projects onto every axis within lenX + lenY + lenZ of the
+    // centre, whether the axes are at right angles or not.
+    if (sOutOfReachTest && mRange >= 0.0f) {
+        TVec3f dirX, dirY, dirZ, trans;
+        mPosition.getXDir(dirX);
+        mPosition.getYDir(dirY);
+        mPosition.getZDir(dirZ);
+        mPosition.getTrans(trans);
+        TVec3f relativePosition = rPosition - trans;
+        const f32 limit = (lenX + lenY + lenZ + mRange + mDistant) * 1.001f +
+                          (__builtin_fabsf(trans.x) + __builtin_fabsf(trans.y) + __builtin_fabsf(trans.z) + __builtin_fabsf(relativePosition.x) +
+                           __builtin_fabsf(relativePosition.y) + __builtin_fabsf(relativePosition.z)) *
+                              1e-5f +
+                          1.0f;
+        const f32 x = __builtin_fabsf(relativePosition.dot(dirX));
+        const f32 y = __builtin_fabsf(relativePosition.dot(dirY));
+        const f32 z = __builtin_fabsf(relativePosition.dot(dirZ));
+        if ((x > lenX * limit && x <= __FLT_MAX__) || (y > lenY * limit && y <= __FLT_MAX__) || (z > lenZ * limit && z <= __FLT_MAX__)) {
+            sOutOfReachHit = true;
+            return false;
+        }
+    }
+#endif
     int area = calcGravityArea(rPosition);
     if (area < 0) {
         return false;

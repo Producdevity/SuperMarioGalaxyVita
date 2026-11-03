@@ -145,7 +145,7 @@ const char* WhyText(Why w) {
 }
 
 Controller::Controller(const Config& c) : cfg_(c) {
-    cfg_.minRung = std::clamp(cfg_.minRung, cfg_.targetFps == 30 ? kEmergency : 0, kRungs - 1);
+    cfg_.minRung = std::clamp(cfg_.minRung, cfg_.targetFps == 30 || cfg_.calm ? kEmergency : 0, kRungs - 1);
     cfg_.maxRung = std::clamp(cfg_.maxRung, std::max(0, cfg_.minRung), kRungs - 1);
     cfg_.startRung = std::clamp(cfg_.startRung, std::max(0, cfg_.minRung), cfg_.maxRung);
     if (cfg_.windowFrames < 2) cfg_.windowFrames = 2;
@@ -360,7 +360,7 @@ bool Controller::Add(const FrameTimes& f) {
             return true;
         }
         if (pendingBelow_ && mayChange && f.presentUs >= belowAt_ && static_cast<double>(f.presentUs - belowAt_) <= cfg_.roomMemorySec * 1e6 &&
-            !checking_ && rung_ <= kToday && rung_ > cfg_.minRung) {
+            !checking_ && rung_ <= kToday && rung_ > (cfg_.targetFps == 30 ? cfg_.minRung : std::max(cfg_.minRung, 0))) {
             const int from = rung_;
             pendingBelow_ = false;
             ++quietUps_;
@@ -570,18 +570,26 @@ bool Controller::Evaluate(uint64_t now, bool mayChange) {
         SetRung(to, saturated ? Why::Saturated : Why::Overload, now);
         return true;
     }
-    if (!checking_ && rung_ <= kToday && rung_ > cfg_.minRung && boundT_ >= cfg_.belowHoldSec && now >= belowBlockedUntil_ && pendingUndo_ < 0) {
+    // (pictures slower than 30 a second over the whole GPU-limited stretch: what the player sees as a slow game, worse than
+    // one frozen picture)
+    const double boundMs = boundFrames_ ? boundSpan_ / 1000.0 / boundFrames_ : winIntervalMs_;
+    const bool under30 = boundMs > cfg_.budgetMs * 1.01;
+    // (calm mode's rung under 544x388, the last resort, only for pictures under 30 a second, and only in play: see below)
+    const int belowFloor = target || under30 ? cfg_.minRung : std::max(cfg_.minRung, 0);
+    if (!checking_ && rung_ <= kToday && rung_ > belowFloor && boundT_ >= cfg_.belowHoldSec && now >= belowBlockedUntil_ && pendingUndo_ < 0) {
         const int from = rung_;
-        const double before = boundFrames_ ? boundSpan_ / 1000.0 / boundFrames_ : winIntervalMs_;
-        if (cfg_.calm && (!target || boundT_ < 8.0)) {
-            // (calm: a step below today only buys a little speed, so it waits for a quiet moment as a step up does)
+        const double before = boundMs;
+        if (cfg_.calm && (boundT_ < 8.0 || (!target && !under30))) {
+            // (calm: a step below today only buys a little speed, so it waits for a quiet moment as a step up does; after
+            // 8 s of a GPU that keeps the pictures under 30 a second it is taken in play, as in target mode)
             pendingBelow_ = true;
             belowAt_ = now;
             belowBefore_ = before;
             return false;
         }
         // Target mode prefers a quiet downstep too, but a persistent GPU miss
-        // for 8 s may lower resolution in play rather than skip indefinitely.
+        // for 8 s may lower resolution in play rather than skip indefinitely
+        // (and so does calm mode when that miss keeps the pictures under 30 a second).
         SetRung(rung_ - 1, Why::GpuBound, now);
         checking_ = true;
         checkFrom_ = from;

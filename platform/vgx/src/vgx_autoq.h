@@ -77,7 +77,9 @@
 //           at its limit for a second costs a few slow frames, a change a 150-300 ms freeze. The rung left is blocked for
 //           blockSec (60 s, doubling to 480 s).
 //   below   (GPU-limited at or below today, belowHoldSec 4 s) and the undo of a step below that bought nothing wait for a
-//           quiet moment too: they buy little speed and cost a freeze.
+//           quiet moment too: they buy little speed and cost a freeze. Except when the pictures stay under 30 a second
+//           for 8 s: then the step is taken in play (the opening area stood at 27 fps for good, waiting), and from 544x388
+//           on to 480x340 (rung -1), which nothing else in calm mode goes to.
 //   margins upTarget 70 % (78 % legacy); a quiet moment steps up only after upQuietHoldSec (8 s) of room in a row that
 //           ended within roomMemorySec (5 s); without a quiet moment only after upLongHoldSec (120 s).
 // The second console run (thp53, 23 Oct 22:30, 9 minutes): 11 changes, 5 of them below today in play and 2 steps up in a

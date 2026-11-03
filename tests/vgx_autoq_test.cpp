@@ -88,8 +88,8 @@ Result Run(double seconds, const std::function<Load(double)>& scene, int fixedRu
         const Load l = scene(t);
         double stall = gap ? gap(t) : 0.0;
         if (nextRung != rung) {
-            if (nextPlay) r.playStallMs += (kLadder[nextRung].w == kLadder[rung].w && kLadder[nextRung].h == kLadder[rung].h) ? g_msaaStallMs : g_changeStallMs;
-            const double st = (kLadder[nextRung].w == kLadder[rung].w && kLadder[nextRung].h == kLadder[rung].h) ? g_msaaStallMs : g_changeStallMs;
+            if (nextPlay) r.playStallMs += (RungAt(nextRung).w == RungAt(rung).w && RungAt(nextRung).h == RungAt(rung).h) ? g_msaaStallMs : g_changeStallMs;
+            const double st = (RungAt(nextRung).w == RungAt(rung).w && RungAt(nextRung).h == RungAt(rung).h) ? g_msaaStallMs : g_changeStallMs;
             stall += st;
             r.stallMs += st;
             rung = nextRung;
@@ -488,6 +488,34 @@ int CalmScenarios() {
         Check(none.maxRung == kToday, "no step up in 40 s of play without a quiet moment");
         Check(paused.rungAt.size() > 12 && paused.rungAt[12] > kToday && paused.playChanges == 0, "the step up taken in the pause, none in play");
     }
+    // B2. The console's opening area (3 Nov): GPU-limited at every rung (39.0 / 37.0 / 33.5 ms at 640x456 / 592x424 /
+    //     544x388: about 19 ms fixed and 20 ms that follow the pixels), standing in play with no quiet moment: under 30
+    //     pictures a second, the step below today comes in play after 8 s (it waited for a quiet moment that never came and
+    //     the area stayed at 27 fps). A scene that the GPU limits but still above 30 a second keeps waiting.
+    {
+        std::printf("opening area, GPU-limited under 30 fps, no quiet moment / GPU-limited at 31 ms:\n");
+        const Result slow = Run(60, [](double) { return Load{16.7, 11, 19, 20}; }, -1, 0.03, nullptr, 47, Base(), false);
+        const Result fast = Run(60, [](double) { return Load{16.7, 11, 11, 20}; }, -1, 0.03, nullptr, 47, Base(), false);
+        std::printf("  under 30: rung %d at 12 s, final %d, %u changes in play, last 10 s %.1f ms a picture; at 31 ms: final %d, %u changes\n",
+                    slow.rungAt.size() > 12 ? slow.rungAt[12] : -9, slow.finalRung, slow.playChanges, slow.meanIntervalLast10s, fast.finalRung,
+                    fast.playChanges);
+        Check(slow.rungAt.size() > 12 && slow.rungAt[12] < kToday, "under 30 fps and GPU-limited: below 640x456 within 12 s of play");
+        Check(slow.finalRung < kToday && slow.playChanges <= 3, "under 30 fps: stays below 640x456, at most 3 changes in a minute");
+        Check(fast.finalRung == kToday && fast.playChanges == 0, "GPU-limited at 31 ms (above 30 fps): no change in play");
+        // With the back end's floor (480x340, calm mode's last resort): a scene that 544x388 still leaves under 30 a second
+        // goes there in play; one the GPU limits above 30 a second never does, pauses or not.
+        Config floor = Base();
+        floor.minRung = kEmergency;
+        auto pauses = [](double t) { return std::fmod(t, 20.0) >= 15.0 && std::fmod(t, 20.0) < 16.0; };
+        const Result heavy = Run(90, [](double) { return Load{16.7, 11, 22, 20}; }, -1, 0.03, nullptr, 49, floor, false);
+        const Result above = Run(90, [](double) { return Load{16.7, 11, 8, 20}; }, -1, 0.03, nullptr, 49, floor, false, nullptr, pauses);
+        const Result garden = Run(90, [](double) { return Load{16.7, 11, 19, 20}; }, -1, 0.03, nullptr, 47, floor, false);
+        std::printf("  with the 480x340 floor: heavier scene final %d (%.1f ms a picture), GPU-limited at 35 fps lowest %d, the opening area final %d\n",
+                    heavy.finalRung, heavy.meanIntervalLast10s, above.minRung, garden.finalRung);
+        Check(heavy.finalRung == kEmergency && heavy.meanIntervalLast10s < 34.0, "544x388 under 30 fps: 480x340 in play, 30 fps again");
+        Check(above.minRung >= 0, "GPU-limited above 30 fps, with pauses: never below 544x388");
+        Check(garden.finalRung == 0, "the opening area at 33.5 ms on 544x388 (30 fps): stays there");
+    }
     // C. Scenes with loads between them (keys 1 light, 2 heavy, 1, 2, ...): after the first visit each scene starts at its
     //    own rung in the load, so play sees almost no changes.
     {
@@ -585,8 +613,12 @@ int TargetScenarios() {
     {
         Config off = cfg;
         off.targetFps = 0;
+        off.calm = false;
         Controller c(off);
-        Check(c.Cfg().minRung == 0, "target off: a negative floor is clamped to the old rung 0");
+        Check(c.Cfg().minRung == 0, "target off, the legacy rules: a negative floor is clamped to the old rung 0");
+        off.calm = true;
+        Controller calm(off);
+        Check(calm.Cfg().minRung == kEmergency, "target off, calm mode: the 480x340 floor is kept (for pictures under 30 a second)");
     }
     {
         Controller c(cfg);

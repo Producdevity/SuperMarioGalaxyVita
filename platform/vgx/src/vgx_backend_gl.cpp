@@ -3270,6 +3270,8 @@ void AutoQualityInit() {
         cfg.targetFps = 30;
         cfg.budgetMs = 1000.0 / 30.0;
         cfg.minRung = autoq::kEmergency;
+    } else if (calm) {
+        cfg.minRung = autoq::kEmergency; // (480x340: only for pictures that 544x388 leaves under 30 a second, vgx_autoq.cpp)
     }
     cfg.minRung = static_cast<int>(EnvInt("GXV_AUTOQ_MIN", cfg.minRung));
     cfg.maxRung = std::min(static_cast<int>(EnvInt("GXV_AUTOQ_MAX", cfg.maxRung)), TopRung());

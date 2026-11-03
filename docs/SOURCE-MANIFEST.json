@@ -19004,7 +19004,7 @@
     },
     {
       "path": "platform/vgx/src/vgx_backend_gl.cpp",
-      "sha256": "e7237c262bfa2b913e9a9a35ef8ddc93054847350f8ef4e8f5d35130e93ee271"
+      "sha256": "c64a0ce11ce35a0a61d83f31613a1ef8f606138fd4057a2d5e47aa60e0f4b992"
     },
     {
       "path": "platform/vgx/src/vgx_backend_null.cpp",
@@ -19649,6 +19649,10 @@
     {
       "path": "tests/vgx_shader_list.cpp",
       "sha256": "0eb5a589b634984f9808bb8a8ef51d96e5ad95ccf813bce4bfb98f168be22c5e"
+    },
+    {
+      "path": "tests/vgx_sharpen_fast.cpp",
+      "sha256": "8d572f25eb56787b41f9b736c3afe5bafdf9214e9b23f7b4b4cc3ff1737b90cf"
     },
     {
       "path": "tests/vgx_statelist.cpp",
@@ -20545,6 +20549,10 @@
     {
       "path": "tools/test_vgx_shader_list.sh",
       "sha256": "24cda9e7df5f73729537684e576a7d96ab6bd66189e1eb989b5f99d5aeacfc35"
+    },
+    {
+      "path": "tools/test_vgx_sharpen_fast.sh",
+      "sha256": "1a79537111f5899fa06bf62260d971664bafa0247bce1a5f06a9a4f0a6897aba"
     },
     {
       "path": "tools/test_vgx_statelist.sh",

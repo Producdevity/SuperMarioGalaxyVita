@@ -3507,28 +3507,20 @@ bool DebugReadTexture(uint32_t texId, std::vector<uint8_t>& rgba, int& width, in
 // rectangle stretched over the viewport (v at the quad's bottom edge, dv < 0 flips), u_size the EFB texture's
 // (w, h, 1/w, 1/h), u_lim the first and last texel centre of the picture (no fetch outside the display copy's
 // rectangle), u_p.z the unsharp amount.
+// When the display copy is the whole EFB texture (the usual case), the five coordinates come from the vertex program
+// instead (g_sharpFast): the GPU fetches a texture ahead of the fragment program only for a coordinate it is handed as
+// it is, and the clamped ones made all five fetches wait (5.6 ms a frame at 960x544 on the console, in the opening
+// area). The texture's clamp-to-edge stands in for the clamps: the same texels, except that a neighbour in the
+// picture's outermost half texel blends with the next texel. GXV_SHARPEN_FAST=0: always the clamped program.
 namespace {
 struct SharpProg {
     GLuint prog = 0;
     bool failed = false; // compile or link failed: the host blits as before, for good
     GLint rect = -1, size = -1, lim = -1, p = -1;
-} g_sharp;
+} g_sharp, g_sharpFast;
 
-bool EnsureSharpenProgram() {
-    if (g_sharp.prog) return true;
-    if (g_sharp.failed || GlAllocBackoff()) return false;
-    static const char* vs =
-        "attribute vec4 a_pos;\nuniform vec4 u_rect;\nvarying vec2 v_uv;\n"
-        "void main() { v_uv = vec2(u_rect.x + (a_pos.x * 0.5 + 0.5) * u_rect.z, u_rect.y + (a_pos.y * 0.5 + 0.5) * u_rect.w); gl_Position = vec4(a_pos.xy, 0.0, 1.0); }\n";
-    static const char* fs =
-        "precision highp float;\nuniform sampler2D u_src;\nuniform vec4 u_size;\nuniform vec4 u_lim;\nuniform vec4 u_p;\nvarying vec2 v_uv;\nvoid main() {\n"
-        "  vec2 uv = clamp(v_uv, u_lim.xy, u_lim.zw);\n"
-        "  vec4 c = texture2D(u_src, uv);\n"
-        "  vec4 b = texture2D(u_src, clamp(uv + vec2(u_size.z, 0.0), u_lim.xy, u_lim.zw)) + texture2D(u_src, clamp(uv - vec2(u_size.z, 0.0), u_lim.xy, u_lim.zw))\n"
-        "         + texture2D(u_src, clamp(uv + vec2(0.0, u_size.w), u_lim.xy, u_lim.zw)) + texture2D(u_src, clamp(uv - vec2(0.0, u_size.w), u_lim.xy, u_lim.zw));\n"
-        "  c = c + (c - b * 0.25) * u_p.z;\n"
-        "  gl_FragColor = vec4(c.rgb, 1.0);\n}\n";
-    const GLuint v = Compile(GL_VERTEX_SHADER, vs, "sharpen vertex"), f = Compile(GL_FRAGMENT_SHADER, fs, "sharpen fragment");
+bool BuildSharpenProgram(SharpProg& sp, const char* vs, const char* fs, const char* name) {
+    const GLuint v = Compile(GL_VERTEX_SHADER, vs, name), f = Compile(GL_FRAGMENT_SHADER, fs, name);
     GLint vok = 0, fok = 0, lok = 0;
     if (v) G(glGetShaderiv(v, GL_COMPILE_STATUS, &vok));
     if (f) G(glGetShaderiv(f, GL_COMPILE_STATUS, &fok));
@@ -3548,24 +3540,69 @@ bool EnsureSharpenProgram() {
     if (f) G(glDeleteShader(f));
     if (!lok) {
         if (prog) G(glDeleteProgram(prog));
-        g_sharp.failed = true;
+        sp.failed = true;
+        return false;
+    }
+    sp.prog = prog;
+    UseProgram(prog);
+    sp.rect = G(glGetUniformLocation(prog, "u_rect"));
+    sp.size = G(glGetUniformLocation(prog, "u_size"));
+    sp.lim = G(glGetUniformLocation(prog, "u_lim"));
+    sp.p = G(glGetUniformLocation(prog, "u_p"));
+    G(glUniform1i(glGetUniformLocation(prog, "u_src"), 0));
+    return true;
+}
+
+bool EnsureSharpenFastProgram() {
+    if (g_sharpFast.prog) return true;
+    if (g_sharpFast.failed || GlAllocBackoff()) return false;
+    static const char* vs =
+        "attribute vec4 a_pos;\nuniform vec4 u_rect;\nuniform vec4 u_size;\n"
+        "varying vec2 v_uv;\nvarying vec2 v_r;\nvarying vec2 v_l;\nvarying vec2 v_u;\nvarying vec2 v_d;\nvoid main() {\n"
+        "  vec2 uv = vec2(u_rect.x + (a_pos.x * 0.5 + 0.5) * u_rect.z, u_rect.y + (a_pos.y * 0.5 + 0.5) * u_rect.w);\n"
+        "  v_uv = uv;\n  v_r = uv + vec2(u_size.z, 0.0);\n  v_l = uv - vec2(u_size.z, 0.0);\n"
+        "  v_u = uv + vec2(0.0, u_size.w);\n  v_d = uv - vec2(0.0, u_size.w);\n  gl_Position = vec4(a_pos.xy, 0.0, 1.0);\n}\n";
+    static const char* fs =
+        "precision highp float;\nuniform sampler2D u_src;\nuniform vec4 u_p;\n"
+        "varying vec2 v_uv;\nvarying vec2 v_r;\nvarying vec2 v_l;\nvarying vec2 v_u;\nvarying vec2 v_d;\nvoid main() {\n"
+        "  vec4 c = texture2D(u_src, v_uv);\n"
+        "  vec4 b = texture2D(u_src, v_r) + texture2D(u_src, v_l) + texture2D(u_src, v_u) + texture2D(u_src, v_d);\n"
+        "  c = c + (c - b * 0.25) * u_p.z;\n"
+        "  gl_FragColor = vec4(c.rgb, 1.0);\n}\n";
+    return BuildSharpenProgram(g_sharpFast, vs, fs, "sharpen (fast)");
+}
+
+bool EnsureSharpenProgram() {
+    if (g_sharp.prog) return true;
+    if (g_sharp.failed || GlAllocBackoff()) return false;
+    static const char* vs =
+        "attribute vec4 a_pos;\nuniform vec4 u_rect;\nvarying vec2 v_uv;\n"
+        "void main() { v_uv = vec2(u_rect.x + (a_pos.x * 0.5 + 0.5) * u_rect.z, u_rect.y + (a_pos.y * 0.5 + 0.5) * u_rect.w); gl_Position = vec4(a_pos.xy, 0.0, 1.0); }\n";
+    static const char* fs =
+        "precision highp float;\nuniform sampler2D u_src;\nuniform vec4 u_size;\nuniform vec4 u_lim;\nuniform vec4 u_p;\nvarying vec2 v_uv;\nvoid main() {\n"
+        "  vec2 uv = clamp(v_uv, u_lim.xy, u_lim.zw);\n"
+        "  vec4 c = texture2D(u_src, uv);\n"
+        "  vec4 b = texture2D(u_src, clamp(uv + vec2(u_size.z, 0.0), u_lim.xy, u_lim.zw)) + texture2D(u_src, clamp(uv - vec2(u_size.z, 0.0), u_lim.xy, u_lim.zw))\n"
+        "         + texture2D(u_src, clamp(uv + vec2(0.0, u_size.w), u_lim.xy, u_lim.zw)) + texture2D(u_src, clamp(uv - vec2(0.0, u_size.w), u_lim.xy, u_lim.zw));\n"
+        "  c = c + (c - b * 0.25) * u_p.z;\n"
+        "  gl_FragColor = vec4(c.rgb, 1.0);\n}\n";
+    if (!BuildSharpenProgram(g_sharp, vs, fs, "sharpen")) {
         autoq::Log("[autoq] the sharpening shader did not build: the display copy is blitted as before");
         return false;
     }
-    g_sharp.prog = prog;
-    UseProgram(prog);
-    g_sharp.rect = G(glGetUniformLocation(prog, "u_rect"));
-    g_sharp.size = G(glGetUniformLocation(prog, "u_size"));
-    g_sharp.lim = G(glGetUniformLocation(prog, "u_lim"));
-    g_sharp.p = G(glGetUniformLocation(prog, "u_p"));
-    G(glUniform1i(glGetUniformLocation(prog, "u_src"), 0));
     return true;
 }
 } // namespace
 
 bool PresentSharpened(unsigned fbo, int x, int y, int w, int h, int dx, int dy, int dw, int dh, float amount, bool flipY) {
     if (w <= 0 || h <= 0 || dw <= 0 || dh <= 0) return true;
-    if (!EnsureSharpenProgram()) return false; // (nothing of the GL state touched)
+    static const bool fastOn = EnvInt("GXV_SHARPEN_FAST", 1) != 0;
+    const bool whole = x == 0 && y == 0 && w == g_rtW && h == g_rtH;
+    const SharpProg* sp = whole && fastOn && EnsureSharpenFastProgram() ? &g_sharpFast : nullptr;
+    if (!sp) {
+        if (!EnsureSharpenProgram()) return false; // (nothing of the GL state touched)
+        sp = &g_sharp;
+    }
     BindFbo(fbo);
     SetViewport(dx, dy, dw, dh);
     SetScissor(false);
@@ -3575,17 +3612,18 @@ bool PresentSharpened(unsigned fbo, int x, int y, int w, int h, int dx, int dy, 
     SetDepthMask(false);
     SetColorMask(true, true);
     g_rsValid = false;
-    UseProgram(g_sharp.prog);
+    UseProgram(sp->prog);
     BindTex(0, g_efbColor);
     const float tw = static_cast<float>(g_rtW), th = static_cast<float>(g_rtH);
     const float u0 = static_cast<float>(x) / tw, du = static_cast<float>(w) / tw;
     const float v0 = static_cast<float>(y) / th, dv = static_cast<float>(h) / th;
-    if (flipY) G(glUniform4f(g_sharp.rect, u0, v0 + dv, du, -dv)); // (the quad's bottom edge shows the picture's last row)
-    else G(glUniform4f(g_sharp.rect, u0, v0, du, dv));
-    G(glUniform4f(g_sharp.size, tw, th, 1.0f / tw, 1.0f / th));
-    G(glUniform4f(g_sharp.lim, (static_cast<float>(x) + 0.5f) / tw, (static_cast<float>(y) + 0.5f) / th, (static_cast<float>(x + w) - 0.5f) / tw,
-                  (static_cast<float>(y + h) - 0.5f) / th));
-    G(glUniform4f(g_sharp.p, static_cast<float>(dw) / static_cast<float>(w), static_cast<float>(dh) / static_cast<float>(h), amount, 0.0f));
+    if (flipY) G(glUniform4f(sp->rect, u0, v0 + dv, du, -dv)); // (the quad's bottom edge shows the picture's last row)
+    else G(glUniform4f(sp->rect, u0, v0, du, dv));
+    G(glUniform4f(sp->size, tw, th, 1.0f / tw, 1.0f / th));
+    if (sp->lim >= 0)
+        G(glUniform4f(sp->lim, (static_cast<float>(x) + 0.5f) / tw, (static_cast<float>(y) + 0.5f) / th, (static_cast<float>(x + w) - 0.5f) / tw,
+                      (static_cast<float>(y + h) - 0.5f) / th));
+    G(glUniform4f(sp->p, static_cast<float>(dw) / static_cast<float>(w), static_cast<float>(dh) / static_cast<float>(h), amount, 0.0f));
     C.uniformCalls += 4;
     C.uniformBytes += 64;
     g_uniDirtyV = g_uniDirtyF = false;

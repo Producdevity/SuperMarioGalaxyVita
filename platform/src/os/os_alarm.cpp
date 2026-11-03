@@ -50,12 +50,16 @@ extern "C" int64_t port_host_time_ns(void) {
 #endif
 }
 
+extern "C" int port_vclock_guest_wait(void);
+
 extern "C" void port_host_sleep_ns(int64_t ns) {
     if (ns <= 0) {
         return;
     }
     if (port_vclock_enabled()) {
-        port_vclock_sleep_ns(ns);
+        if (!port_vclock_guest_wait()) {  // (os_thread.cpp)
+            port_vclock_sleep_ns(ns);
+        }
         return;
     }
     struct timespec ts;

@@ -555,6 +555,17 @@ static void idleUntilRunnable() {
     }
 }
 
+// armhf/qemu harness: a guest thread that waits in a loop while it holds the guest CPU (port_host_sleep_ns in GameScene::init and
+// MR::waitEndChangeArchivePlayer) leaves no OSThread to reach idleUntilRunnable, and virtual time would never pass: it takes the
+// idle step itself. 0: not the case (no virtual clock, or not a guest thread).
+extern "C" int port_vclock_guest_wait(void) {
+    if (!port_vclock_enabled() || tlsSelf == nullptr) {
+        return 0;
+    }
+    port_vclock_idle_step([]() -> int { return sPendingIrq.load() != 0; });
+    return 1;
+}
+
 // ---------------------------------------------------------------------------
 // SDK scheduler logic
 // ---------------------------------------------------------------------------

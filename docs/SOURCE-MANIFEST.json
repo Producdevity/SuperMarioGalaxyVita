@@ -18616,7 +18616,7 @@
     },
     {
       "path": "platform/src/dvd/dvd.cpp",
-      "sha256": "00b215b37f4cb419aab3d27f73b12a69088088ee41125f9b5aa9140f9667b3aa"
+      "sha256": "f29e8d6a7168b0dc7835c2cbf3862ebd63e603b595b758582d60f56ee23fa0a7"
     },
     {
       "path": "platform/src/gx/cpu_xf.cpp",
@@ -18816,7 +18816,7 @@
     },
     {
       "path": "platform/src/os/os_alarm.cpp",
-      "sha256": "8b2fc1903df18189adfafd70257c6afc8b4935625f829a22069bc83fd7f668ab"
+      "sha256": "b71b4ed299304961cd68daf460a3b04ffe4948dd07d67ce1f177d3907ed1aa60"
     },
     {
       "path": "platform/src/os/os_mem.cpp",
@@ -18824,7 +18824,7 @@
     },
     {
       "path": "platform/src/os/os_thread.cpp",
-      "sha256": "d6500ebe3cc1466289db1fb3eea844fb5161b60c91efb2c442f3b72a31dcf5ec"
+      "sha256": "5f0eb6a729107a5c616c1d78b16bc5984c3398b9e35ee6d03042009eea5dba2f"
     },
     {
       "path": "platform/src/port/boot.cpp",

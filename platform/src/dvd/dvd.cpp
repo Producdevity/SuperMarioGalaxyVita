@@ -1569,6 +1569,7 @@ BOOL DVDCancelAsync(DVDCommandBlock* block, DVDCBCallback callback) {
             if (it->block == block) {
                 sPending.erase(it);
                 removed = true;
+                port_vclock_external_end();  // (the drive worker will not complete it: see submit)
                 break;
             }
         }
@@ -1590,6 +1591,7 @@ s32 DVDCancel(DVDCommandBlock* block) {
             if (it->block == block) {
                 sPending.erase(it);
                 removed = true;
+                port_vclock_external_end();  // (the drive worker will not complete it: see submit)
                 break;
             }
         }

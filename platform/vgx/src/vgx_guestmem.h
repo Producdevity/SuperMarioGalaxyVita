@@ -17,4 +17,12 @@ uint64_t GuestWriteEpoch();
 // A decode that ran while unrelated data was flushed is not "raced"; only a write over what it read is.
 struct HostRange { const void* p; uint32_t n; };
 bool GuestWritesTouch(uint64_t from, uint64_t to, const HostRange* ranges, int count);
+// GXV_RACECHECK=1 (diagnosis): the front end's reads of guest memory for a picture, checked against the game's writes after that
+// picture's end (its finish token: PETARI_EARLY_DONE lets later turns run while a picture is read). NoteFinishRead at each
+// finish token the front end reaches; CheckPictureRead at each read (a display list, an indexed array element) once
+// g_raceCheckReads is set (by the first NoteFinishRead: before that no picture's end is known).
+void NoteFinishRead();
+void CheckPictureRead(const void* p, uint32_t n, int what);
+bool RaceCheckOn();
+extern bool g_raceCheckReads;
 }

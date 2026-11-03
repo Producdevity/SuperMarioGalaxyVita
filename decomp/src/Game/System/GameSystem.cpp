@@ -234,6 +234,8 @@ bool GameSystem::isPreparedReset() const {
 extern "C" int port_frameskip_turn(int allowed);
 extern "C" void port_matdl_cancel(void);
 extern "C" void port_turn_skipped_set(int v);
+extern "C" void GXWaitOwedDrawDone(int site);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
+extern "C" u32 GXPortPictureBegin(void);
 #if defined(__vita__)
 extern "C" void port_settings_game_boundary(int safe);
 #endif
@@ -247,6 +249,7 @@ void GameSystem::frameLoop() {
 #endif
     port_perf_frame_begin();
     if (port_skip_fast_forwarding()) {
+        GXWaitOwedDrawDone(0);  // (PETARI_EARLY_DONE: the turns below run the view pass, which rewrites both matrix buffers)
         // A cutscene being skipped: nothing is drawn (the headset view is
         // dimmed), and the game logic runs as often as fits in a frame.  The
         // retrace wait still gives the other threads (audio, loading) their
@@ -295,6 +298,14 @@ void GameSystem::frameLoop() {
         PORT_GAME_PROGRESS(PORT_GAME_PHASE_FRAME_COMPLETE);
         return;
     }
+#endif
+#ifdef TARGET_PC
+    // (PETARI_EARLY_DONE: the pictures still being read are waited for only before a scene change, which frees what they
+    // read; otherwise by what writes what they read, see GXWaitPictureRead)
+    if (mSceneController->isChangingScene()) {
+        GXWaitOwedDrawDone(0);
+    }
+    GXPortPictureBegin();
 #endif
     PORT_GAME_PROGRESS(PORT_GAME_PHASE_BEGIN_RENDER);
     MainLoopFramework::sManager->beginRender();

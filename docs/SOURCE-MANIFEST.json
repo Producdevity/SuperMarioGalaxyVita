@@ -6588,7 +6588,7 @@
     },
     {
       "path": "decomp/libs/JSystem/include/JSystem/J3DGraphBase/J3DPacket.hpp",
-      "sha256": "271b9d14432b1aafa3b0fc66150c93728b0fb1c3e41a5b6c41602d6e1d0a2335"
+      "sha256": "2f65a3997e1d73fd317747c7885c26336110247ca3401a20eaa56a7a11b93fd5"
     },
     {
       "path": "decomp/libs/JSystem/include/JSystem/J3DGraphBase/J3DShape.hpp",
@@ -11512,7 +11512,7 @@
     },
     {
       "path": "decomp/src/Game/LiveActor/DisplayListMaker.cpp",
-      "sha256": "658a51d84ecf63253741ffe62bca87a8c33807bd78da4c2940b03c51e26abe69"
+      "sha256": "ad83e547f46479eae405afdfcb105b915bb867b79ba2ee1ed48413b26cf69901"
     },
     {
       "path": "decomp/src/Game/LiveActor/DynamicJointCtrl.cpp",
@@ -11588,7 +11588,7 @@
     },
     {
       "path": "decomp/src/Game/LiveActor/ModelManager.cpp",
-      "sha256": "7c19111b6923d62945266519374447e308e12219b9a0697875a05cb2e9dd8977"
+      "sha256": "cc281e0238398994ab032d8d1a8ba785514f30cc8eecc1f231459d252cb8d6ce"
     },
     {
       "path": "decomp/src/Game/LiveActor/ModelObj.cpp",
@@ -14256,7 +14256,7 @@
     },
     {
       "path": "decomp/src/Game/Scene/GameScene.cpp",
-      "sha256": "b1418abe293997a1be59b809426ff10ebe4f50da955c4d54b205dec2a2a1413d"
+      "sha256": "a232fa04bb57fde87a58fc2e6b9d7978dd6f15bff1b19a8a3b90577a3d77bbec"
     },
     {
       "path": "decomp/src/Game/Scene/GameSceneFunction.cpp",
@@ -15088,7 +15088,7 @@
     },
     {
       "path": "decomp/src/Game/System/GameSystem.cpp",
-      "sha256": "325e00db62c625dd42e8ca0595e0b3f9306954fac66d3274c849dd8c6a181c6c"
+      "sha256": "ada56beba304a0b8f4a313972265a6d9013d6b8c72da5ef05eafea976cf8ca56"
     },
     {
       "path": "decomp/src/Game/System/GameSystemDimmingWatcher.cpp",
@@ -15156,7 +15156,7 @@
     },
     {
       "path": "decomp/src/Game/System/MainLoopFramework.cpp",
-      "sha256": "c6a1766b3e64619f5133a94a118621f7aa0525639cbaee671c1d9a8bc5c87244"
+      "sha256": "8adce86b012c3c54d75b6d66c921e870350f1d1b0331cd4eb250c2b832b80b8e"
     },
     {
       "path": "decomp/src/Game/System/MessageHolder.cpp",
@@ -15428,7 +15428,7 @@
     },
     {
       "path": "decomp/src/Game/Util/FurShader.cpp",
-      "sha256": "4bd4139539b8d3b1c3ae6969bd67f7026f9909203f9000a9229dc709ef598ab5"
+      "sha256": "cbdffc002ec62e286273d1787f645f35272120b35cfe805668c3adfbc966af47"
     },
     {
       "path": "decomp/src/Game/Util/GamePadUtil.cpp",
@@ -15656,7 +15656,7 @@
     },
     {
       "path": "decomp/src/JSystem/J3DGraphAnimator/J3DCluster.cpp",
-      "sha256": "0227c98c18fd8f209957cd8c8eae5ffd9dc02a025f2ebf657ed5ee43ba467421"
+      "sha256": "9fb0c3d204245915814fb8002baf40a4380ee7e722e45ff699cd11b79d716beb"
     },
     {
       "path": "decomp/src/JSystem/J3DGraphAnimator/J3DJoint.cpp",
@@ -15676,7 +15676,7 @@
     },
     {
       "path": "decomp/src/JSystem/J3DGraphAnimator/J3DModel.cpp",
-      "sha256": "7f22d7a0c5429663d6ff05a831e32cf09dc5db821aae0cd447ce0d711436ef91"
+      "sha256": "b1a857074cd4d0edb183ab82bbf3aae29bd612e877214d148454a3b5c75afe1d"
     },
     {
       "path": "decomp/src/JSystem/J3DGraphAnimator/J3DModelData.cpp",
@@ -15712,7 +15712,7 @@
     },
     {
       "path": "decomp/src/JSystem/J3DGraphBase/J3DPacket.cpp",
-      "sha256": "f54a1521243a20bcb4598803b0278aeab5e2057d31fc4369fcd4d2d2ec01b727"
+      "sha256": "c6c14f5e444f7bb823d734c90b77d6919033715f3fdacae80b8eb721c3ce87e4"
     },
     {
       "path": "decomp/src/JSystem/J3DGraphBase/J3DShape.cpp",
@@ -17640,7 +17640,7 @@
     },
     {
       "path": "decomp/src/RVL_SDK/gx/GXMisc.c",
-      "sha256": "1381c91c269dab4b2fa14ed0ab184d5a62824b0e524a111e8feb4829f8e11e3d"
+      "sha256": "1f4515df6f1c128b9c42ae1e5ddc2b011892e445425e1d79ed03ad40e0f3b05b"
     },
     {
       "path": "decomp/src/RVL_SDK/gx/GXPerf.c",
@@ -18824,7 +18824,7 @@
     },
     {
       "path": "platform/src/os/os_thread.cpp",
-      "sha256": "5f0eb6a729107a5c616c1d78b16bc5984c3398b9e35ee6d03042009eea5dba2f"
+      "sha256": "2325aec93d2cbed83853d5b93ba8f76e324cf49f5a2d0a7b60beec04e6c62bf9"
     },
     {
       "path": "platform/src/port/boot.cpp",
@@ -18860,7 +18860,7 @@
     },
     {
       "path": "platform/src/port/perf.cpp",
-      "sha256": "6aa4a95de6cdd1b73a9b9bcb6adee693b9a69df5ae139918bec6060974c8f7ac"
+      "sha256": "f47210716d9169415a018bc3059226de45de3b304daa0ecaa67b61e9a6052643"
     },
     {
       "path": "platform/src/port/phase_cpu.h",
@@ -19012,7 +19012,7 @@
     },
     {
       "path": "platform/vgx/src/vgx_bpsync.cpp",
-      "sha256": "76d8c5539e41e10f67403b6bed775d19effcd47562f37791c704fe5c9a343ef7"
+      "sha256": "d98abc1ebb0ccfed730a293ac7fca4583dc3df55a679246c5d225bb0c9426850"
     },
     {
       "path": "platform/vgx/src/vgx_cmd.h",
@@ -19040,7 +19040,7 @@
     },
     {
       "path": "platform/vgx/src/vgx_dlcache.cpp",
-      "sha256": "fbc53fa00dac36017b65e0c0834b6b828b628540cc3bb56ffad4a78c90974882"
+      "sha256": "e66a5409293c122806a5cfa32cbae74887d1b2f18bb66a644846b613a3dd7a16"
     },
     {
       "path": "platform/vgx/src/vgx_draw.cpp",
@@ -19056,11 +19056,11 @@
     },
     {
       "path": "platform/vgx/src/vgx_guestmem.cpp",
-      "sha256": "e05e8103ce42659947eb7d2b83efa0e0b01b1065b9eaaaa66be3dc10b95b934e"
+      "sha256": "97521db379a083d58d0ac656101f7d6a7c4a8794c70de9277998b24794ba5974"
     },
     {
       "path": "platform/vgx/src/vgx_guestmem.h",
-      "sha256": "84e75492ef34e8102b6158cee85aa203759852bfa55084899c30d1a3e6882a61"
+      "sha256": "2c808de6909f0f76c63b4f92eeabefe9cb61a46967c6ca8d052dce0eea979ccd"
     },
     {
       "path": "platform/vgx/src/vgx_hdtex.cpp",
@@ -19088,7 +19088,7 @@
     },
     {
       "path": "platform/vgx/src/vgx_state.cpp",
-      "sha256": "e993b4f4e65567d6f6c1a40091e86c0153da2e1239c37a33e4a3048d96e314fd"
+      "sha256": "8737f991a8745440a1a31b0dc037e007ac4642198211a68fbc30fc744913fb43"
     },
     {
       "path": "platform/vgx/src/vgx_state.h",

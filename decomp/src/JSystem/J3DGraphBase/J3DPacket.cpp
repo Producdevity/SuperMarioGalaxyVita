@@ -8,6 +8,10 @@
 #include "JSystem/JKernel/JKRHeap.hpp"
 #include <cstdio>
 #include <mem.h>
+#ifdef TARGET_PC
+extern "C" u32 GXPortPicture(void);                        // (decomp/src/RVL_SDK/gx/GXMisc.c)
+extern "C" int GXWaitPictureRead(u32 picture, int site);  // (the same)
+#endif
 
 J3DError J3DDisplayListObj::newDisplayList(u32 maxSize) {
     mMaxSize = ALIGN_NEXT(maxSize, 0x20);
@@ -49,13 +53,26 @@ void J3DDisplayListObj::swapBuffer() {
     void* pTmp = mpDisplayList[0];
     mpDisplayList[0] = mpDisplayList[1];
     mpDisplayList[1] = pTmp;
+#ifdef TARGET_PC
+    const u32 picture = mPortPicture[0];
+    mPortPicture[0] = mPortPicture[1];
+    mPortPicture[1] = picture;
+#endif
 }
 
 void J3DDisplayListObj::callDL() const {
+#ifdef TARGET_PC
+    mPortPicture[0] = GXPortPicture();
+#endif
     GXCallDisplayList(mpDisplayList[0], mSize);
 }
 
 void J3DDisplayListObj::beginDL() {
+#ifdef TARGET_PC
+    // (PETARI_EARLY_DONE: the buffer written next must have been read to its end by the picture that last drew from it;
+    // DisplayListMaker::diff waits before its scheduler lock, where a wait can end, so this one is only the check)
+    GXWaitPictureRead(portWriteReader(), 4);
+#endif
     swapBuffer();
     sInterruptFlag = OSDisableInterrupts();
     GDInitGDLObj(&sGDLObj, (u8*)mpDisplayList[0], mMaxSize);

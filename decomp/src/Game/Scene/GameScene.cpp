@@ -31,6 +31,7 @@
 #include "Game/Camera/CameraDirector.hpp"
 #ifdef TARGET_PC
 extern "C" int port_turn_skipped(void);  // (platform/src/port/perf.cpp)
+extern "C" void GXWaitOwedDrawDone(int site);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
 #include "Game/Camera/CameraHolder.hpp"
 #include "Game/Camera/CameraManEvent.hpp"
 #include "Game/Camera/CameraManGame.hpp"
@@ -440,6 +441,9 @@ void GameScene::calcAnim() {
     if (port_turn_skipped()) {
         return;
     }
+    // (PETARI_EARLY_DONE: the view pass writes the matrix buffers the picture before the one just drawn read from, or in a turn
+    // without a picture, the last one)
+    GXWaitOwedDrawDone(0);
 #endif
     SceneFunction::executeCalcViewAndEntryList();
 }

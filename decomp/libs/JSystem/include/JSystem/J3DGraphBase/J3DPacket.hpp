@@ -108,6 +108,12 @@ public:
     /* 0x0 */ void* mpDisplayList[2];
     /* 0x8 */ u32 mSize;
     /* 0xC */ u32 mMaxSize;
+#ifdef TARGET_PC
+    // (port) The picture that last drew from each buffer (callDL), so that a rewrite waits only for that one to be read
+    // (PETARI_EARLY_DONE: portWriteReader, DisplayListMaker::diff).
+    mutable u32 mPortPicture[2] = {0, 0};
+    u32 portWriteReader() const { return mpDisplayList[0] == mpDisplayList[1] && mPortPicture[0] > mPortPicture[1] ? mPortPicture[0] : mPortPicture[1]; }
+#endif
 };  // Size: 0x10
 
 class J3DPacket {

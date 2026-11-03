@@ -3,12 +3,18 @@
 #include "JSystem/J3DGraphAnimator/J3DModel.hpp"
 #include "JSystem/J3DGraphBase/J3DVertex.hpp"
 #include "JSystem/JMath/JMATrigonometric.hpp"
+#ifdef TARGET_PC
+extern "C" void GXWaitOwedDrawDone(int site);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
+#endif
 
 void J3DDeformData::deform(J3DModel* model) {
     deform(model->getVertexBuffer());
 }
 
 void J3DDeformData::deform(J3DVertexBuffer* buffer) {
+#ifdef TARGET_PC
+    GXWaitOwedDrawDone(2);  // (PETARI_EARLY_DONE: the arrays written now are the ones the last picture may still be read from)
+#endif
     buffer->swapVtxPosArrayPointer();
     buffer->swapVtxNrmArrayPointer();
 

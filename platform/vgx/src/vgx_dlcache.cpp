@@ -548,6 +548,7 @@ static uint32_t TinyListBytes() {
 }
 void CallList(const uint8_t* list, uint32_t nbytes) {
     Init();
+    if (diag::kEnabled && g_raceCheckReads) CheckPictureRead(list, nbytes, 0); // (GXV_RACECHECK)
     // (a list of a few dozen bytes, one particle quad for instance, is decoded faster than its
     // cache entry is checked)
     if (g_mode == 0 || nbytes <= TinyListBytes() || TraceFrame()) {

@@ -6,6 +6,11 @@
 // compiled from the decompilation, and everything arrives as register writes with console
 // addresses: this file turns those back into what the texture cache and the copy code want.
 #include "vgx_state.h"
+#include "vgx_common.h"
+
+#include <chrono>
+#include <cstdlib>
+#include <thread>
 #include "vgx_texdecode.h"
 
 namespace vgx {
@@ -148,6 +153,10 @@ void BpCopyTrigger(uint32_t cmd) {
         g.dispCopySrc = src;
         QueueCopyDisp(clear);
         if (Hooks().displayCopy) Hooks().displayCopy();
+        // GXV_SIM_PLAYER_LAG_US=<us> (diagnosis, with GXV_RACECHECK): the front end starts the next picture this much later, as
+        // the console's slower one does, so that the game's later turns overlap its reads (PETARI_EARLY_DONE).
+        static const long lagUs = diag::kEnabled && diag::Env("GXV_SIM_PLAYER_LAG_US") ? std::atol(diag::Env("GXV_SIM_PLAYER_LAG_US")) : 0;
+        if (lagUs > 0) std::this_thread::sleep_for(std::chrono::microseconds(lagUs));
         return;
     }
     uint32_t avail = 0;

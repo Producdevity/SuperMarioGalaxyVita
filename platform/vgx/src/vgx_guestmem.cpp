@@ -8,10 +8,15 @@
 // here. A cached decode of guest data stays valid while the counters under it
 // have not moved; when they have, the bytes are compared (hashed) again.
 #include "vgx_guestmem.h"
+#include "vgx_common.h"
 #include "vgx_hle.h"
 
 #include <atomic>
 #include <memory>
+
+// (decomp/src/RVL_SDK/gx/GXMisc.c: the game's write epoch when it set finish token `token`; 0 when not set yet. Weak here for the
+// tests without the game.)
+extern "C" __attribute__((weak)) int port_gx_token_epoch(uint32_t, uint64_t*) { return 0; }
 
 namespace vgx {
 
@@ -95,6 +100,54 @@ bool GuestWritesTouch(uint64_t from, uint64_t to, const HostRange* ranges, int c
     return false;
 }
 
+namespace {
+std::atomic<uint32_t> g_finishRead{0};
+uint64_t g_raceChecks = 0, g_races = 0, g_raceUnknown = 0, g_raceNotYet = 0; // (the front end's thread)
+} // namespace
+bool g_raceCheckReads = false;
+
+bool RaceCheckOn() {
+    static const bool on = diag::kEnabled && diag::Env("GXV_RACECHECK") && *diag::Env("GXV_RACECHECK") == '1';
+    return on;
+}
+
+void NoteFinishRead() {
+    if (!RaceCheckOn()) return;
+    g_raceCheckReads = true;
+    const uint32_t n = g_finishRead.fetch_add(1, std::memory_order_relaxed) + 1;
+    if (n % 600 == 0)
+        VGX_LOG_N(400, "racecheck: %u pictures; %llu reads checked, %llu written by the game after their picture's end, %llu not told "
+                       "(the write log had moved on), %llu before that end was known\n",
+                  n, static_cast<unsigned long long>(g_raceChecks), static_cast<unsigned long long>(g_races),
+                  static_cast<unsigned long long>(g_raceUnknown), static_cast<unsigned long long>(g_raceNotYet));
+}
+
+void CheckPictureRead(const void* ptr, uint32_t n, int what) {
+    if (!n) return;
+    ++g_raceChecks;
+    // The finish token after the picture being read (the next one this thread reaches), and the game's write epoch when it set it.
+    uint64_t from = 0;
+    if (!port_gx_token_epoch(g_finishRead.load(std::memory_order_relaxed) + 1, &from)) { ++g_raceNotYet; return; }
+    const uint64_t to = g_epoch.load(std::memory_order_acquire);
+    if (to <= from) return;
+    if (to - from > kLogSize / 2) { ++g_raceUnknown; return; }
+    const uint8_t* const a = static_cast<const uint8_t*>(ptr);
+    for (uint64_t seq = from; seq < to; ++seq) {
+        const LogRec& r = g_log[seq & (kLogSize - 1)];
+        const uint64_t s1 = r.stamp.load(std::memory_order_acquire);
+        const uint8_t* p = r.p.load(std::memory_order_relaxed);
+        const uint32_t wn = r.n.load(std::memory_order_relaxed);
+        if (s1 != seq + 1 || r.stamp.load(std::memory_order_acquire) != seq + 1) { ++g_raceUnknown; return; }
+        if (p < a + n && a < p + wn) {
+            ++g_races;
+            VGX_LOG_N(40, "racecheck: %s %p+%u read after the game wrote %p+%u (picture end epoch %llu, write %llu)\n",
+                      what == 0 ? "display list" : "array element", ptr, n, static_cast<const void*>(p), wn,
+                      static_cast<unsigned long long>(from), static_cast<unsigned long long>(seq));
+            return;
+        }
+    }
+}
+
 namespace hle {
 void RegisterGuestRam(const void* hostBase, uint32_t size) {
     if (!hostBase || !size || g_numBanks >= kMaxBanks) return;
@@ -131,3 +184,5 @@ void NotifyGuestWrite(const void* hostPtr, uint32_t size) {
 } // namespace hle
 
 } // namespace vgx
+
+extern "C" uint64_t port_vgx_guest_write_epoch(void) { return vgx::GuestWriteEpoch(); }

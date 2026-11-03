@@ -8,6 +8,9 @@
 #include <JSystem/JUtility/JUTTexture.hpp>
 #include <cstring>
 #include <revolution/gx/GXEnum.h>
+#ifdef TARGET_PC
+extern "C" void GXWaitOwedDrawDone(int site);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
+#endif
 
 CShader::CShader(const J3DModelData* pModelData, const ResTIMG* pTimg) : mIndexArray(), mLengthMap(pTimg) {
     _1C = 0.0f;
@@ -43,6 +46,9 @@ CShader::~CShader() {
 }
 
 void CShader::calc(J3DModel* pModel) {
+#ifdef TARGET_PC
+    GXWaitOwedDrawDone(3);  // (PETARI_EARLY_DONE: the positions written now are the ones the last picture may still be read from)
+#endif
     pModel->mVertexBuffer.swapTransformedVtxPos();
     J3DVertexData* pData = pModel->mVertexBuffer.getVertexData();
     u32 count;

@@ -3,6 +3,9 @@
 #include "JSystem/J3DGraphAnimator/J3DMaterialAnm.hpp"
 #include "JSystem/J3DGraphBase/J3DMaterial.hpp"
 #include "JSystem/J3DGraphBase/J3DShapeMtx.hpp"
+#ifdef TARGET_PC
+extern "C" void GXWaitOwedDrawDone(int site);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
+#endif
 
 void J3DModel::initialize() {
     mModelData = NULL;
@@ -337,6 +340,12 @@ void J3DModel::entry() {
 }
 
 void J3DModel::viewCalc() {
+#ifdef TARGET_PC
+    // (PETARI_EARLY_DONE: the buffers written now were last read by a picture whose end is written: the one before the picture
+    // drawn in this turn, or in a turn without a picture, the last one. GameScene::calcAnim has waited for it: this is the
+    // check, for the other scenes too.)
+    GXWaitOwedDrawDone(6);
+#endif
     mMtxBuffer->swapDrawMtx();
     mMtxBuffer->swapNrmMtx();
 

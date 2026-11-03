@@ -8,6 +8,9 @@
 #include <JSystem/J3DGraphBase/J3DMaterial.hpp>
 #include <JSystem/J3DGraphBase/J3DSys.hpp>
 #include <algorithm>
+#ifdef TARGET_PC
+extern "C" int GXWaitPictureRead(u32 picture, int site);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
+#endif
 
 void DisplayListMaker_FORCE_MATCH_INLINE(J3DTexture* pTexture, const ResTIMG& rTexture) {
     pTexture->setResTIMG(0, rTexture);
@@ -29,6 +32,11 @@ void DisplayListMaker::update() {
 void DisplayListMaker::diff() {
     for (u16 i = 0; i < mModel->getModelData()->getMaterialNum(); i++) {
         if (mCurFlag[i]) {
+#ifdef TARGET_PC
+            // (PETARI_EARLY_DONE: the list buffer the diff writes must have been read by the picture that last drew from it,
+            // and here, before the scheduler lock, the wait can end)
+            GXWaitPictureRead(mModel->getMatPacket(i)->mpInitShapePacket->getDisplayListObj()->portWriteReader(), 1);
+#endif
             MR::ProhibitSchedulerAndInterrupts prohibit(false);
             j3dSys.setMatPacket(mModel->getMatPacket(i));
             mModel->getModelData()->getMaterialNodePointer(i)->diff(getDiffFlag(i));

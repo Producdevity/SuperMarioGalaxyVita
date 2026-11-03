@@ -555,6 +555,10 @@ static void idleUntilRunnable() {
     }
 }
 
+// Whether the calling guest thread may sleep here: interrupts on (the wake-up comes as one) and the scheduler not held
+// (GXWaitOwedDrawDone: a wait inside the game's MR::ProhibitSchedulerAndInterrupts would never end).
+extern "C" int port_os_may_wait(void) { return tlsSelf != nullptr && sIntEnabled && Reschedule <= 0 && !sInIrq ? 1 : 0; }
+
 // armhf/qemu harness: a guest thread that waits in a loop while it holds the guest CPU (port_host_sleep_ns in GameScene::init and
 // MR::waitEndChangeArchivePlayer) leaves no OSThread to reach idleUntilRunnable, and virtual time would never pass: it takes the
 // idle step itself. 0: not the case (no virtual clock, or not a guest thread).

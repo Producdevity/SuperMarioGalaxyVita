@@ -17,22 +17,41 @@
 #include <cstdio>
 #ifdef TARGET_PC
 extern "C" int port_matdl_defer(void);  // (platform/src/port/perf.cpp)
+extern "C" int port_matdl_may_defer(void);
 extern "C" void port_matdl_late(unsigned models);
+extern "C" void port_early_done_paid(int site, s64 ns);
+extern "C" int GXPortPicturesUnread(void);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
+extern "C" int GXPictureRead(u32 picture);
 
 namespace {
     // (a fixed array: `new` here allocates from the game's current heap, a scene's, which goes with the scene)
     ModelManager* sDeferredDL[4096];
     u32 sDeferredCount = 0;
+    bool sMakingDeferred = false;  // (updateDeferredDL: the updates a picture is about to draw with)
+
+    // (PETARI_EARLY_DONE) Whether DisplayListMaker::diff would wait now for the renderer to read a picture that drew from one of
+    // the lists it writes.
+    bool listsUnread(const DisplayListMaker* pMaker) {
+        J3DModel* pModel = pMaker->mModel;
+        for (u16 i = 0; i < pModel->getModelData()->getMaterialNum(); i++) {
+            if (pMaker->mCurFlag[i] && !GXPictureRead(pModel->getMatPacket(i)->mpInitShapePacket->getDisplayListObj()->portWriteReader())) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 void ModelManager::updateDeferredDL() {
     unsigned late = 0;
+    sMakingDeferred = true;
     for (u32 i = 0; i < sDeferredCount; i++) {
         if (sDeferredDL[i]->mDLDeferred) {
             sDeferredDL[i]->updateDL(true);
             ++late;
         }
     }
+    sMakingDeferred = false;
     sDeferredCount = 0;
     if (late) {
         port_matdl_late(late);
@@ -113,6 +132,18 @@ void ModelManager::newDifferedDLBuffer() {
 void ModelManager::updateDL(bool isDiffDL) {
 #ifdef TARGET_PC
     if (isDiffDL) {
+        // (PETARI_EARLY_DONE) An update whose lists' write would wait for the renderer to read the last picture is left to the
+        // next drawn turn, as above: by then the picture has usually been read. Every caller (calcAnim, MarioActor::calcAnim's
+        // MR::updateModelDiffDL, ...) runs after the picture of its turn is drawn.
+        if (!sMakingDeferred && mDLMade && (mDLDeferred || sDeferredCount < sizeof(sDeferredDL) / sizeof(*sDeferredDL)) &&
+            mDisplayListMaker != nullptr && GXPortPicturesUnread() && port_matdl_may_defer() && listsUnread(mDisplayListMaker)) {
+            if (!mDLDeferred) {
+                mDLDeferred = true;
+                sDeferredDL[sDeferredCount++] = this;
+            }
+            port_early_done_paid(7, 0);
+            return;
+        }
         mDLDeferred = false;
         mDLMade = true;
     }

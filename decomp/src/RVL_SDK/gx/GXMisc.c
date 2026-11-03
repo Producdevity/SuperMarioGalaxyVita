@@ -13,6 +13,23 @@ static GXDrawSyncCallback TokenCB;
 static GXDrawDoneCallback DrawDoneCB;
 static volatile GXBool DrawDone;
 static OSThreadQueue FinishQueue;
+#ifdef TARGET_PC
+// (port) Finish tokens written and their interrupts taken, in order: GXWaitDrawDone waits for all of them, and a wait for one
+// picture (GXWaitPictureRead) for its own, while a later one may be on its way already (PETARI_EARLY_DONE).
+static volatile u32 sFinishSet, sFinishDone;
+// (GXV_RACECHECK: the guest write epoch when each token was set, for the front end; port_gx_token_epoch)
+static uint64_t sTokenEpoch[64];
+static u32 sTokenPublished;
+extern uint64_t port_vgx_guest_write_epoch(void);
+int port_gx_token_epoch(u32 token, uint64_t* epoch) {
+    const u32 published = __atomic_load_n(&sTokenPublished, __ATOMIC_ACQUIRE);
+    if (token == 0 || (s32)(token - published) > 0 || published - token >= 64) {
+        return 0;
+    }
+    *epoch = sTokenEpoch[token & 63];
+    return __atomic_load_n(&sTokenPublished, __ATOMIC_ACQUIRE) - token < 64;
+}
+#endif
 
 void GXSetMisc(GXMiscToken token, u32 val) {
     switch (token) {
@@ -136,6 +153,11 @@ void GXSetDrawDone(void) {
 #endif
     reg = PE_FINISH(2, 0x45);
     GX_WRITE_RA_REG(reg);
+#ifdef TARGET_PC
+    ++sFinishSet;
+    sTokenEpoch[sFinishSet & 63] = port_vgx_guest_write_epoch();
+    __atomic_store_n(&sTokenPublished, sFinishSet, __ATOMIC_RELEASE);
+#endif
     PORT_GAME_PROGRESS(PORT_GAME_PHASE_GX_FINISH_FLUSH);
     GXFlush();
     DrawDone = GX_FALSE;
@@ -152,7 +174,11 @@ void GXSetDrawDone(void) {
 void GXWaitDrawDone(void) {
     PORT_GAME_PROGRESS(PORT_GAME_PHASE_GX_FINISH_WAIT);
     BOOL en = OSDisableInterrupts();
+#ifdef TARGET_PC
+    while (!DrawDone || (s32)(sFinishDone - sFinishSet) < 0) {
+#else
     while (!DrawDone) {
+#endif
         OSSleepThread(&FinishQueue);
     }
     OSRestoreInterrupts(en);
@@ -162,6 +188,65 @@ void GXDrawDone(void) {
     GXSetDrawDone();
     GXWaitDrawDone();
 }
+
+#ifdef TARGET_PC
+// (port) A drawn frame's wait for the renderer, put off (PETARI_EARLY_DONE, MainLoopFramework::endFrame): later turns run while
+// the renderer still reads the picture from the game's memory, and a write of something a picture reads first waits until
+// that picture has been read to its end (GXWaitPictureRead): a display-list buffer the picture drew from (per buffer,
+// J3DDisplayListObj); the matrix buffers of the view pass, a deformed model's vertex arrays and fur's, for the last picture
+// whose end is written (GXWaitOwedDrawDone: the one before the picture drawn in this turn); everything before a scene change
+// or a fast-forwarded cutscene.
+static u32 sPicture;            // pictures begun (GXPortPictureBegin, before each drawn frame)
+static u32 sPictureEnded;       // the last of them whose end token is written
+static u32 sPictureToken[16];   // the token count after each picture's end token (by picture & 15)
+extern void port_early_done_paid(int site, int64_t ns);
+extern int port_os_may_wait(void);
+u32 GXPortPictureBegin(void) { return ++sPicture; }
+u32 GXPortPicture(void) { return sPicture; }
+void GXSetDrawDoneOwed(void) {
+    GXSetDrawDone();
+    sPictureToken[sPicture & 15] = sFinishSet;
+    sPictureEnded = sPicture;
+    port_early_done_paid(-1, 0);
+}
+// 1 once picture `picture` has been read to its end (0, and a write that could not wait counted, when it was not: the picture
+// is the one still being drawn, or the caller may not sleep).
+int GXWaitPictureRead(u32 picture, int site) {
+    if (picture == 0 || sPictureEnded == 0 || (s32)(sPictureEnded - picture) >= 16) {
+        return 1;  // (none, PETARI_EARLY_DONE off, or long done: the ring holds the last 16)
+    }
+    if ((s32)(picture - sPictureEnded) > 0) {
+        port_early_done_paid(5, 0);
+        return 0;
+    }
+    const u32 token = sPictureToken[picture & 15];
+    if ((s32)(sFinishDone - token) >= 0) {
+        return 1;
+    }
+    if (!port_os_may_wait()) {
+        port_early_done_paid(5, 0);
+        return 0;
+    }
+    const int64_t start = port_host_time_ns();
+    BOOL en = OSDisableInterrupts();
+    while ((s32)(sFinishDone - token) < 0) {
+        OSSleepThread(&FinishQueue);
+    }
+    OSRestoreInterrupts(en);
+    port_early_done_paid(site, port_host_time_ns() - start);
+    return 1;
+}
+void GXWaitOwedDrawDone(int site) { GXWaitPictureRead(sPictureEnded, site); }
+// The same without waiting: 1 once picture `picture` has been read to its end.
+int GXPictureRead(u32 picture) {
+    if (picture == 0 || sPictureEnded == 0 || (s32)(sPictureEnded - picture) >= 16) {
+        return 1;
+    }
+    return (s32)(picture - sPictureEnded) <= 0 && (s32)(sFinishDone - sPictureToken[picture & 15]) >= 0;
+}
+// 1 while a picture is being drawn or one whose end is written is still being read (PETARI_EARLY_DONE on).
+int GXPortPicturesUnread(void) { return sPictureEnded != 0 && (sPicture != sPictureEnded || !GXPictureRead(sPictureEnded)); }
+#endif
 
 void GXPixModeSync(void) {
     GX_WRITE_RA_REG(gx->peCtrl);
@@ -306,6 +391,9 @@ GXFinishInterruptHandler(__OSInterrupt, OSContext* context) {
     GX_PE_REG_WRITE_U16(5, reg);
 
     DrawDone = GX_TRUE;
+#ifdef TARGET_PC
+    ++sFinishDone;
+#endif
 #if defined(__vita__)
     static unsigned reported = 0;
     if (reported < 4) port_log("native-gx finish-interrupt=%u", ++reported);

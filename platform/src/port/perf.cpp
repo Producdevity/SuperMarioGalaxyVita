@@ -106,8 +106,10 @@ struct TurnPhases {
     bool bothSkipReasons = false;
 } sTurn;
 thread_local bool sMatDlDefer = false;  // (port_matdl_defer: set by port_frameskip_turn for the turn it starts; the frame loop's thread only)
+thread_local bool sMatDlCancelled = false;  // (port_matdl_may_defer: a scene change began in this turn)
 std::atomic<uint32_t> sMatDlDeferTurns{0}, sMatDlLate{0};  // (the log's "matdl:" line)
 uint32_t sGravityCompared = 0, sGravityEarly = 0, sGravityMismatching = 0;  // (PETARI_GRAVITY_CULL=2; the game's guest threads, one at a time)
+uint32_t sEarlyOwed = 0, sEarlyPaid[8] = {}; int64_t sEarlyNs[8] = {};  // (PETARI_EARLY_DONE, the log's "early done:" line; the game's guest threads)
 unsigned sSlowTurnsLogged = 0;
 bool slowTurnLog() {
     static const bool v = alwaysLog() || port_handheld() != 0;
@@ -154,6 +156,15 @@ void report(int64_t now) {
         verbose && (turns || late))
         port_log("matdl: %u turns left their material display-list updates to a later turn; %u models were updated before a picture "
                  "instead (a wrong guess of the next turn's kind)", turns, late);
+    if (sEarlyOwed) {
+        port_log("early done: %u pictures' waits put off; paid at a view pass or scene change %u times (%.1f ms), material lists %u (%.1f ms), "
+                 "a deformed model %u (%.1f ms), fur %u (%.1f ms), another display list %u (%.1f ms), a model's matrices %u (%.1f ms); %u "
+                 "writes that could not wait; %u models' material updates left to the next picture instead of waiting", sEarlyOwed, sEarlyPaid[0],
+                 sEarlyNs[0] / 1e6, sEarlyPaid[1], sEarlyNs[1] / 1e6, sEarlyPaid[2], sEarlyNs[2] / 1e6, sEarlyPaid[3], sEarlyNs[3] / 1e6, sEarlyPaid[4],
+                 sEarlyNs[4] / 1e6, sEarlyPaid[6], sEarlyNs[6] / 1e6, sEarlyPaid[5], sEarlyPaid[7]);
+        sEarlyOwed = 0;
+        for (int i = 0; i < 8; ++i) { sEarlyPaid[i] = 0; sEarlyNs[i] = 0; }
+    }
     if (sGravityCompared) {
         port_log("gravity: %u fields evaluated with and without the reach test, %u rejected by it, %u results different", sGravityCompared,
                  sGravityEarly, sGravityMismatching);
@@ -246,6 +257,7 @@ const char* port_game_progress_name(uint32_t phase) {
 
 void port_perf_frame_begin(void) {
     sMatDlDefer = false;
+    sMatDlCancelled = false;
     if (port_autoq_game_begin) port_autoq_game_begin(); // target-only CPU sample, also in the quiet player build
     vgx::workload::BeginTurn();
 #if PORT_MTX_PROFILE_COMPILED
@@ -594,6 +606,21 @@ extern "C" int port_turn_skipped(void) {
     return on && sTurnSkipped.load(std::memory_order_relaxed);
 }
 
+// A drawn frame's wait for the renderer (GXDrawDone at MainLoopFramework::endFrame) put off to the first point of a later turn
+// that would write what the renderer may still read from the game's memory (GXWaitPictureRead): a turn without a picture runs
+// meanwhile. On by default; PETARI_EARLY_DONE=0 turns it off.
+extern "C" int port_early_done(void) {
+    static const int on = [] {
+        const char* e = getenv("PETARI_EARLY_DONE");
+        return e && *e == '0' ? 0 : 1;
+    }();
+    return on;
+}
+extern "C" void port_early_done_paid(int site, int64_t ns) {
+    if (site < 0) { ++sEarlyOwed; return; }
+    if (site < 8) { ++sEarlyPaid[site]; sEarlyNs[site] += ns; }
+}
+
 // Gravity fields out of reach of a position are rejected before their arithmetic (PlanetGravity::isOutOfReach).
 // PETARI_GRAVITY_CULL=0 evaluates every field in full, as before; 2 evaluates each both ways and logs disagreements ("gravity:").
 extern "C" int port_gravity_cull_mode(void) {
@@ -615,7 +642,10 @@ extern "C" void port_gravity_cull_verified(int rejectedEarly, int mismatching) {
 // PETARI_MATDL_DEFER=0 updates them in every turn, as before.
 extern "C" int port_matdl_defer(void) { return sMatDlDefer ? 1 : 0; }
 extern "C" void port_matdl_late(unsigned models) { sMatDlLate.fetch_add(models, std::memory_order_relaxed); }
-extern "C" void port_matdl_cancel(void) { sMatDlDefer = false; }
+extern "C" void port_matdl_cancel(void) {
+    sMatDlDefer = false;
+    sMatDlCancelled = true;
+}
 static bool MatDlDeferOn() {
     static const bool on = [] {
         const char* e = getenv("PETARI_MATDL_DEFER");
@@ -623,6 +653,9 @@ static bool MatDlDeferOn() {
     }();
     return on;
 }
+// Whether this turn may leave a model's update to the next drawn turn for another reason (PETARI_EARLY_DONE: its lists' write
+// would wait for the renderer to read a picture, ModelManager::calcAnim): not once a scene change has begun in it.
+extern "C" int port_matdl_may_defer(void) { return MatDlDeferOn() && !sMatDlCancelled ? 1 : 0; }
 
 int port_frameskip_turn(int allowed) {
     if (PORT_RUNTIME_DIAGNOSTICS) sTurn.kind = allowed ? TurnKind::DrawSelected : TurnKind::RequiredDraw;

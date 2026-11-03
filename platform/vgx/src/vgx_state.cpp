@@ -214,6 +214,7 @@ void WriteBP(uint32_t rv) {
     switch (reg) {
     case 0x45: // PE done: everything before this command has been read from the game's memory
         g.bp[reg] = nv;
+        if ((nv & 2) && RaceCheckOn()) NoteFinishRead();
         if ((nv & 2) && g_hooks.peFinish) g_hooks.peFinish();
         return;
     case 0x47: case 0x48: // draw-sync token (0x47: with interrupt)
@@ -760,6 +761,7 @@ inline const uint8_t* ArrayElem(int attr, uint32_t idx, uint32_t elemSize, bool&
         VGX_LOG_N(16, "vertex array read out of range: attr %d idx %u stride %u size %u\n", attr, idx, ar.stride, ar.size);
         return kZero;
     }
+    if (diag::kEnabled && g_raceCheckReads) CheckPictureRead(ar.data + off, elemSize, 1);
     return ar.data + off;
 }
 

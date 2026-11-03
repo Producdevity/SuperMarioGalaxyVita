@@ -10,6 +10,10 @@
 #include <JSystem/JUtility/JUTVideo.hpp>
 #include <JSystem/JUtility/JUTXfb.hpp>
 #include <revolution/gx/GXRegs.h>
+#ifdef TARGET_PC
+extern "C" int port_early_done(void);      // (platform/src/port/perf.cpp)
+extern "C" void GXSetDrawDoneOwed(void);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
+#endif
 #include <runtime.h>
 
 MainLoopFramework* MainLoopFramework::sManager;
@@ -296,11 +300,22 @@ void MainLoopFramework::endFrame() {
         case 1:
             break;
         case 2:
+#ifdef TARGET_PC
+            // (PETARI_EARLY_DONE: the wait is paid later, GXWaitOwedDrawDone; the abort alarm is an hour long in the port)
+            if (port_early_done()) {
+                GXSetDrawDoneOwed();
+            } else
+#endif
             ::waitDrawDoneAndSetAlarm();
             PORT_GAME_PROGRESS(PORT_GAME_PHASE_FRAME_FLUSH);
             GXFlush();
             break;
         case 3:
+#ifdef TARGET_PC
+            if (port_early_done()) {
+                GXSetDrawDoneOwed();
+            } else
+#endif
             ::waitDrawDoneAndSetAlarm();
             PORT_GAME_PROGRESS(PORT_GAME_PHASE_FRAME_FLUSH);
             GXFlush();

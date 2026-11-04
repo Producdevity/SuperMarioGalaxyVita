@@ -8440,7 +8440,7 @@
     },
     {
       "path": "decomp/libs/RVL_SDK/include/revolution/mtx.h",
-      "sha256": "b0b70f85ecb3584e6c35da965a8165f5c994ce6f13475ccf166a2f4d74cb4075"
+      "sha256": "604c2c6f8839404f5291f806e7fa9853df5279b91641f0bb9351dd2146991ee5"
     },
     {
       "path": "decomp/libs/RVL_SDK/include/revolution/nand.h",
@@ -18892,7 +18892,7 @@
     },
     {
       "path": "platform/src/sdk/mtx.c",
-      "sha256": "caec742ddb84bf9971f8d71adc426eb2408a98f11c6b7f26d339104f44ec044a"
+      "sha256": "7c10f1c33ae6fb365e35562f97ac61d4d84eb84951566d3556c3d7487b0afdec"
     },
     {
       "path": "platform/src/sdk/stubs_misc.cpp",

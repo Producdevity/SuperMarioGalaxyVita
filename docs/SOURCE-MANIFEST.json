@@ -2596,7 +2596,7 @@
     },
     {
       "path": "decomp/include/Game/Map/CollisionCategorizedKeeper.hpp",
-      "sha256": "95ee29392cb00abe12c4caf2875f340a6c190e0457e4d0455c0fcb2977dd19a9"
+      "sha256": "c932917f8618d3c39954921efc3e2f7de8f4dd96cc8279b703fec2d157859c24"
     },
     {
       "path": "decomp/include/Game/Map/CollisionCode.hpp",
@@ -2608,7 +2608,7 @@
     },
     {
       "path": "decomp/include/Game/Map/CollisionParts.hpp",
-      "sha256": "78fddef5ff2c328150c550883da2bae1bfab818583de28f218eb588a19ecc32c"
+      "sha256": "8f145d5ac3b96984f818589dbd8f63b0c3e1a19bba1838b39183d14127ea70a1"
     },
     {
       "path": "decomp/include/Game/Map/FIleSelectItem.hpp",
@@ -2676,7 +2676,7 @@
     },
     {
       "path": "decomp/include/Game/Map/KCollision.hpp",
-      "sha256": "5530c3f81668867f182e24a0c35130e75ac9b6022f4251f114d61d02814ecd1f"
+      "sha256": "dbb8f494afc54fdd52e7f4823d0520e1b64a14032d3c3dbcc45d07da7b122018"
     },
     {
       "path": "decomp/include/Game/Map/KoopaBattleMapCoinPlate.hpp",
@@ -11708,7 +11708,7 @@
     },
     {
       "path": "decomp/src/Game/Map/CollisionCategorizedKeeper.cpp",
-      "sha256": "ba710723ff2448cc87567623b8c2b34307b1c58ccb1780894fd0c0cd76fe048f"
+      "sha256": "c9dbed5a6f442821683815f871b75a985e2fbe7458026d8bff7fb56b7e4daac6"
     },
     {
       "path": "decomp/src/Game/Map/CollisionCode.cpp",
@@ -11720,7 +11720,7 @@
     },
     {
       "path": "decomp/src/Game/Map/CollisionParts.cpp",
-      "sha256": "04a341212dc92df29588a2e2a113ada26573a130eda7201a015e27001a8f4891"
+      "sha256": "9d5b0cd9ea39779ef4f8916d631469294cfedaa68336f7281daab67eb52beb52"
     },
     {
       "path": "decomp/src/Game/Map/FileSelectCameraController.cpp",
@@ -11784,7 +11784,7 @@
     },
     {
       "path": "decomp/src/Game/Map/KCollision.cpp",
-      "sha256": "10392d0a940cc8dd4004c1acd33ef9471a6a14701df4efc044856b7f1c9a14be"
+      "sha256": "f24fbee4f34f1cf5427364621bff4687b2bfb6e3430fb6da68fee425190975fc"
     },
     {
       "path": "decomp/src/Game/Map/KCollisionPlus.cpp",
@@ -15496,7 +15496,7 @@
     },
     {
       "path": "decomp/src/Game/Util/MapUtil.cpp",
-      "sha256": "dc058a02ea3f2bfe597be0c6f861df0d7e4c192e3e5f96e13ca7b510d339f217"
+      "sha256": "6c1ead35f72e8990ba642b54b95cd07be7603a8c35ab0cea4f8555c9c808eaba"
     },
     {
       "path": "decomp/src/Game/Util/MathUtil.cpp",
@@ -18860,7 +18860,7 @@
     },
     {
       "path": "platform/src/port/perf.cpp",
-      "sha256": "f789b623d1d8c0b9f6170fa4e6aeca862991a8ca8eaee04df67bfb00d34a8c2d"
+      "sha256": "e1ac111f0f1aa75cfc830129ff94d412507cf8618e694e3603b09805efe17298"
     },
     {
       "path": "platform/src/port/phase_cpu.h",

@@ -109,6 +109,7 @@ thread_local bool sMatDlDefer = false;  // (port_matdl_defer: set by port_frames
 thread_local bool sMatDlCancelled = false;  // (port_matdl_may_defer: a scene change began in this turn)
 std::atomic<uint32_t> sMatDlDeferTurns{0}, sMatDlLate{0};  // (the log's "matdl:" line)
 uint32_t sGravityCompared = 0, sGravityEarly = 0, sGravityMismatching = 0;  // (PETARI_GRAVITY_CULL=2; the game's guest threads, one at a time)
+uint32_t sRaysCompared = 0, sRaysMismatching = 0;  // (PETARI_RAY_NEAREST=2; the game's main thread)
 uint32_t sEarlyOwed = 0, sEarlyPaid[10] = {}; int64_t sEarlyNs[10] = {};  // (PETARI_EARLY_DONE, the log's "early done:" line; the game's guest threads)
 unsigned sSlowTurnsLogged = 0;
 bool slowTurnLog() {
@@ -171,6 +172,10 @@ void report(int64_t now) {
         port_log("gravity: %u fields evaluated with and without the reach test, %u rejected by it, %u results different", sGravityCompared,
                  sGravityEarly, sGravityMismatching);
         sGravityCompared = sGravityEarly = sGravityMismatching = 0;
+    }
+    if (sRaysCompared) {
+        port_log("rays: %u first polygons on a line found with and without the nearest-hit end, %u different", sRaysCompared, sRaysMismatching);
+        sRaysCompared = sRaysMismatching = 0;
     }
     for (TurnCost& c : sTurnCosts) c = TurnCost{};
     sWork = sRecord = sPrepare = sRenderCpu = sUpload = sGpuWait = Stat();
@@ -621,6 +626,20 @@ extern "C" int port_early_done(void) {
 extern "C" void port_early_done_paid(int site, int64_t ns) {
     if (site < 0) { ++sEarlyOwed; return; }
     if (site < 10) { ++sEarlyPaid[site]; sEarlyNs[site] += ns; }
+}
+
+// The first polygon on a line (MapUtil) ends its walk through a collision's cells at the nearest hit (KCollisionServer::checkArrow).
+// PETARI_RAY_NEAREST=0 walks every line to its end, as before; 2 does both and logs disagreements ("rays:").
+extern "C" int port_ray_nearest_mode(void) {
+    static const int mode = [] {
+        const char* e = getenv("PETARI_RAY_NEAREST");
+        return e && *e ? atoi(e) : 1;
+    }();
+    return mode;
+}
+extern "C" void port_ray_nearest_verified(int mismatching) {
+    ++sRaysCompared;
+    if (mismatching && sRaysMismatching++ < 20) port_log("rays: a first polygon on a line differs with the nearest-hit end");
 }
 
 // Gravity fields out of reach of a position are rejected before their arithmetic (PlanetGravity::isOutOfReach).

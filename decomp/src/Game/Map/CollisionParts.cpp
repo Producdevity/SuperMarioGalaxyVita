@@ -474,7 +474,12 @@ void CollisionParts::projectToPlane(TVec3f* pProjected, const TVec3f& rPos, cons
     pProjected->set(projected);
 }
 
+#ifdef TARGET_PC
+u32 CollisionParts::checkStrikeLine(HitInfo* pHitInfo, u32 maxHits, const TVec3f& rPos, const TVec3f& rDirection, const TriangleFilterBase* pFilter,
+                                    bool nearestOnly) {
+#else
 u32 CollisionParts::checkStrikeLine(HitInfo* pHitInfo, u32 maxHits, const TVec3f& rPos, const TVec3f& rDirection, const TriangleFilterBase* pFilter) {
+#endif
     f32 distances[64];
     KC_PrismData* prisms[64];
     u8 classifications[64];
@@ -485,7 +490,11 @@ u32 CollisionParts::checkStrikeLine(HitInfo* pHitInfo, u32 maxHits, const TVec3f
     mInvBaseMatrix.mult(rPos + rDirection, localDirection);
     localDirection = localDirection - localPos;
     u32 count = 0;
+#ifdef TARGET_PC
+    mServer->checkArrow(localPos, localDirection, distances, classifications, &count, prisms, maxHits, nearestOnly);
+#else
     mServer->checkArrow(localPos, localDirection, distances, classifications, &count, prisms, maxHits);
+#endif
     u32 hitCount = 0;
 
     for (u32 i = 0; i < count; i++) {

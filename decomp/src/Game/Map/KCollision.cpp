@@ -548,8 +548,15 @@ u32 KCollisionServer::checkSphereWithThickness(Fxyz* pCenter, f32 radius, f32 pa
     return foundCount;
 }
 
+#ifdef TARGET_PC
+// (port) nearestOnly: the walk along the line ends at the first cell that starts beyond the nearest hit found so far, for a
+// caller that keeps only the nearest (MapUtil's first polygon on a line); the hits found up to there are the same.
+KC_PrismData* KCollisionServer::checkArrow(const TVec3f& rOrigin, const TVec3f& rDir, f32* pDists, u8* pFlags, u32* pCount, KC_PrismData** pOut,
+                                           u32 maxCount, bool nearestOnly) const {
+#else
 KC_PrismData* KCollisionServer::checkArrow(const TVec3f& rOrigin, const TVec3f& rDir, f32* pDists, u8* pFlags, u32* pCount, KC_PrismData** pOut,
                                            u32 maxCount) const {
+#endif
     if (rDir.x == 0.0f && rDir.y == 0.0f && rDir.z == 0.0f) {
         return nullptr;
     }
@@ -675,6 +682,9 @@ searchStart:
 
     KC_PrismData* bestPrism;
     f32 accumT = startT;
+#ifdef TARGET_PC
+    f32 nearestHit = 1.0f;
+#endif
 
     bestPrism = nullptr;
 
@@ -722,6 +732,11 @@ searchStart:
                 pDists[foundCount] = dist;
                 pOut[foundCount] = prism;
                 foundCount++;
+#ifdef TARGET_PC
+                if (dist < nearestHit) {
+                    nearestHit = dist;
+                }
+#endif
 
                 if (dist < bestFraction) {
                     bestFraction = dist;
@@ -773,6 +788,11 @@ searchStart:
         step.scale(tMin);
         hitPoint += step;
         accumT += tMin;
+#ifdef TARGET_PC
+        if (nearestOnly && foundCount != 0 && nearestHit * length < accumT) {
+            break;
+        }
+#endif
 
         cell.setUsingCast(hitPoint);
 

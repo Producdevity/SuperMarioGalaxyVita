@@ -267,8 +267,14 @@ s32 CollisionCategorizedKeeper::checkStrikeBallWithThickness(const TVec3f& rPosi
     return hitCount;
 }
 
+#ifdef TARGET_PC
+s32 CollisionCategorizedKeeper::checkStrikeLine(const TVec3f& rStart, const TVec3f& rDirection, s32 maxHits,
+                                                const CollisionPartsFilterBase* pPartsFilter, const TriangleFilterBase* pTriangleFilter,
+                                                bool nearestOnly) {
+#else
 s32 CollisionCategorizedKeeper::checkStrikeLine(const TVec3f& rStart, const TVec3f& rDirection, s32 maxHits,
                                                 const CollisionPartsFilterBase* pPartsFilter, const TriangleFilterBase* pTriangleFilter) {
+#endif
     MR::getCollisionDirector();
 
     if (maxHits == 0) {
@@ -337,7 +343,11 @@ s32 CollisionCategorizedKeeper::checkStrikeLine(const TVec3f& rStart, const TVec
                 continue;
             }
 
+#ifdef TARGET_PC
+            hitCount += pParts->checkStrikeLine(&mHitInfoArray[hitCount], maxHits - hitCount, rStart, rDirection, pTriangleFilter, nearestOnly);
+#else
             hitCount += pParts->checkStrikeLine(&mHitInfoArray[hitCount], maxHits - hitCount, rStart, rDirection, pTriangleFilter);
+#endif
 
             if (maxHits <= hitCount) {
                 _10 = hitCount;

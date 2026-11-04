@@ -75,7 +75,11 @@ public:
     u32 checkArea3D(Fxyz*, Fxyz*, KC_PrismData**, u32);
     u32 checkSphere(Fxyz*, f32, f32, u32, KC_PrismData**, f32*, u8*);
     u32 checkSphereWithThickness(Fxyz*, f32, f32, u32, KC_PrismData**, f32*, u8*, f32);
+#ifdef TARGET_PC
+    KC_PrismData* checkArrow(const TVec3f&, const TVec3f&, f32*, u8*, u32*, KC_PrismData**, u32, bool nearestOnly = false) const;
+#else
     KC_PrismData* checkArrow(const TVec3f&, const TVec3f&, f32*, u8*, u32*, KC_PrismData**, u32) const;
+#endif
     bool KCHitSphere(KC_PrismData*, Fxyz*, f32, f32, f32*, u8*);
     bool KCHitSphereWithThickness(KC_PrismData*, Fxyz*, f32, f32, f32*, u8*, f32);
     bool isNearParallelNormal(const KC_PrismData*) const;

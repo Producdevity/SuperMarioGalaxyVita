@@ -14,6 +14,9 @@ public:
     virtual void update();
     virtual void draw() const;
     virtual void calcAnim();
+#ifdef TARGET_PC
+    virtual void calcViewAtPicture() {}
+#endif
 
     void initNameObjListExecutor();
     void initSceneObjHolder();

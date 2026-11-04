@@ -17,6 +17,9 @@ public:
     virtual void update();
     virtual void draw() const;
     virtual void calcAnim();
+#ifdef TARGET_PC
+    virtual void calcViewAtPicture();
+#endif
 
     void notifyEndScenarioStarter();
     void requestPlayMovieDemo();
@@ -63,6 +66,9 @@ public:
     GameScenePauseControl* mPauseCtrl;                     // 0x1C
     GamePauseSequence* mPauseSeq;                          // 0x20
     GameStageClearSequence* mStageClearSeq;                // 0x24
+#ifdef TARGET_PC
+    bool mViewPassOwed = false;  // (calcAnim ran since the last view pass of everything but the player)
+#endif
     bool mDraw3D;                                          // 0x28
     u8 _29;
 };

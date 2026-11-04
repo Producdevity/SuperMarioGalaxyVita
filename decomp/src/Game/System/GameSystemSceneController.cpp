@@ -267,6 +267,16 @@ void GameSystemSceneController::calcAnimScene() {
     }
 }
 
+#ifdef TARGET_PC
+void GameSystemSceneController::calcViewAtPictureScene() {
+    Scene* pScene = getCurrentSceneForExecute();
+
+    if (pScene != nullptr) {
+        pScene->calcViewAtPicture();
+    }
+}
+#endif
+
 void GameSystemSceneController::drawScene() {
     Scene* pScene = getCurrentSceneForExecute();
 

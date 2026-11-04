@@ -144,6 +144,22 @@ void SceneFunction::executeCalcViewAndEntryList() {
     CategoryList::entryDrawBuffer3D();
 }
 
+#ifdef TARGET_PC
+void SceneFunction::executeCalcViewAndEntryListPlayer() {
+    MR::loadViewMtx();
+    CategoryList::entryDrawBufferPlayer();
+}
+
+void SceneFunction::executeCalcViewAndEntryListExceptPlayer() {
+    TMtx34f mtx;
+    mtx.identity();
+    PSMTXCopy(mtx, j3dSys.mViewMtx);
+    CategoryList::entryDrawBuffer2D();
+    MR::loadViewMtx();
+    CategoryList::entryDrawBuffer3DExceptPlayer();
+}
+#endif
+
 void SceneFunction::executeCalcViewAndEntryList2D() {
     TMtx34f mtx;
     mtx.identity();

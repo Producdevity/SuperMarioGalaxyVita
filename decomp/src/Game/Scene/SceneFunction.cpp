@@ -108,6 +108,20 @@ void CategoryList::entryDrawBuffer3D() {
     pListExecutor->entryDrawBuffer3D();
 }
 
+#ifdef TARGET_PC
+void CategoryList::entryDrawBufferPlayer() {
+    NameObjListExecutor* pListExecutor = SingletonHolder< GameSystem >::get()->mSceneController->getNameObjListExecutor();
+
+    pListExecutor->entryDrawBufferPlayer();
+}
+
+void CategoryList::entryDrawBuffer3DExceptPlayer() {
+    NameObjListExecutor* pListExecutor = SingletonHolder< GameSystem >::get()->mSceneController->getNameObjListExecutor();
+
+    pListExecutor->entryDrawBuffer3DExceptPlayer();
+}
+#endif
+
 void CategoryList::entryDrawBufferMirror() {
     NameObjListExecutor* pListExecutor = SingletonHolder< GameSystem >::get()->mSceneController->getNameObjListExecutor();
 

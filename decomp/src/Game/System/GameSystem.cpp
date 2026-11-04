@@ -306,6 +306,8 @@ void GameSystem::frameLoop() {
     if (mSceneController->isChangingScene()) {
         GXWaitOwedDrawDone(0);
     }
+    PORT_GAME_PROGRESS(PORT_GAME_PHASE_CALC_ANIM);
+    mSceneController->calcViewAtPictureScene();
     GXPortPictureBegin();
 #endif
     PORT_GAME_PROGRESS(PORT_GAME_PHASE_BEGIN_RENDER);

@@ -31,6 +31,7 @@
 #include "Game/Camera/CameraDirector.hpp"
 #ifdef TARGET_PC
 extern "C" int port_turn_skipped(void);  // (platform/src/port/perf.cpp)
+extern "C" int port_view_at_picture(void);
 extern "C" void GXWaitOwedDrawDone(int site);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
 extern "C" int GXPortPictureOpen(void);
 #include "Game/Camera/CameraHolder.hpp"
@@ -448,9 +449,26 @@ void GameScene::calcAnim() {
     if (GXPortPictureOpen()) {
         GXWaitOwedDrawDone(0);
     }
+    // (port) Only a picture reads the view pass, and a turn's draw comes first: nothing changes from a turn's end to the next
+    // turn's picture, so the pass runs there (calcViewAtPicture), once a picture instead of once a turn. The player's stays:
+    // MarioActor::calcViewAndEntry also carries game state (decideShadowMode, the lighting, its joint matrices).
+    if (port_view_at_picture()) {
+        SceneFunction::executeCalcViewAndEntryListPlayer();
+        mViewPassOwed = true;
+        return;
+    }
 #endif
     SceneFunction::executeCalcViewAndEntryList();
 }
+
+#ifdef TARGET_PC
+void GameScene::calcViewAtPicture() {
+    if (mViewPassOwed) {
+        mViewPassOwed = false;
+        SceneFunction::executeCalcViewAndEntryListExceptPlayer();
+    }
+}
+#endif
 
 void GameScene::notifyEndScenarioStarter() {
     setNerve(GET_NERVE(GameScene, GameSceneAction));

@@ -4596,7 +4596,7 @@
     },
     {
       "path": "decomp/include/Game/NameObj/NameObjListExecutor.hpp",
-      "sha256": "5ae08439f2bd2273d2e6e2587d62c91d3287049f813976bcb2fe1ebf3e850869"
+      "sha256": "60c70ad8251f09c6c5c3fbe8021f6edcedefb8bbfd3e968f63b1d47156410197"
     },
     {
       "path": "decomp/include/Game/NameObj/NameObjRegister.hpp",
@@ -5060,7 +5060,7 @@
     },
     {
       "path": "decomp/include/Game/Scene/GameScene.hpp",
-      "sha256": "dc7456b02494135d6f63b777e3fc748bd46517f271ec5dbab6a96aab9c43bb6c"
+      "sha256": "890e448f9aedd5bfec1aace45b33216de44d290f190b200833b4272a897c6caa"
     },
     {
       "path": "decomp/include/Game/Scene/GameSceneFunction.hpp",
@@ -5108,7 +5108,7 @@
     },
     {
       "path": "decomp/include/Game/Scene/Scene.hpp",
-      "sha256": "85079cfa7c53b62c0bbdb076061d370833961f2a6c04e5ca012d2351757bebf0"
+      "sha256": "36f01b3b6ad00763e52ea8d40545152c3647d4e48156beebf273d88cda73d438"
     },
     {
       "path": "decomp/include/Game/Scene/SceneDataInitializer.hpp",
@@ -5124,7 +5124,7 @@
     },
     {
       "path": "decomp/include/Game/Scene/SceneFunction.hpp",
-      "sha256": "a9e8ab73fe71288db1e650d5b0ff72b77428f5f365462bdf1bcf0b0b90346990"
+      "sha256": "0e4c27742d529982ce75793ca760f521a5a8efca26b1528ce94c5cb40366dcc5"
     },
     {
       "path": "decomp/include/Game/Scene/SceneNameObjListExecutor.hpp",
@@ -5792,7 +5792,7 @@
     },
     {
       "path": "decomp/include/Game/System/DrawBufferHolder.hpp",
-      "sha256": "05a3360c55d405a288d01105c35e0fea9f3d84cf4b378cb4612a55f4ff4351c5"
+      "sha256": "7d9b4a5121578a019887bab2c19647100c30b54f52f81b3365870a6573ec5719"
     },
     {
       "path": "decomp/include/Game/System/DrawSyncManager.hpp",
@@ -5944,7 +5944,7 @@
     },
     {
       "path": "decomp/include/Game/System/GameSystemSceneController.hpp",
-      "sha256": "b806e26001cc35bd83d1f1caa9db6b9101bc3137f33e08c1908fa3d96d347f4b"
+      "sha256": "f21434df07b3433e977b6754b8b854a333a51c407f4bb6c547e90d92e38400a1"
     },
     {
       "path": "decomp/include/Game/System/GameSystemStationedArchiveLoader.hpp",
@@ -13672,7 +13672,7 @@
     },
     {
       "path": "decomp/src/Game/NameObj/NameObjListExecutor.cpp",
-      "sha256": "52b7486b8c90ab3375b484fb0ee83937e73c19a96cbed921aa59e0df95e27c80"
+      "sha256": "c4d1be4540899b814cacbdb05a4a2ac3d4a130b056c37bb4dfbec2bbf734e4f6"
     },
     {
       "path": "decomp/src/Game/NameObj/NameObjRegister.cpp",
@@ -14256,7 +14256,7 @@
     },
     {
       "path": "decomp/src/Game/Scene/GameScene.cpp",
-      "sha256": "9f5701847fc5e69c42dc9490d3483ef6e88d0a210ed97609095bbd09542ad3e0"
+      "sha256": "66adbc882a9197c8f1555ceb4c71c54707562a96df1a776562336d47a2963b56"
     },
     {
       "path": "decomp/src/Game/Scene/GameSceneFunction.cpp",
@@ -14312,7 +14312,7 @@
     },
     {
       "path": "decomp/src/Game/Scene/SceneExecutor.cpp",
-      "sha256": "ac7d7b0639ad83f5687dc419e845243bc81ee7ebc70b70e672476a273b0009d7"
+      "sha256": "714e0e6e875b456dadb7a214be39292d31a717b030b6f0b8333b397d20f9ff8a"
     },
     {
       "path": "decomp/src/Game/Scene/SceneFactory.cpp",
@@ -14320,7 +14320,7 @@
     },
     {
       "path": "decomp/src/Game/Scene/SceneFunction.cpp",
-      "sha256": "c5cc22855ccf73a5f8fdf042812998b4395fb62035901cd221e155b29b5a1e9f"
+      "sha256": "b789ddb8cf83082f530afdc4940f88154ddc9b97d291355c3a746faf0b0c696e"
     },
     {
       "path": "decomp/src/Game/Scene/SceneNameObjListExecutor.cpp",
@@ -14980,7 +14980,7 @@
     },
     {
       "path": "decomp/src/Game/System/DrawBufferHolder.cpp",
-      "sha256": "fec9dd0892c162ddde50cc9a505eb9e8c742f6b8d8a2d6106550e42ce6531af2"
+      "sha256": "3fd2a09e1f71ce2d9437c05fd243318ee0628734815fcfb47c31c12f8e4c809c"
     },
     {
       "path": "decomp/src/Game/System/DrawSyncManager.cpp",
@@ -15088,7 +15088,7 @@
     },
     {
       "path": "decomp/src/Game/System/GameSystem.cpp",
-      "sha256": "c3cf1a3f5d5f6e1037a477ed3ee534e89cca8c9d646c35f06e6e4ea144b5ad6e"
+      "sha256": "7f0b31dbec3b0def4f8ab8f704ee13158eb3d498c125c2b996c401ce60018bad"
     },
     {
       "path": "decomp/src/Game/System/GameSystemDimmingWatcher.cpp",
@@ -15124,7 +15124,7 @@
     },
     {
       "path": "decomp/src/Game/System/GameSystemSceneController.cpp",
-      "sha256": "4ea8049c6d6134f67f5567ae81196a56a65f9c7fefa32952985bc0b600ba4137"
+      "sha256": "3e3ac4111e1a20bf44b943549e4de27e3f635dab32a00ffe5b12565eacd39273"
     },
     {
       "path": "decomp/src/Game/System/GameSystemStationedArchiveLoader.cpp",
@@ -18860,7 +18860,7 @@
     },
     {
       "path": "platform/src/port/perf.cpp",
-      "sha256": "1e47178b11237e1ed35cecf6f231284a29829a8d52a11d4266cb84998988b66a"
+      "sha256": "985046989f16c79111f61b65c21afb23a756840cc972fb96bc7d47124d83c051"
     },
     {
       "path": "platform/src/port/phase_cpu.h",

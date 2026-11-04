@@ -619,6 +619,16 @@ extern "C" int port_turn_skipped(void) {
     return on && sTurnSkipped.load(std::memory_order_relaxed);
 }
 
+// The view pass runs before each picture instead of at the end of each turn (GameScene::calcAnim, calcViewAtPicture), the player's
+// excepted. PETARI_VIEW_AT_PICTURE=0 runs all of it in every turn, as before.
+extern "C" int port_view_at_picture(void) {
+    static const int on = [] {
+        const char* e = getenv("PETARI_VIEW_AT_PICTURE");
+        return e && *e == '0' ? 0 : 1;
+    }();
+    return on;
+}
+
 // A drawn frame's wait for the renderer (GXDrawDone at MainLoopFramework::endFrame) put off to the first point of a later turn
 // that would write what the renderer may still read from the game's memory (GXWaitPictureRead): a turn without a picture runs
 // meanwhile. On by default; PETARI_EARLY_DONE=0 turns it off.

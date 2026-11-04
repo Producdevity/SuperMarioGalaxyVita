@@ -57,6 +57,9 @@ public:
     void updateScene();
     void updateSceneDuringResetProcessing();
     void calcAnimScene();
+#ifdef TARGET_PC
+    void calcViewAtPictureScene();
+#endif
     void drawScene();
     NameObjListExecutor* getNameObjListExecutor() const;
     SceneObjHolder* getSceneObjHolder() const;

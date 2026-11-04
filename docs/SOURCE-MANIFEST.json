@@ -1788,7 +1788,7 @@
     },
     {
       "path": "decomp/include/Game/Effect/SyncBckEffectInfo.hpp",
-      "sha256": "152c6b1a8aeb3077751b51edd297ac75d714d5a740321bad75986589ee5a5005"
+      "sha256": "15955b354db401dc0b9c9d62304532ddaab8b5d323c478b84da3ced0cfaef879"
     },
     {
       "path": "decomp/include/Game/Enemy.hpp",
@@ -10916,7 +10916,7 @@
     },
     {
       "path": "decomp/src/Game/Effect/SyncBckEffectInfo.cpp",
-      "sha256": "f2c8c576269c6ed4d45330cebe6f0a0c63db04b99882086ef4dbcb896829dcf2"
+      "sha256": "5f571f00ac3e10ec66a23707f4915303c787a3f8452fdf1a1397109815496a2e"
     },
     {
       "path": "decomp/src/Game/Enemy/AnimScaleController.cpp",

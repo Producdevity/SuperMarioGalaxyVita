@@ -149,8 +149,12 @@ void GXBegin(GXPrimitive type, GXVtxFmt vtxfmt, u16 nverts) {
         __GXSendFlushPrim();
     }
 
+#ifdef TARGET_PC
+    __PortGXFifo_u8u16((vtxfmt | type), nverts);
+#else
     GX_WRITE_U8((vtxfmt | type));
     GX_WRITE_U16(nverts);
+#endif
 }
 
 void __GXSendFlushPrim(void) {

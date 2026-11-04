@@ -8320,7 +8320,7 @@
     },
     {
       "path": "decomp/libs/RVL_SDK/include/revolution/gx/GXRegs.h",
-      "sha256": "25b7c741d4d479b450f646631309701cfffe2efb78886a75a56d2386e0c7e95e"
+      "sha256": "b1f7677967a6fd669e1347b536f3aecd855ba26264450a5813f4bc75fad2cb43"
     },
     {
       "path": "decomp/libs/RVL_SDK/include/revolution/gx/GXStruct.h",
@@ -8344,7 +8344,7 @@
     },
     {
       "path": "decomp/libs/RVL_SDK/include/revolution/gx/GXVert.h",
-      "sha256": "9e063ca4d97a23bd637baa18e94125cb90d9a7b6914533d766cdfa25d191e9c2"
+      "sha256": "819c59f521116bc64545cc9a3d04fa30118fe27ece69cfc028ebf07fb0cabbee"
     },
     {
       "path": "decomp/libs/RVL_SDK/include/revolution/gx/shortcut_bp_reg.h",
@@ -17616,7 +17616,7 @@
     },
     {
       "path": "decomp/src/RVL_SDK/gx/GXDisplayList.c",
-      "sha256": "e8c5e5e21716e845c515269379d5e37ec23dd568da04a672aeb9fc7e42b010a2"
+      "sha256": "0d6e4516e791253acf338ce3ab289bf6d39fc0ed9020ecc52c343f3c95c072b4"
     },
     {
       "path": "decomp/src/RVL_SDK/gx/GXFifo.c",
@@ -17628,7 +17628,7 @@
     },
     {
       "path": "decomp/src/RVL_SDK/gx/GXGeometry.c",
-      "sha256": "3c38bbb72dcbc14eb14fa15dacc640de93525612a23bb65152176c541bb232e9"
+      "sha256": "175b03d53e447f6f26b8d8e8879c5a5c83041597b840c89996d2847e19c0578a"
     },
     {
       "path": "decomp/src/RVL_SDK/gx/GXInit.c",
@@ -18484,7 +18484,7 @@
     },
     {
       "path": "platform/include/port/gx_fifo.h",
-      "sha256": "3f757f891d1c248bcaa6277bf2f7d5d36e690b2f594d8b0ff6eaa79cd08b80f6"
+      "sha256": "b3d20c22e9dce612714a09ce7def37cf46e5dd4ec7d1ec733deb1d9cf0c4f4a1"
     },
     {
       "path": "platform/include/port/heap_routing.h",
@@ -19281,6 +19281,10 @@
     {
       "path": "tests/gx_draw_spans.cpp",
       "sha256": "b9b3d1bbd11684b759b62b7406953a3ed8f4a2e2e8e995f097497e6d5ebbe267"
+    },
+    {
+      "path": "tests/gx_fifo_writes.cpp",
+      "sha256": "91471bd7f55792d49cfa546185f0db01dc0e72bed034327a42e9c48293e1e1fb"
     },
     {
       "path": "tests/gx_index_chunks.cpp",
@@ -20325,6 +20329,10 @@
     {
       "path": "tools/test_gx_draw_spans.sh",
       "sha256": "996d86575e577b12c7c29e0038de372cac394b8d9ae3ae95a408bfa520516cc6"
+    },
+    {
+      "path": "tools/test_gx_fifo_writes.sh",
+      "sha256": "1c882fe3ff15f587004d2305248244058bb4c6bf3c0dc29b77bcf382e42cd7bf"
     },
     {
       "path": "tools/test_gx_index_chunks.sh",

@@ -24,6 +24,7 @@ volatile PPCWGPipe GXWGFifo : 0xCC008000;
         return;                                                                                                                                      \
     }
 
+#ifdef __MWERKS__
 #define __GXCDEF2(func, ts, td)                                                                                                                      \
     static void func(const ts x, const ts y) {                                                                                                       \
         __GXFIFO_WRITE(td, x);                                                                                                                         \
@@ -47,6 +48,62 @@ volatile PPCWGPipe GXWGFifo : 0xCC008000;
         __GXFIFO_WRITE(td, w);                                                                                                                         \
         return;                                                                                                                                      \
     }
+#else
+// One limit check for the whole call when it fits (port/gx_fifo.h: __PortGXFifoFits); field by field out of line otherwise.
+#define __GXCDEF2(func, ts, td)                                                                                                                     \
+    static __PORT_GX_FIFO_COLD void func##Fields(const ts x, const ts y) {                                                                          \
+        __GXFIFO_WRITE(td, x);                                                                                                                      \
+        __GXFIFO_WRITE(td, y);                                                                                                                      \
+    }                                                                                                                                               \
+    static inline __PORT_GX_FIFO_HOT void func(const ts x, const ts y) {                                                                            \
+        uint8_t* p = __PortGXFifoPtr;                                                                                                               \
+        if (__builtin_expect(__PortGXFifoFits(p, 2 * sizeof(td)), 1)) {                                                                             \
+            __PortGXFifoPut_##td(p, (td)(x));                                                                                                       \
+            __PortGXFifoPut_##td(p + sizeof(td), (td)(y));                                                                                          \
+            __PortGXFifoEnd(p + 2 * sizeof(td));                                                                                                    \
+        } else {                                                                                                                                    \
+            func##Fields(x, y);                                                                                                                     \
+        }                                                                                                                                           \
+    }
+
+#define __GXCDEF3(func, ts, td)                                                                                                                     \
+    static __PORT_GX_FIFO_COLD void func##Fields(const ts x, const ts y, const ts z) {                                                              \
+        __GXFIFO_WRITE(td, x);                                                                                                                      \
+        __GXFIFO_WRITE(td, y);                                                                                                                      \
+        __GXFIFO_WRITE(td, z);                                                                                                                      \
+    }                                                                                                                                               \
+    static inline __PORT_GX_FIFO_HOT void func(const ts x, const ts y, const ts z) {                                                                \
+        uint8_t* p = __PortGXFifoPtr;                                                                                                               \
+        if (__builtin_expect(__PortGXFifoFits(p, 3 * sizeof(td)), 1)) {                                                                             \
+            __PortGXFifoPut_##td(p, (td)(x));                                                                                                       \
+            __PortGXFifoPut_##td(p + sizeof(td), (td)(y));                                                                                          \
+            __PortGXFifoPut_##td(p + 2 * sizeof(td), (td)(z));                                                                                      \
+            __PortGXFifoEnd(p + 3 * sizeof(td));                                                                                                    \
+        } else {                                                                                                                                    \
+            func##Fields(x, y, z);                                                                                                                  \
+        }                                                                                                                                           \
+    }
+
+#define __GXCDEF4(func, ts, td)                                                                                                                     \
+    static __PORT_GX_FIFO_COLD void func##Fields(const ts x, const ts y, const ts z, const ts w) {                                                  \
+        __GXFIFO_WRITE(td, x);                                                                                                                      \
+        __GXFIFO_WRITE(td, y);                                                                                                                      \
+        __GXFIFO_WRITE(td, z);                                                                                                                      \
+        __GXFIFO_WRITE(td, w);                                                                                                                      \
+    }                                                                                                                                               \
+    static inline __PORT_GX_FIFO_HOT void func(const ts x, const ts y, const ts z, const ts w) {                                                    \
+        uint8_t* p = __PortGXFifoPtr;                                                                                                               \
+        if (__builtin_expect(__PortGXFifoFits(p, 4 * sizeof(td)), 1)) {                                                                             \
+            __PortGXFifoPut_##td(p, (td)(x));                                                                                                       \
+            __PortGXFifoPut_##td(p + sizeof(td), (td)(y));                                                                                          \
+            __PortGXFifoPut_##td(p + 2 * sizeof(td), (td)(z));                                                                                      \
+            __PortGXFifoPut_##td(p + 3 * sizeof(td), (td)(w));                                                                                      \
+            __PortGXFifoEnd(p + 4 * sizeof(td));                                                                                                    \
+        } else {                                                                                                                                    \
+            func##Fields(x, y, z, w);                                                                                                               \
+        }                                                                                                                                           \
+    }
+#endif
 
 __GXCDEF(GXCmd, 1, u8)
 __GXCDEF(GXCmd, 1, u16)

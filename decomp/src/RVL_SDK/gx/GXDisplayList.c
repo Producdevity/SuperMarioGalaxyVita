@@ -75,7 +75,11 @@ void GXCallDisplayList(const void *list, u32 nbytes) {
         __GXSendFlushPrim();
     }
 
+#ifdef TARGET_PC
+    __PortGXFifo_u8u32u32(0x40, (u32)list, (u32)nbytes);
+#else
     GX_WRITE_U8(0x40);
     GX_WRITE_U32((u32)list);
     GX_WRITE_U32((u32)nbytes);
+#endif
 }

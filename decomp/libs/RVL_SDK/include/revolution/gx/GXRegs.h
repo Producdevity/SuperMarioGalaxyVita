@@ -105,6 +105,7 @@ extern volatile void* __memReg;
 
 #define GX_CP_IDLE_REG_READ_U16(a) GX_CP_REG_READ_U16(a)
 
+#ifdef __MWERKS__
 #define GX_WRITE_CP_STRM_REG(addr, vtxfmt, data)                                                                                                     \
     {                                                                                                                                                \
         GX_WRITE_U8(CP_OPCODE(0, 1));                                                                                                                \
@@ -127,6 +128,17 @@ extern volatile void* __memReg;
         GX_WRITE_U8(CP_OPCODE(1, 0xC));                                                                                                              \
         GX_WRITE_U32((reg));                                                                                                                         \
     }
+#else
+// Each register write with one FIFO limit check when it fits (port/gx_fifo.h: __PortGXFifoFits).
+#define GX_WRITE_CP_STRM_REG(addr, vtxfmt, data) __PortGXFifo_u8u8u32(CP_OPCODE(0, 1), CP_STREAM_REG((vtxfmt), (addr)), (data))
+
+#define GX_WRITE_XF_REG(addr, data, cnt) __PortGXFifo_u8u32u32(CP_OPCODE(0, 0x2), CP_XF_LOADREGS((addr), (cnt)), (data))
+
+#define GX_WRITE_XF_MEM_U32(addr, data) GX_WRITE_U32(data)
+#define GX_WRITE_XF_MEM_F32(addr, data) GX_WRITE_F32(data)
+
+#define GX_WRITE_RA_REG(reg) __PortGXFifo_u8u32(CP_OPCODE(1, 0xC), (reg))
+#endif
 
 #ifdef __MWERKS__
 #define GX_DEFINE_GX_READ_COUNTER(unit)                                                                                                              \

@@ -28,6 +28,12 @@ namespace MR {
     bool getFirstPolyOnLineToMap(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, const CollisionPartsFilterBase*, const TriangleFilterBase*);
     bool getFirstPolyOnLineToWaterSurface(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, const CollisionPartsFilterBase*,
                                           const TriangleFilterBase*);
+#ifdef TARGET_PC
+    // (port) The same, for a line cast again turn after turn (a shadow's): CollisionParts::checkStrikeLine finds its hits again on a
+    // part that has not moved.
+    bool getFirstPolyOnLineToMapRepeated(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, const CollisionPartsFilterBase*);
+    bool getFirstPolyOnLineToWaterSurfaceRepeated(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, const CollisionPartsFilterBase*);
+#endif
     bool getFirstPolyNormalOnLineToMap(TVec3f*, const TVec3f&, const TVec3f&, TVec3f*, const HitSensor*);
     u32 getNearPolyOnLineSort(const TVec3f&, const TVec3f&, const TVec3f&, const HitSensor*);
     bool getSortedPoly(TVec3f*, Triangle*, u32);

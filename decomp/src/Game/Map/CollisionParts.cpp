@@ -11,6 +11,72 @@
 #include "Game/Util/SceneUtil.hpp"
 #include "Game/Util/TriangleFilter.hpp"
 
+#ifdef TARGET_PC
+extern "C" int port_line_repeat_mode(void);  // (platform/src/port/perf.cpp)
+extern "C" void port_line_repeat_counted(int found, int compared, int mismatching);
+
+namespace {
+    // (port) A part's hits on a line are a function of the line, the part's matrices, its sensor and its collision data, and the
+    // data change only while a part is set up (KCollisionServer::calcFarthestVertexDistance, on data parts may share). A line cast
+    // again on a part in the same place (a still actor's shadow on still ground, every turn) finds the hits found the last time.
+    const u32 cRepeatedLineHits = 2;
+
+    struct RepeatedLine {
+        const CollisionParts* mParts;
+        const KCollisionServer* mServer;
+        const HitSensor* mSensor;
+        u32 mSetUps;
+        Mtx mBase;
+        Mtx mInvBase;
+        TVec3f mPos;
+        TVec3f mDir;
+        u32 mMaxHits;
+        bool mNearestOnly;
+        u32 mCount;
+        Triangle mTriangles[cRepeatedLineHits];
+        f32 mDistances[cRepeatedLineHits];
+        TVec3f mHitPos[cRepeatedLineHits];
+        u8 mClassifications[cRepeatedLineHits];
+    };
+
+    RepeatedLine sRepeatedLines[512];
+    u32 sPartsSetUps = 0;
+
+    bool isSameBits(const void* pA, const void* pB, u32 size) {
+        return __builtin_memcmp(pA, pB, size) == 0;
+    }
+
+    RepeatedLine* getRepeatedLine(const CollisionParts* pParts, const TVec3f& rPos, const TVec3f& rDir) {
+        u32 bits[6];
+        __builtin_memcpy(&bits[0], &rPos, sizeof(TVec3f));
+        __builtin_memcpy(&bits[3], &rDir, sizeof(TVec3f));
+        u32 hash = static_cast< u32 >(reinterpret_cast< uintptr_t >(pParts) >> 4);
+        for (u32 i = 0; i < 6; i++) {
+            hash = (hash ^ bits[i]) * 16777619u;
+        }
+        return &sRepeatedLines[(hash ^ (hash >> 15)) & 511];
+    }
+
+    bool isRepeatedLine(const RepeatedLine& rLine, const CollisionParts* pParts, const TVec3f& rPos, const TVec3f& rDir, u32 maxHits,
+                        bool nearestOnly) {
+        return rLine.mParts == pParts && rLine.mSetUps == sPartsSetUps && rLine.mServer == pParts->mServer && rLine.mSensor == pParts->mHitSensor &&
+               rLine.mMaxHits == maxHits && rLine.mNearestOnly == nearestOnly && isSameBits(&rLine.mPos, &rPos, sizeof(TVec3f)) &&
+               isSameBits(&rLine.mDir, &rDir, sizeof(TVec3f)) && isSameBits(rLine.mBase, pParts->mBaseMatrix.mMtx, sizeof(Mtx)) &&
+               isSameBits(rLine.mInvBase, pParts->mInvBaseMatrix.mMtx, sizeof(Mtx));
+    }
+
+    // (the fields of a hit that CollisionParts::checkStrikeLine writes)
+    bool isSameHit(const RepeatedLine& rLine, u32 i, const HitInfo& rHit) {
+        const Triangle& rTriangle = rLine.mTriangles[i];
+        return rTriangle.mParts == rHit.mParentTriangle.mParts && rTriangle.mIdx == rHit.mParentTriangle.mIdx &&
+               rTriangle.mSensor == rHit.mParentTriangle.mSensor &&
+               isSameBits(rTriangle.mNormals, rHit.mParentTriangle.mNormals, sizeof(rTriangle.mNormals)) &&
+               isSameBits(rTriangle.mPos, rHit.mParentTriangle.mPos, sizeof(rTriangle.mPos)) &&
+               isSameBits(&rLine.mDistances[i], &rHit._60, sizeof(f32)) && isSameBits(&rLine.mHitPos[i], &rHit.mHitPos, sizeof(TVec3f));
+    }
+}  // namespace
+#endif
+
 void CollisionParts_FORCE_MATCH_SDATA2() {
     1.0f;
     0.0f;
@@ -38,6 +104,9 @@ CollisionParts::CollisionParts()
 
 void CollisionParts::init(const TPos3f& rMatrix, HitSensor* pHitSensor, const void* pKclData, const void* pMapInfo, s32 keeperIndex,
                           bool useAutoScale) {
+#ifdef TARGET_PC
+    sPartsSetUps++;
+#endif
     mServer->init(const_cast< void* >(pKclData), pMapInfo);
     mHitSensor = pHitSensor;
 
@@ -476,7 +545,30 @@ void CollisionParts::projectToPlane(TVec3f* pProjected, const TVec3f& rPos, cons
 
 #ifdef TARGET_PC
 u32 CollisionParts::checkStrikeLine(HitInfo* pHitInfo, u32 maxHits, const TVec3f& rPos, const TVec3f& rDirection, const TriangleFilterBase* pFilter,
-                                    bool nearestOnly) {
+                                    bool nearestOnly, bool repeated) {
+    // (port) PETARI_LINE_REPEAT=2 searches a repeated line as well and compares the hits ("lines:")
+    RepeatedLine* pRepeated = nullptr;
+    bool compare = false;
+    if (repeated && pFilter == nullptr) {
+        const int mode = port_line_repeat_mode();
+        if (mode != 0) {
+            pRepeated = getRepeatedLine(this, rPos, rDirection);
+            if (isRepeatedLine(*pRepeated, this, rPos, rDirection, maxHits, nearestOnly)) {
+                if (mode != 2) {
+                    for (u32 i = 0; i < pRepeated->mCount; i++) {
+                        HitInfo& hit = pHitInfo[i];
+                        hit.mParentTriangle = pRepeated->mTriangles[i];
+                        hit._60 = pRepeated->mDistances[i];
+                        hit.mHitPos = pRepeated->mHitPos[i];
+                        hit._88 = pRepeated->mClassifications[i];
+                    }
+                    port_line_repeat_counted(1, 0, 0);
+                    return pRepeated->mCount;
+                }
+                compare = true;
+            }
+        }
+    }
 #else
 u32 CollisionParts::checkStrikeLine(HitInfo* pHitInfo, u32 maxHits, const TVec3f& rPos, const TVec3f& rDirection, const TriangleFilterBase* pFilter) {
 #endif
@@ -512,6 +604,42 @@ u32 CollisionParts::checkStrikeLine(HitInfo* pHitInfo, u32 maxHits, const TVec3f
         hit._88 = classifications[i];
         hitCount++;
     }
+
+#ifdef TARGET_PC
+    if (pRepeated != nullptr) {
+        if (compare) {
+            bool same = pRepeated->mCount == hitCount;
+            for (u32 i = 0; same && i < hitCount; i++) {
+                same = isSameHit(*pRepeated, i, pHitInfo[i]);
+            }
+            port_line_repeat_counted(1, 1, !same);
+        } else {
+            port_line_repeat_counted(0, 0, 0);
+        }
+
+        if (hitCount <= cRepeatedLineHits) {
+            pRepeated->mParts = this;
+            pRepeated->mServer = mServer;
+            pRepeated->mSensor = mHitSensor;
+            pRepeated->mSetUps = sPartsSetUps;
+            __builtin_memcpy(pRepeated->mBase, mBaseMatrix.mMtx, sizeof(Mtx));
+            __builtin_memcpy(pRepeated->mInvBase, mInvBaseMatrix.mMtx, sizeof(Mtx));
+            __builtin_memcpy(&pRepeated->mPos, &rPos, sizeof(TVec3f));
+            __builtin_memcpy(&pRepeated->mDir, &rDirection, sizeof(TVec3f));
+            pRepeated->mMaxHits = maxHits;
+            pRepeated->mNearestOnly = nearestOnly;
+            pRepeated->mCount = hitCount;
+            for (u32 i = 0; i < hitCount; i++) {
+                pRepeated->mTriangles[i] = pHitInfo[i].mParentTriangle;
+                pRepeated->mDistances[i] = pHitInfo[i]._60;
+                pRepeated->mHitPos[i] = pHitInfo[i].mHitPos;
+                pRepeated->mClassifications[i] = pHitInfo[i]._88;
+            }
+        } else {
+            pRepeated->mParts = nullptr;
+        }
+    }
+#endif
 
     return hitCount;
 }

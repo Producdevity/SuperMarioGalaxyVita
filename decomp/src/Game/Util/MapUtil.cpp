@@ -48,8 +48,14 @@ namespace {
         return MR::getCollisionDirector()->getCategoryKeeper(category)->getStrikeInfo(index);
     }
 
+#ifdef TARGET_PC
+    bool getFirstPolyOnLineCategory(TVec3f* pPos, Triangle* pTriangle, const TVec3f& rStart, const TVec3f& rDirection,
+                                    const TriangleFilterBase* pTriangleFilter, const CollisionPartsFilterBase* pPartsFilter, s32 category,
+                                    bool repeated = false) {
+#else
     bool getFirstPolyOnLineCategory(TVec3f* pPos, Triangle* pTriangle, const TVec3f& rStart, const TVec3f& rDirection,
                                     const TriangleFilterBase* pTriangleFilter, const CollisionPartsFilterBase* pPartsFilter, s32 category) {
+#endif
 #ifdef TARGET_PC
         // (port) Only the nearest hit is kept, so without a triangle filter the walk along the line may end at it
         // (KCollisionServer::checkArrow's nearestOnly). PETARI_RAY_NEAREST=0 walks the whole line as before; 2 does both and
@@ -72,7 +78,7 @@ namespace {
             }
         }
         u32 count = MR::getCollisionDirector()->getCategoryKeeper(category)->checkStrikeLine(rStart, rDirection, 0, pPartsFilter, nullptr,
-                                                                                            nearestMode == 1);
+                                                                                            nearestMode == 1, repeated);
 #else
         u32 count = MR::getCollisionDirector()->getCategoryKeeper(category)->checkStrikeLine(rStart, rDirection, 0, pPartsFilter, nullptr);
 #endif
@@ -295,6 +301,18 @@ namespace MR {
                                           const CollisionPartsFilterBase* pPartsFilter, const TriangleFilterBase* pTriangleFilter) {
         return ::getFirstPolyOnLineCategory(pPos, pTriangle, rStart, rDirection, pTriangleFilter, pPartsFilter, 2);
     }
+
+#ifdef TARGET_PC
+    bool getFirstPolyOnLineToMapRepeated(TVec3f* pPos, Triangle* pTriangle, const TVec3f& rStart, const TVec3f& rDirection,
+                                         const CollisionPartsFilterBase* pPartsFilter) {
+        return ::getFirstPolyOnLineCategory(pPos, pTriangle, rStart, rDirection, nullptr, pPartsFilter, 0, true);
+    }
+
+    bool getFirstPolyOnLineToWaterSurfaceRepeated(TVec3f* pPos, Triangle* pTriangle, const TVec3f& rStart, const TVec3f& rDirection,
+                                                  const CollisionPartsFilterBase* pPartsFilter) {
+        return ::getFirstPolyOnLineCategory(pPos, pTriangle, rStart, rDirection, nullptr, pPartsFilter, 2, true);
+    }
+#endif
 
     bool getFirstPolyNormalOnLineToMap(TVec3f* pNormal, const TVec3f& rStart, const TVec3f& rDirection, TVec3f* pPos, const HitSensor* pSensor) {
         Triangle triangle;

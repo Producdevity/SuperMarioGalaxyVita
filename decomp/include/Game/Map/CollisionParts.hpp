@@ -42,7 +42,7 @@ public:
     void calcCollidePosition(TVec3f*, const KC_PrismData&, u8);
     void projectToPlane(TVec3f*, const TVec3f&, const TVec3f&, const TVec3f&);
 #ifdef TARGET_PC
-    u32 checkStrikeLine(HitInfo*, u32, const TVec3f&, const TVec3f&, const TriangleFilterBase*, bool nearestOnly = false);
+    u32 checkStrikeLine(HitInfo*, u32, const TVec3f&, const TVec3f&, const TriangleFilterBase*, bool nearestOnly = false, bool repeated = false);
 #else
     u32 checkStrikeLine(HitInfo*, u32, const TVec3f&, const TVec3f&, const TriangleFilterBase*);
 #endif

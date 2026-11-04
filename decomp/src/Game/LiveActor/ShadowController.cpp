@@ -170,11 +170,20 @@ void ShadowController::updateProjection() {
 
         switch (_62) {
         case 0:
+#ifdef TARGET_PC
+            _63 = MR::getFirstPolyOnLineToMapRepeated(&_48, &triangle, position, direction * (mDropLength + mStartOffset), mCollisionPartsFilter);
+#else
             _63 = MR::getFirstPolyOnLineToMap(&_48, &triangle, position, direction * (mDropLength + mStartOffset), mCollisionPartsFilter, nullptr);
+#endif
             break;
         case 1:
+#ifdef TARGET_PC
+            _63 = MR::getFirstPolyOnLineToWaterSurfaceRepeated(&_48, &triangle, position, direction * (mDropLength + mStartOffset),
+                                                               mCollisionPartsFilter);
+#else
             _63 = MR::getFirstPolyOnLineToWaterSurface(&_48, &triangle, position, direction * (mDropLength + mStartOffset), mCollisionPartsFilter,
                                                        nullptr);
+#endif
             break;
         }
 

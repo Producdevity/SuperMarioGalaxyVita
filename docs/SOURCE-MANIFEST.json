@@ -2596,7 +2596,7 @@
     },
     {
       "path": "decomp/include/Game/Map/CollisionCategorizedKeeper.hpp",
-      "sha256": "c932917f8618d3c39954921efc3e2f7de8f4dd96cc8279b703fec2d157859c24"
+      "sha256": "c7fe1bc41c8cbe8f620b74c0e97a36f0dbbbf9f687edf1a6e14d1dcc35eed81d"
     },
     {
       "path": "decomp/include/Game/Map/CollisionCode.hpp",
@@ -2608,7 +2608,7 @@
     },
     {
       "path": "decomp/include/Game/Map/CollisionParts.hpp",
-      "sha256": "8f145d5ac3b96984f818589dbd8f63b0c3e1a19bba1838b39183d14127ea70a1"
+      "sha256": "26cab7aa383f2c647b8f53d5687ceba8fa3ed5b97261bec4a57ac74d960d0052"
     },
     {
       "path": "decomp/include/Game/Map/FIleSelectItem.hpp",
@@ -6332,7 +6332,7 @@
     },
     {
       "path": "decomp/include/Game/Util/MapUtil.hpp",
-      "sha256": "715afb98a4fd935c0aba191a9f8b3331e80db178fa90dccbbe7d75edbc33ce27"
+      "sha256": "02c59f49e6fa746e89059177af0ddf9f7f2a28633393030a408d80c61b56e59f"
     },
     {
       "path": "decomp/include/Game/Util/MathUtil.hpp",
@@ -11612,7 +11612,7 @@
     },
     {
       "path": "decomp/src/Game/LiveActor/ShadowController.cpp",
-      "sha256": "08c71b9bd16a1284de0d6afa7530d1e5e8bead06fce62e3446d55fb385193a28"
+      "sha256": "999d06f0e7241a77bc2e7b64457aeab432f92e429457957752bed7483a9f76e2"
     },
     {
       "path": "decomp/src/Game/LiveActor/ShadowDrawer.cpp",
@@ -11708,7 +11708,7 @@
     },
     {
       "path": "decomp/src/Game/Map/CollisionCategorizedKeeper.cpp",
-      "sha256": "c9dbed5a6f442821683815f871b75a985e2fbe7458026d8bff7fb56b7e4daac6"
+      "sha256": "4eec05cda2afc7a79ccafc1787b8976f80aff01ea17faf72d6f9f613020a2680"
     },
     {
       "path": "decomp/src/Game/Map/CollisionCode.cpp",
@@ -11720,7 +11720,7 @@
     },
     {
       "path": "decomp/src/Game/Map/CollisionParts.cpp",
-      "sha256": "9d5b0cd9ea39779ef4f8916d631469294cfedaa68336f7281daab67eb52beb52"
+      "sha256": "2f3885caf1f9f9e3a941499769fceab552d137a6bcb329c76696e9f8b876bdbf"
     },
     {
       "path": "decomp/src/Game/Map/FileSelectCameraController.cpp",
@@ -15496,7 +15496,7 @@
     },
     {
       "path": "decomp/src/Game/Util/MapUtil.cpp",
-      "sha256": "6c1ead35f72e8990ba642b54b95cd07be7603a8c35ab0cea4f8555c9c808eaba"
+      "sha256": "1357eb0876c5915f19cce3cd5cd6a97877f19ca9bcf4851f9685b97360d49f50"
     },
     {
       "path": "decomp/src/Game/Util/MathUtil.cpp",
@@ -18860,7 +18860,7 @@
     },
     {
       "path": "platform/src/port/perf.cpp",
-      "sha256": "e1ac111f0f1aa75cfc830129ff94d412507cf8618e694e3603b09805efe17298"
+      "sha256": "1e47178b11237e1ed35cecf6f231284a29829a8d52a11d4266cb84998988b66a"
     },
     {
       "path": "platform/src/port/phase_cpu.h",

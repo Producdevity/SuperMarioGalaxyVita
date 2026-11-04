@@ -110,6 +110,7 @@ thread_local bool sMatDlCancelled = false;  // (port_matdl_may_defer: a scene ch
 std::atomic<uint32_t> sMatDlDeferTurns{0}, sMatDlLate{0};  // (the log's "matdl:" line)
 uint32_t sGravityCompared = 0, sGravityEarly = 0, sGravityMismatching = 0;  // (PETARI_GRAVITY_CULL=2; the game's guest threads, one at a time)
 uint32_t sRaysCompared = 0, sRaysMismatching = 0;  // (PETARI_RAY_NEAREST=2; the game's main thread)
+uint32_t sLinesRepeated = 0, sLinesFound = 0, sLinesCompared = 0, sLinesMismatching = 0;  // (shadows' lines; the game's main thread)
 uint32_t sEarlyOwed = 0, sEarlyPaid[10] = {}; int64_t sEarlyNs[10] = {};  // (PETARI_EARLY_DONE, the log's "early done:" line; the game's guest threads)
 unsigned sSlowTurnsLogged = 0;
 bool slowTurnLog() {
@@ -176,6 +177,11 @@ void report(int64_t now) {
     if (sRaysCompared) {
         port_log("rays: %u first polygons on a line found with and without the nearest-hit end, %u different", sRaysCompared, sRaysMismatching);
         sRaysCompared = sRaysMismatching = 0;
+    }
+    if (sLinesRepeated) {
+        port_log("lines: %u shadows' lines on a collision part, %u cast there before with the part in the same place (%u searched again, %u "
+                 "different)", sLinesRepeated, sLinesFound, sLinesCompared, sLinesMismatching);
+        sLinesRepeated = sLinesFound = sLinesCompared = sLinesMismatching = 0;
     }
     for (TurnCost& c : sTurnCosts) c = TurnCost{};
     sWork = sRecord = sPrepare = sRenderCpu = sUpload = sGpuWait = Stat();
@@ -640,6 +646,23 @@ extern "C" int port_ray_nearest_mode(void) {
 extern "C" void port_ray_nearest_verified(int mismatching) {
     ++sRaysCompared;
     if (mismatching && sRaysMismatching++ < 20) port_log("rays: a first polygon on a line differs with the nearest-hit end");
+}
+
+// A shadow's line on a collision part that has not moved since the same line was cast on it finds the hits found then
+// (CollisionParts::checkStrikeLine). PETARI_LINE_REPEAT=0 searches every line, as before; 2 searches those lines as well and logs
+// disagreements ("lines:").
+extern "C" int port_line_repeat_mode(void) {
+    static const int mode = [] {
+        const char* e = getenv("PETARI_LINE_REPEAT");
+        return e && *e ? atoi(e) : 1;
+    }();
+    return mode;
+}
+extern "C" void port_line_repeat_counted(int found, int compared, int mismatching) {
+    ++sLinesRepeated;
+    sLinesFound += found ? 1 : 0;
+    sLinesCompared += compared ? 1 : 0;
+    if (mismatching && sLinesMismatching++ < 20) port_log("lines: a shadow's line on a collision part finds other hits than the last time");
 }
 
 // Gravity fields out of reach of a position are rejected before their arithmetic (PlanetGravity::isOutOfReach).

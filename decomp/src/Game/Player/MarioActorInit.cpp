@@ -16,6 +16,9 @@ void MarioActor::initMember() {
     mDL[1] = nullptr;
     mDLSize = 0;
     mCurrDL = 0;
+#ifdef TARGET_PC
+    mPortLightDLPicture = 0;
+#endif
     _1A1 = 0;
     _1A4 = 0.0f;
     _1A8 = 0;

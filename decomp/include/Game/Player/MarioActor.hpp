@@ -1015,6 +1015,9 @@ public:
     /* 0xFC8 */ MatrixValueGetter* _FC8;
     /* 0xFCC */ bool _FCC;
     /* 0xFCD */ bool _FCD;
+#ifdef TARGET_PC
+    u32 mPortLightDLPicture;  // (the picture count at the last updateLightDL, GXPortSwapTurn)
+#endif
 };
 
 // header defined since these actually get defined in CamHeliEffector

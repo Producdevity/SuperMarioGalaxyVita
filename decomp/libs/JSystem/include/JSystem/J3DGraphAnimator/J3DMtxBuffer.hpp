@@ -141,6 +141,9 @@ public:
     /* 0x2C */ u32 mMtxNum;
     /* 0x30 */ u32 mCurrentViewNo;
     /* 0x34 */ Mtx* mpUserAnmMtx;
+#ifdef TARGET_PC
+    u32 mPortPicture;  // (the picture count at the last view pass, GXPortSwapTurn)
+#endif
 
     virtual ~J3DMtxBuffer() {
     }

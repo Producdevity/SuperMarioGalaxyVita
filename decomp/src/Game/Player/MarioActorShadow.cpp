@@ -20,6 +20,10 @@
 #include "Game/Util/ObjUtil.hpp"
 #include <JSystem/J3DGraphBase/J3DSys.hpp>
 
+#ifdef TARGET_PC
+extern "C" void GXWaitOwedDrawDone(int site);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
+#endif
+
 void MarioActorShadow_FORCE_MATCH_SDATA2() {
     (void)1.0f;
     (void)0.0f;
@@ -507,6 +511,11 @@ void MarioActor::calcViewBlurModel() {
         return;
     }
 
+#ifdef TARGET_PC
+    // (PETARI_EARLY_DONE: both halves of the blur's matrices may be written now, and drawModelBlur writes the half the last
+    // picture drew from in the next picture's draw)
+    GXWaitOwedDrawDone(8);
+#endif
     if (_A6E == 2) {
         for (u32 i = 0; i < 8; i++) {
             for (u32 j = 0; j < getModelData()->getDrawMtxNum(); j++) {

@@ -15,6 +15,10 @@
 #include <JSystem/JUtility/JUTVideo.hpp>
 #include <revolution/gd.h>
 
+#ifdef TARGET_PC
+extern "C" int GXPortSwapTurn(u32* stamp, int site);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
+#endif
+
 class J3DMtxBuffer2 : public J3DMtxBuffer {
 public:
     void rotationMtx(MtxPtr mtx) {
@@ -65,7 +69,10 @@ void J3DModelX::viewCalc3(u32 view, MtxPtr mtx) {
     }
 
     if (!(view & 1)) {
-        buffer->swapNrmMtx();
+#ifdef TARGET_PC
+        if (GXPortSwapTurn(&buffer->mPortPicture, 6))  // (as J3DModel::viewCalc)
+#endif
+            buffer->swapNrmMtx();
         buffer->calcNrmMtx2();
     }
 
@@ -294,6 +301,9 @@ J3DModelX::J3DModelX(J3DModelData* data, u32 flags, u32 bufferFlags) : J3DModel(
     mShapeCallback = nullptr;
     _1E4 = 0;
     _1E5 = 0;
+#ifdef TARGET_PC
+    mPortDrawBufferPicture = 0;
+#endif
 
     GDLObj obj;
     u8 buffer[512] ATTRIBUTE_ALIGN(32);

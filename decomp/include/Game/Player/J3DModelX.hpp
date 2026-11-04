@@ -151,4 +151,7 @@ public:
     /* 0x1E0 */ s32 _1E0;
     /* 0x1E4 */ u8 _1E4;
     /* 0x1E5 */ u8 _1E5;
+#ifdef TARGET_PC
+    u32 mPortDrawBufferPicture;  // (the picture count at the last swapDrawBuffer, GXPortSwapTurn)
+#endif
 };

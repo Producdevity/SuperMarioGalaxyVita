@@ -20,6 +20,10 @@
 #include <revolution/gx/GXPixel.h>
 #include <revolution/os.h>
 
+#ifdef TARGET_PC
+extern "C" int GXPortSwapTurn(u32* stamp, int site);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
+#endif
+
 void MarioActorSpecialDraw_FORCE_MATCH_SDATA2() {
     (void)1.0f;
     (void)0.0f;
@@ -273,6 +277,9 @@ void MarioActor::resetFog() {
 }
 
 void MarioActor::updateAlphaDL(u8 alpha) {
+#ifdef TARGET_PC
+    mDLchanger->portTurn();
+#endif
     u8 buffer[256] ATTRIBUTE_ALIGN(32);
     GDLObj displayList;
     MR::ProhibitSchedulerAndInterrupts lock(false);
@@ -299,6 +306,9 @@ void MarioActor::updateAlphaDL(u8 alpha) {
 }
 
 void MarioActor::updateSimpleAlphaDL(u8 alpha) {
+#ifdef TARGET_PC
+    mDLchanger->portTurn();
+#endif
     u8 buffer[256] ATTRIBUTE_ALIGN(32);
     GDLObj displayList;
     MR::ProhibitSchedulerAndInterrupts lock(false);
@@ -314,6 +324,9 @@ void MarioActor::updateSimpleAlphaDL(u8 alpha) {
 }
 
 void MarioActor::updateReflectAlphaDL(u8 alpha) {
+#ifdef TARGET_PC
+    mDLchanger->portTurn();
+#endif
     u8 buffer[256] ATTRIBUTE_ALIGN(32);
     GDLObj displayList;
     MR::ProhibitSchedulerAndInterrupts lock(false);
@@ -333,6 +346,10 @@ void MarioActor::updateReflectAlphaDL(u8 alpha) {
 }
 
 void MarioActor::updateLightDL(const Color8& rAmbient, const Color8& rMaterial, const Color8& rFog, f32 strength) {
+#ifdef TARGET_PC
+    // (PETARI_EARLY_DONE: as J3DModel::viewCalc's matrices; decided before the scheduler lock, where a wait could not end)
+    const bool swap = GXPortSwapTurn(&mPortLightDLPicture, 8);
+#endif
     u8 buffer[512] ATTRIBUTE_ALIGN(32);
     GDLObj displayList;
     MR::ProhibitSchedulerAndInterrupts lock(false);
@@ -356,7 +373,10 @@ void MarioActor::updateLightDL(const Color8& rAmbient, const Color8& rMaterial, 
 
     GDPadCurr32();
     u32 length = displayList.ptr - displayList.start;
-    mCurrDL = 1 - mCurrDL;
+#ifdef TARGET_PC
+    if (swap)
+#endif
+        mCurrDL = 1 - mCurrDL;
     mDLSize = length;
     u32 size = (length + 31) & ~31;
     MR::copyMemory(mDL[mCurrDL], buffer, size);

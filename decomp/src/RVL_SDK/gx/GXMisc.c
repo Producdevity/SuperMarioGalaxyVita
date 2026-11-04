@@ -194,15 +194,22 @@ void GXDrawDone(void) {
 // the renderer still reads the picture from the game's memory, and a write of something a picture reads first waits until
 // that picture has been read to its end (GXWaitPictureRead): a display-list buffer the picture drew from (per buffer,
 // J3DDisplayListObj); the matrix buffers of the view pass, a deformed model's vertex arrays and fur's, for the last picture
-// whose end is written (GXWaitOwedDrawDone: the one before the picture drawn in this turn); everything before a scene change
-// or a fast-forwarded cutscene.
+// whose end is written (GXWaitOwedDrawDone: the one before the picture drawn in this turn), or none when the view pass swaps
+// to nothing a picture drew from (GXPortSwapTurn); everything before a scene change or a fast-forwarded cutscene.
 static u32 sPicture;            // pictures begun (GXPortPictureBegin, before each drawn frame)
 static u32 sPictureEnded;       // the last of them whose end token is written
 static u32 sPictureToken[16];   // the token count after each picture's end token (by picture & 15)
+static u32 sPictureDrawing;     // 1 from GXPortPictureBegin to the end of the frame's draw (GXPortPictureDrawn)
 extern void port_early_done_paid(int site, int64_t ns);
 extern int port_os_may_wait(void);
-u32 GXPortPictureBegin(void) { return ++sPicture; }
+u32 GXPortPictureBegin(void) {
+    sPictureDrawing = 1;
+    return ++sPicture;
+}
+void GXPortPictureDrawn(void) { sPictureDrawing = 0; }
 u32 GXPortPicture(void) { return sPicture; }
+// 1 from GXPortPictureBegin to the picture's end token (a turn that draws).
+int GXPortPictureOpen(void) { return sPicture != sPictureEnded; }
 void GXSetDrawDoneOwed(void) {
     GXSetDrawDone();
     sPictureToken[sPicture & 15] = sFinishSet;
@@ -237,6 +244,20 @@ int GXWaitPictureRead(u32 picture, int site) {
     return 1;
 }
 void GXWaitOwedDrawDone(int site) { GXWaitPictureRead(sPictureEnded, site); }
+// A pair of buffers the game writes in turn while pictures draw from the front one (a model's view matrices, J3DModel::viewCalc),
+// `stamp` the picture count at the last write. 0 when no picture has begun since: nothing has drawn from the front yet, and it
+// is written again (a turn without a picture after one with, which would otherwise wait for the picture just drawn). Otherwise
+// 1, to swap, once the pictures that drew from the back are read (those begun before the last write). In a frame's draw the
+// game's swap is kept (a picture being drawn may have drawn from the front already).
+int GXPortSwapTurn(u32* stamp, int site) {
+    if (*stamp == sPicture && !sPictureDrawing) {
+        port_early_done_paid(9, 0);
+        return 0;
+    }
+    GXWaitPictureRead(*stamp, site);
+    *stamp = sPictureDrawing ? sPicture - 1 : sPicture;
+    return 1;
+}
 // The same without waiting: 1 once picture `picture` has been read to its end.
 int GXPictureRead(u32 picture) {
     if (picture == 0 || sPictureEnded == 0 || (s32)(sPictureEnded - picture) >= 16) {

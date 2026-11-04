@@ -32,6 +32,7 @@
 #ifdef TARGET_PC
 extern "C" int port_turn_skipped(void);  // (platform/src/port/perf.cpp)
 extern "C" void GXWaitOwedDrawDone(int site);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
+extern "C" int GXPortPictureOpen(void);
 #include "Game/Camera/CameraHolder.hpp"
 #include "Game/Camera/CameraManEvent.hpp"
 #include "Game/Camera/CameraManGame.hpp"
@@ -441,9 +442,12 @@ void GameScene::calcAnim() {
     if (port_turn_skipped()) {
         return;
     }
-    // (PETARI_EARLY_DONE: the view pass writes the matrix buffers the picture before the one just drawn read from, or in a turn
-    // without a picture, the last one)
-    GXWaitOwedDrawDone(0);
+    // (PETARI_EARLY_DONE: in a turn that draws, the view pass writes what the picture before this one read; in a turn without a
+    // picture, the matrix buffers it writes are ones no picture has drawn from, or it waits for their own pictures:
+    // GXPortSwapTurn)
+    if (GXPortPictureOpen()) {
+        GXWaitOwedDrawDone(0);
+    }
 #endif
     SceneFunction::executeCalcViewAndEntryList();
 }

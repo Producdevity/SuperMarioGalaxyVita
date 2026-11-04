@@ -5,6 +5,7 @@
 #include "JSystem/J3DGraphBase/J3DShapeMtx.hpp"
 #ifdef TARGET_PC
 extern "C" void GXWaitOwedDrawDone(int site);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
+extern "C" int GXPortSwapTurn(u32* stamp, int site);
 #endif
 
 void J3DModel::initialize() {
@@ -341,13 +342,14 @@ void J3DModel::entry() {
 
 void J3DModel::viewCalc() {
 #ifdef TARGET_PC
-    // (PETARI_EARLY_DONE: the buffers written now were last read by a picture whose end is written: the one before the picture
-    // drawn in this turn, or in a turn without a picture, the last one. GameScene::calcAnim has waited for it: this is the
-    // check, for the other scenes too.)
-    GXWaitOwedDrawDone(6);
+    // (PETARI_EARLY_DONE: with no picture begun since the last view pass, nothing has drawn from these matrices: they are written
+    // again instead of the ones the last picture may still be read from)
+    if (GXPortSwapTurn(&mMtxBuffer->mPortPicture, 6))
 #endif
-    mMtxBuffer->swapDrawMtx();
-    mMtxBuffer->swapNrmMtx();
+    {
+        mMtxBuffer->swapDrawMtx();
+        mMtxBuffer->swapNrmMtx();
+    }
 
     if (getModelData()->checkFlag(0x10)) {
         if (getMtxCalcMode() == 2) {
@@ -381,6 +383,9 @@ void J3DModel::viewCalc() {
 
 void J3DModel::calcBumpMtx() {
     if (getModelData()->checkBumpFlag()) {
+#ifdef TARGET_PC
+        GXWaitOwedDrawDone(8);  // (PETARI_EARLY_DONE: one buffer, which the last picture may still be read from)
+#endif
         u32 bumpMtxIdx = 0;
         u16 materialNum = getModelData()->getMaterialNum();
 

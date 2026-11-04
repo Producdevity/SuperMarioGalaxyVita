@@ -109,7 +109,7 @@ thread_local bool sMatDlDefer = false;  // (port_matdl_defer: set by port_frames
 thread_local bool sMatDlCancelled = false;  // (port_matdl_may_defer: a scene change began in this turn)
 std::atomic<uint32_t> sMatDlDeferTurns{0}, sMatDlLate{0};  // (the log's "matdl:" line)
 uint32_t sGravityCompared = 0, sGravityEarly = 0, sGravityMismatching = 0;  // (PETARI_GRAVITY_CULL=2; the game's guest threads, one at a time)
-uint32_t sEarlyOwed = 0, sEarlyPaid[8] = {}; int64_t sEarlyNs[8] = {};  // (PETARI_EARLY_DONE, the log's "early done:" line; the game's guest threads)
+uint32_t sEarlyOwed = 0, sEarlyPaid[10] = {}; int64_t sEarlyNs[10] = {};  // (PETARI_EARLY_DONE, the log's "early done:" line; the game's guest threads)
 unsigned sSlowTurnsLogged = 0;
 bool slowTurnLog() {
     static const bool v = alwaysLog() || port_handheld() != 0;
@@ -158,12 +158,14 @@ void report(int64_t now) {
                  "instead (a wrong guess of the next turn's kind)", turns, late);
     if (sEarlyOwed) {
         port_log("early done: %u pictures' waits put off; paid at a view pass or scene change %u times (%.1f ms), material lists %u (%.1f ms), "
-                 "a deformed model %u (%.1f ms), fur %u (%.1f ms), another display list %u (%.1f ms), a model's matrices %u (%.1f ms); %u "
-                 "writes that could not wait; %u models' material updates left to the next picture instead of waiting", sEarlyOwed, sEarlyPaid[0],
-                 sEarlyNs[0] / 1e6, sEarlyPaid[1], sEarlyNs[1] / 1e6, sEarlyPaid[2], sEarlyNs[2] / 1e6, sEarlyPaid[3], sEarlyNs[3] / 1e6, sEarlyPaid[4],
-                 sEarlyNs[4] / 1e6, sEarlyPaid[6], sEarlyNs[6] / 1e6, sEarlyPaid[5], sEarlyPaid[7]);
+                 "a deformed model %u (%.1f ms), fur %u (%.1f ms), another display list %u (%.1f ms), a model's matrices %u (%.1f ms), "
+                 "bump or blur matrices %u (%.1f ms); %u writes that could not wait; %u models' material updates left to the next picture "
+                 "instead of waiting; %u view passes wrote matrices no picture had drawn from again instead of swapping", sEarlyOwed,
+                 sEarlyPaid[0], sEarlyNs[0] / 1e6, sEarlyPaid[1], sEarlyNs[1] / 1e6, sEarlyPaid[2], sEarlyNs[2] / 1e6, sEarlyPaid[3],
+                 sEarlyNs[3] / 1e6, sEarlyPaid[4], sEarlyNs[4] / 1e6, sEarlyPaid[6], sEarlyNs[6] / 1e6, sEarlyPaid[8], sEarlyNs[8] / 1e6,
+                 sEarlyPaid[5], sEarlyPaid[7], sEarlyPaid[9]);
         sEarlyOwed = 0;
-        for (int i = 0; i < 8; ++i) { sEarlyPaid[i] = 0; sEarlyNs[i] = 0; }
+        for (int i = 0; i < 10; ++i) { sEarlyPaid[i] = 0; sEarlyNs[i] = 0; }
     }
     if (sGravityCompared) {
         port_log("gravity: %u fields evaluated with and without the reach test, %u rejected by it, %u results different", sGravityCompared,
@@ -618,7 +620,7 @@ extern "C" int port_early_done(void) {
 }
 extern "C" void port_early_done_paid(int site, int64_t ns) {
     if (site < 0) { ++sEarlyOwed; return; }
-    if (site < 8) { ++sEarlyPaid[site]; sEarlyNs[site] += ns; }
+    if (site < 10) { ++sEarlyPaid[site]; sEarlyNs[site] += ns; }
 }
 
 // Gravity fields out of reach of a position are rejected before their arithmetic (PlanetGravity::isOutOfReach).

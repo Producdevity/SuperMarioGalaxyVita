@@ -24,6 +24,9 @@ void J3DMtxBuffer::initialize() {
     mMtxNum = 1;
     mCurrentViewNo = 0;
     mpUserAnmMtx = NULL;
+#ifdef TARGET_PC
+    mPortPicture = 0;
+#endif
 }
 
 enum {

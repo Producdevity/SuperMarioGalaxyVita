@@ -4608,7 +4608,7 @@
     },
     {
       "path": "decomp/include/Game/Player/DLchanger.hpp",
-      "sha256": "589e036b52645fcd8d1be8879c427ddbfb4cbe22bdd0496d2e1f353e4458a8af"
+      "sha256": "7968387eb0c26bc94285e3eb51baa8aac8adbfe9930803f1bfdb9ddfdb84dce4"
     },
     {
       "path": "decomp/include/Game/Player/DrawAdaptor.hpp",
@@ -4632,7 +4632,7 @@
     },
     {
       "path": "decomp/include/Game/Player/J3DModelX.hpp",
-      "sha256": "5427bb1494f225ad8aa445eb3f7cbdb6f97f7ffd7f49370213b6d655488422fb"
+      "sha256": "b314bdd05b299fd9dd9bcb34670ec25730650467025ddad4dcd1d1f873818ca4"
     },
     {
       "path": "decomp/include/Game/Player/JetTurtleShadow.hpp",
@@ -4656,7 +4656,7 @@
     },
     {
       "path": "decomp/include/Game/Player/MarioActor.hpp",
-      "sha256": "2b43daf9391ac9a1c8480ada0a17988557c1b2d9bd15a00748164cf25d78c73b"
+      "sha256": "8d3eb2751cc8cfadff0cf00d48c5c03f0efc3e26b7490c1582dc1837ba04c614"
     },
     {
       "path": "decomp/include/Game/Player/MarioAnimator.hpp",
@@ -6548,7 +6548,7 @@
     },
     {
       "path": "decomp/libs/JSystem/include/JSystem/J3DGraphAnimator/J3DMtxBuffer.hpp",
-      "sha256": "2d8a62c4b71cc0c800e713930e2dcc11f5e84649fa3372540a62f9f43759c88e"
+      "sha256": "bd2cc68cbb97114666d7e6e27f440e53a98fb54a8552458d57029dfc9701910e"
     },
     {
       "path": "decomp/libs/JSystem/include/JSystem/J3DGraphAnimator/J3DMtxCalc.hpp",
@@ -13700,7 +13700,7 @@
     },
     {
       "path": "decomp/src/Game/Player/J3DModelX.cpp",
-      "sha256": "0094be94fd799af0a303e09ffea85c6f0eba19a30d559b4e82a1809a9ad9cfa6"
+      "sha256": "bcc78fc30061ae4c0b10a74c0abe35b6c76aafe1983d650a2dabe7891e329597"
     },
     {
       "path": "decomp/src/Game/Player/JetTurtleShadow.cpp",
@@ -13744,7 +13744,7 @@
     },
     {
       "path": "decomp/src/Game/Player/MarioActorDraw.cpp",
-      "sha256": "ef855046cb8d947f8a80b13751e791f630162013767abd0a5b7ffdbf56121937"
+      "sha256": "f9121aa1716a009d5526d90189719af1d092172fe987a0dccf9a9f279aa3d846"
     },
     {
       "path": "decomp/src/Game/Player/MarioActorEye.cpp",
@@ -13764,7 +13764,7 @@
     },
     {
       "path": "decomp/src/Game/Player/MarioActorInit.cpp",
-      "sha256": "5d705065813f2d9142c35ce5c2c6b8a2018aabab3bb7b08490f4aaf8bf274f04"
+      "sha256": "9a2c129454dbc200f26191984c602d47fc349e75f0a63c2e1b6d5b6b05d8c5c3"
     },
     {
       "path": "decomp/src/Game/Player/MarioActorMatrix.cpp",
@@ -13804,11 +13804,11 @@
     },
     {
       "path": "decomp/src/Game/Player/MarioActorShadow.cpp",
-      "sha256": "935e9370091b75e387414f03636477f0e7251d86fe42423308ae85c5291ed39b"
+      "sha256": "1a554a487d4037872af5b36e5aa49752391deee5c3b000bd8b91d049b6082aaf"
     },
     {
       "path": "decomp/src/Game/Player/MarioActorSpecialDraw.cpp",
-      "sha256": "74afb86055eb0fc0ff110b58b047eb3b38c90b125636aeef76bfb0559f9fe8f1"
+      "sha256": "184d394add8007d3fd28c55cb1e512555a6b45714023eab1507603fde75f8c37"
     },
     {
       "path": "decomp/src/Game/Player/MarioActorTakeMsg.cpp",
@@ -14256,7 +14256,7 @@
     },
     {
       "path": "decomp/src/Game/Scene/GameScene.cpp",
-      "sha256": "a232fa04bb57fde87a58fc2e6b9d7978dd6f15bff1b19a8a3b90577a3d77bbec"
+      "sha256": "9f5701847fc5e69c42dc9490d3483ef6e88d0a210ed97609095bbd09542ad3e0"
     },
     {
       "path": "decomp/src/Game/Scene/GameSceneFunction.cpp",
@@ -15088,7 +15088,7 @@
     },
     {
       "path": "decomp/src/Game/System/GameSystem.cpp",
-      "sha256": "ada56beba304a0b8f4a313972265a6d9013d6b8c72da5ef05eafea976cf8ca56"
+      "sha256": "c3cf1a3f5d5f6e1037a477ed3ee534e89cca8c9d646c35f06e6e4ea144b5ad6e"
     },
     {
       "path": "decomp/src/Game/System/GameSystemDimmingWatcher.cpp",
@@ -15676,7 +15676,7 @@
     },
     {
       "path": "decomp/src/JSystem/J3DGraphAnimator/J3DModel.cpp",
-      "sha256": "b1a857074cd4d0edb183ab82bbf3aae29bd612e877214d148454a3b5c75afe1d"
+      "sha256": "ca282d5b40d025f5cf7f9717ec85873624a7a21eaf5754e5edb4ba4d3e718f64"
     },
     {
       "path": "decomp/src/JSystem/J3DGraphAnimator/J3DModelData.cpp",
@@ -15684,7 +15684,7 @@
     },
     {
       "path": "decomp/src/JSystem/J3DGraphAnimator/J3DMtxBuffer.cpp",
-      "sha256": "a131ba9eb9dd1999ab91ba4a847b5d6c21c3a2ed8be36ee267f60734af520fc3"
+      "sha256": "c284a0ee51554e22c3c9e05a2e006ba0c9946b5bb58f84b8a1c7aed2f7602d53"
     },
     {
       "path": "decomp/src/JSystem/J3DGraphAnimator/J3DShapeTable.cpp",
@@ -17640,7 +17640,7 @@
     },
     {
       "path": "decomp/src/RVL_SDK/gx/GXMisc.c",
-      "sha256": "1f4515df6f1c128b9c42ae1e5ddc2b011892e445425e1d79ed03ad40e0f3b05b"
+      "sha256": "8a97e9293a6c3f436ed9afcbbf82fab9dab0627c74a4aa734801c2c33efa9552"
     },
     {
       "path": "decomp/src/RVL_SDK/gx/GXPerf.c",
@@ -18860,7 +18860,7 @@
     },
     {
       "path": "platform/src/port/perf.cpp",
-      "sha256": "f47210716d9169415a018bc3059226de45de3b304daa0ecaa67b61e9a6052643"
+      "sha256": "f789b623d1d8c0b9f6170fa4e6aeca862991a8ca8eaee04df67bfb00d34a8c2d"
     },
     {
       "path": "platform/src/port/phase_cpu.h",

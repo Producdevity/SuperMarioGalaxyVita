@@ -43,6 +43,9 @@ namespace MR {
 
 extern "C" {
 void GDSetTexImgPtr(GXTexMapID, void*);
+#ifdef TARGET_PC
+int GXPortSwapTurn(u32* stamp, int site);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
+#endif
 }
 
 class JetTurtleShadow : public LiveActor {
@@ -1062,6 +1065,13 @@ void J3DModelX::copyExtraMtxBuffer(const J3DModelX* pModel) {
 }
 
 void J3DModelX::swapDrawBuffer(u32 drawBuffer) {
+#ifdef TARGET_PC
+    // (PETARI_EARLY_DONE: the view matrices of the half written last are written again while no picture has drawn from them,
+    // as J3DModel::viewCalc)
+    if (!GXPortSwapTurn(&mPortDrawBufferPicture, 6)) {
+        return;
+    }
+#endif
     if (_DC == drawBuffer) {
         _DC = 0;
         return;

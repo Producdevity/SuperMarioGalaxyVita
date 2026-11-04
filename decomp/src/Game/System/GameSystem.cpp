@@ -236,6 +236,7 @@ extern "C" void port_matdl_cancel(void);
 extern "C" void port_turn_skipped_set(int v);
 extern "C" void GXWaitOwedDrawDone(int site);  // (decomp/src/RVL_SDK/gx/GXMisc.c)
 extern "C" u32 GXPortPictureBegin(void);
+extern "C" void GXPortPictureDrawn(void);
 #if defined(__vita__)
 extern "C" void port_settings_game_boundary(int safe);
 #endif
@@ -316,6 +317,9 @@ void GameSystem::frameLoop() {
     draw();
     PORT_GAME_PROGRESS(PORT_GAME_PHASE_END_RENDER);
     MainLoopFramework::sManager->endRender();
+#ifdef TARGET_PC
+    GXPortPictureDrawn();
+#endif
     update();
 #ifdef TARGET_PC
     if (mSceneController->isChangingScene()) {

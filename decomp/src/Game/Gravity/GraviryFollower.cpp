@@ -21,6 +21,9 @@ void GraviryFollower::update() {
         calcFollowMatrix(&followMtx);
 
         mGravity->updateMtx(followMtx);
+#ifdef TARGET_PC
+        mGravity->mReachKnown = false;
+#endif
         mGravity->mValidFollower = true;
     }
 }

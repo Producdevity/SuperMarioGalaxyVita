@@ -57,6 +57,27 @@ public:
         return false;
     }
 
+    // (port) True only for a position outside the sphere that holds every position the field accepts (calcReach): the manager tests
+    // this before anything else, without a call. Toy Time has 124 fields and accepts under 1 % of the ones it evaluates.
+    bool isOutOfSphere(const TVec3f& rPosition) const {
+        if (!mReachKnown) {
+            updateReach();
+        }
+        if (mReachSquared < 0.0f) {
+            return false;
+        }
+        const f32 x = rPosition.x - mReachCentre.x, y = rPosition.y - mReachCentre.y, z = rPosition.z - mReachCentre.z;
+        const f32 distanceSquared = x * x + y * y + z * z;
+        return distanceSquared > mReachSquared && distanceSquared <= __FLT_MAX__;
+    }
+
+    // The radius of that sphere around *pCentre; negative when the field gives none. Asked again after the field has moved.
+    virtual f32 calcReach(TVec3f* pCentre) const {
+        return -1.0f;
+    }
+    void updateReach() const;
+
+    static bool sOutOfSphereTest;
     static bool sOutOfReachTest;
     static bool sOutOfReachHit;  // (set by a rejection; read by PETARI_GRAVITY_CULL=2)
 #endif
@@ -73,4 +94,9 @@ public:
     /* 0x22 */ bool mValidFollower;
     /* 0x23 */ bool mIsRegistered;  // is registered by PlanetGravityManager?
     /* 0x24 */ bool mAppeared;      // corresponding GlobalGravityObj has appeared?
+#ifdef TARGET_PC
+    mutable bool mReachKnown;
+    mutable f32 mReachSquared;
+    mutable TVec3f mReachCentre;
+#endif
 };

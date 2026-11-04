@@ -41,6 +41,13 @@ bool PlanetGravityManager::calcTotalGravityVector(TVec3f* pGravity, GravityInfo*
                 break;
             }
 
+#ifdef TARGET_PC
+            if (PlanetGravity::sOutOfSphereTest && (*pGravities)->isOutOfSphere(rPosition)) {
+                pGravities++;
+                continue;
+            }
+#endif
+
             // Calculate gravity
             TVec3f gravityVec;
 

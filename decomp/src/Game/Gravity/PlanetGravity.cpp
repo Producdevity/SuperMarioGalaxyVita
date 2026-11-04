@@ -22,6 +22,11 @@ PlanetGravity::PlanetGravity() {
     mValidFollower = true;
     mIsRegistered = false;
     mAppeared = true;
+#ifdef TARGET_PC
+    mReachKnown = false;
+    mReachSquared = -1.0f;
+    mReachCentre.zero();
+#endif
 }
 
 void PlanetGravity::setPriority(s32 priority) {
@@ -32,6 +37,7 @@ void PlanetGravity::setPriority(s32 priority) {
 extern "C" int port_gravity_cull_mode(void);  // (platform/src/port/perf.cpp)
 extern "C" void port_gravity_cull_verified(int rejectedEarly, int mismatching);
 
+bool PlanetGravity::sOutOfSphereTest = false;
 bool PlanetGravity::sOutOfReachTest = false;
 bool PlanetGravity::sOutOfReachHit = false;
 
@@ -44,12 +50,13 @@ namespace {
         f32 scalar = *pScalar;
         PlanetGravity::sOutOfReachTest = false;
         const bool inReach = pGravity->calcOwnGravityVector(pDest, pScalar, rPosition);
+        const bool outOfSphere = pGravity->isOutOfSphere(rPosition);
         PlanetGravity::sOutOfReachTest = true;
         PlanetGravity::sOutOfReachHit = false;
         const bool tested = pGravity->calcOwnGravityVector(&gravity, &scalar, rPosition);
         PlanetGravity::sOutOfReachTest = false;
-        const bool same = inReach == tested && (!inReach || (memcmp(&gravity, pDest, sizeof(gravity)) == 0 && memcmp(&scalar, pScalar, sizeof(scalar)) == 0));
-        port_gravity_cull_verified(PlanetGravity::sOutOfReachHit, !same);
+        const bool same = !(outOfSphere && inReach) && inReach == tested && (!inReach || (memcmp(&gravity, pDest, sizeof(gravity)) == 0 && memcmp(&scalar, pScalar, sizeof(scalar)) == 0));
+        port_gravity_cull_verified(PlanetGravity::sOutOfReachHit || outOfSphere, !same);
         return inReach;
     }
 }  // namespace
@@ -66,7 +73,8 @@ bool PlanetGravity::calcGravity(TVec3f* pDest, const TVec3f& rPosition) const {
 #ifdef TARGET_PC
     if (sCullMode < 0) {
         sCullMode = port_gravity_cull_mode();
-        sOutOfReachTest = sCullMode == 1;
+        sOutOfReachTest = sCullMode == 1 || sCullMode == 3;
+        sOutOfSphereTest = sCullMode == 1;
     }
     if (sCullMode == 2) {
         if (!calcOwnGravityVectorVerified(this, &gravity, &radius, rPosition))
@@ -150,4 +158,22 @@ void PlanetGravity::updateIdentityMtx() {
     TPos3f mtx;
     mtx.identity();
     updateMtx(mtx);
+#ifdef TARGET_PC
+    mReachKnown = false;
+#endif
 }
+
+#ifdef TARGET_PC
+void PlanetGravity::updateReach() const {
+    mReachKnown = true;
+    const f32 reach = calcReach(&mReachCentre);
+    if (reach < 0.0f) {
+        mReachSquared = -1.0f;
+        return;
+    }
+    // (widened as in isOutOfReach: far beyond the rounding of the shapes' arithmetic, including that of a centre far from the origin)
+    const f32 limit = reach * 1.001f +
+                      (__builtin_fabsf(mReachCentre.x) + __builtin_fabsf(mReachCentre.y) + __builtin_fabsf(mReachCentre.z)) * 1e-5f + 1.0f;
+    mReachSquared = limit * limit;
+}
+#endif

@@ -675,8 +675,9 @@ extern "C" void port_line_repeat_counted(int found, int compared, int mismatchin
     if (mismatching && sLinesMismatching++ < 20) port_log("lines: a shadow's line on a collision part finds other hits than the last time");
 }
 
-// Gravity fields out of reach of a position are rejected before their arithmetic (PlanetGravity::isOutOfReach).
-// PETARI_GRAVITY_CULL=0 evaluates every field in full, as before; 2 evaluates each both ways and logs disagreements ("gravity:").
+// Gravity fields out of reach of a position are rejected before their arithmetic (PlanetGravity::isOutOfReach), most of them by the
+// manager (isOutOfSphere). PETARI_GRAVITY_CULL=0 evaluates every field in full, as before; 2 evaluates each both ways and logs
+// disagreements ("gravity:"); 3 leaves the manager's test out.
 extern "C" int port_gravity_cull_mode(void) {
     const char* e = getenv("PETARI_GRAVITY_CULL");
     return e && *e ? atoi(e) : 1;

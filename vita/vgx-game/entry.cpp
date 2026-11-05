@@ -391,6 +391,13 @@ extern "C" int port_vita_game_entry(int argc, char** argv) {
                 pad.connected = 1;
                 if (!pad.pointerValid) pad.pointerValid = 1; // the desktop harness's pointer sits at 0,0 unless an entry moves it
                 portApplyInputScript(g_script, g_scriptCount, ms, &pad);
+                // Scripted presses are not the system's input: with no tick the system stops the app 15 s after launch once the
+                // console's automatic standby time has passed without a real press (on battery).
+                static int64_t lastTick = 0;
+                if (now - lastTick >= 1000000000ll) {
+                    lastTick = now;
+                    sceKernelPowerTick(SCE_KERNEL_POWER_TICK_DEFAULT);
+                }
             }
         }
         port_input_set(0, &pad);

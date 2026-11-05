@@ -447,9 +447,11 @@ int ZoomFromFile() {
     return t;
 }
 
-// "rear_aim = 1" in the same file: the rear touch pad aims the pointer (vita/runtime/input.cpp). Off unless chosen: -1 = not read.
+// "rear_aim = 1" in the same file: the rear touch pad aims the pointer; "stick_pointer = 1": the right stick moves the pointer, not the
+// camera (vita/runtime/input.cpp). Off unless chosen: -1 = not read.
 std::atomic<int> sRearAim{-1};
-int RearAimFromFile() {
+std::atomic<int> sStickPointer{-1};
+int OptionFromFile(const char* key) {
     if (sZoomFile.empty()) return 0;
     FILE* f = fopen(sZoomFile.c_str(), "r");
     if (!f) return 0;
@@ -458,8 +460,9 @@ int RearAimFromFile() {
     while (fgets(line, sizeof(line), f)) {
         const char* p = line;
         while (*p == ' ' || *p == '\t') ++p;
-        if (strncmp(p, "rear_aim", 8) != 0) continue;
-        p += 8;
+        const size_t keyLength = strlen(key);
+        if (strncmp(p, key, keyLength) != 0) continue;
+        p += keyLength;
         while (*p == ' ' || *p == '\t') ++p;
         if (*p != '=') continue;
         ++p;
@@ -472,10 +475,18 @@ int RearAimFromFile() {
 int RearAimRead() {
     int v = sRearAim.load(std::memory_order_relaxed);
     if (v >= 0) return v;
-    v = RearAimFromFile();
+    v = OptionFromFile("rear_aim");
     int expected = -1;
     if (sRearAim.compare_exchange_strong(expected, v)) port_log_summary("rear touch aiming: %s", v ? "on (from the settings file)" : "off");
     return sRearAim.load();
+}
+int StickPointerRead() {
+    int v = sStickPointer.load(std::memory_order_relaxed);
+    if (v >= 0) return v;
+    v = OptionFromFile("stick_pointer");
+    int expected = -1;
+    if (sStickPointer.compare_exchange_strong(expected, v)) port_log_summary("right stick: %s", v ? "pointer (from the settings file)" : "camera");
+    return sStickPointer.load();
 }
 
 void ZoomSave() {
@@ -484,8 +495,9 @@ void ZoomSave() {
     FILE* f = fopen(tmp.c_str(), "w");
     if (!f) return;
     const int t = sZoomTenths.load();
-    fprintf(f, "# Settings of the Vita port, changed in the game's pause menu (L and R: zoom; Triangle: rear touch aiming).\nzoom = %d.%d\nrear_aim = %d\n",
-            t / 10, t % 10, RearAimRead());
+    fprintf(f, "# Settings of the Vita port, changed in the game's pause menu (L and R: zoom; Triangle: rear touch aiming; Square: right stick).\n"
+               "zoom = %d.%d\nrear_aim = %d\nstick_pointer = %d\n",
+            t / 10, t % 10, RearAimRead(), StickPointerRead());
     const bool ok = fclose(f) == 0;
     if (ok) {
         remove(sZoomFile.c_str());  // (a rename onto an existing file fails on some of the console's file systems)
@@ -495,7 +507,8 @@ void ZoomSave() {
         }
     }
     sZoomSavedChange = sZoomChange.load();
-    port_log_summary("zoom: %d.%d, rear touch aiming %s, saved in %s", t / 10, t % 10, RearAimRead() ? "on" : "off", sZoomFile.c_str());
+    port_log_summary("zoom: %d.%d, rear touch aiming %s, right stick %s, saved in %s", t / 10, t % 10, RearAimRead() ? "on" : "off",
+                     StickPointerRead() ? "pointer" : "camera", sZoomFile.c_str());
 }
 
 int ZoomRead() {
@@ -526,6 +539,7 @@ extern "C" void port_zoom_set_root(const char* saveRoot) {
     sZoomFile = r.substr(0, cut + 1) + "settings.ini";
     sZoomTenths.store(-1);  // (read again, with the file)
     sRearAim.store(-1);
+    sStickPointer.store(-1);
 }
 
 // Rear touch aiming (pause menu: Triangle toggles it; saved with the zoom). 1 = on.
@@ -533,6 +547,15 @@ extern "C" int port_rear_aim_enabled(void) { return port_handheld() ? RearAimRea
 extern "C" int port_rear_aim_toggle(void) {
     const int now = RearAimRead() ? 0 : 1;
     sRearAim.store(now);
+    sZoomChange.fetch_add(1);
+    return now;
+}
+
+// The right stick (pause menu: Square switches it; saved with the zoom). 1 = it moves the pointer, 0 = it turns the camera.
+extern "C" int port_stick_pointer_enabled(void) { return port_handheld() ? StickPointerRead() : 0; }
+extern "C" int port_stick_pointer_toggle(void) {
+    const int now = StickPointerRead() ? 0 : 1;
+    sStickPointer.store(now);
     sZoomChange.fetch_add(1);
     return now;
 }

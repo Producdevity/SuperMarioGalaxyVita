@@ -31,6 +31,7 @@ extern "C" int port_handheld(void);
 extern "C" int port_zoom_menu_active(void);
 extern "C" int port_zoom_tenths(void);
 extern "C" int port_rear_aim_enabled(void);
+extern "C" int port_stick_pointer_enabled(void);
 extern "C" unsigned port_zoom_limit_hits(void);
 
 namespace {
@@ -51,8 +52,8 @@ bool SoundOn() {
 
 // ---- the panel's animation state (game thread only: the turn hook and the draw both run there)
 bool sActive = false;
-float sFade = 0.0f, sKnob = 0.0f, sPulse = 0.0f;
-int sLastZoom = -1, sLastRear = -1;
+float sFade = 0.0f, sKnob = 0.0f, sStickKnob = 0.0f, sPulse = 0.0f;
+int sLastZoom = -1, sLastRear = -1, sLastStick = -1;
 unsigned sLastLimitHits = 0;
 int sTurnsSinceLimitSound = 1000;
 int sLanguage = -1;
@@ -156,14 +157,16 @@ extern "C" void port_settings_panel_turn(int selecting) {
         sPulse = 0.0f;
         return;
     }
-    const int zoom = port_zoom_tenths(), rear = port_rear_aim_enabled() ? 1 : 0;
+    const int zoom = port_zoom_tenths(), rear = port_rear_aim_enabled() ? 1 : 0, stick = port_stick_pointer_enabled() ? 1 : 0;
     const unsigned hits = port_zoom_limit_hits();
     if (!sActive) {
         sActive = true;
         sLastZoom = zoom;
         sLastRear = rear;
+        sLastStick = stick;
         sLastLimitHits = hits;
         sKnob = static_cast<float>(rear);
+        sStickKnob = static_cast<float>(stick);
         sLogged = false;  // (the placement is logged once each time the panel shows)
     }
     if (zoom != sLastZoom) {
@@ -186,10 +189,17 @@ extern "C" void port_settings_panel_turn(int selecting) {
         port_log("settings panel: rear touch aiming %s", rear ? "on" : "off");
         sLastRear = rear;
     }
+    if (stick != sLastStick) {
+        Sound("SE_SY_TALK_OK");
+        port_log("settings panel: right stick %s", stick ? "pointer" : "camera");
+        sLastStick = stick;
+    }
     if (sTurnsSinceLimitSound < 1000) ++sTurnsSinceLimitSound;
     sFade = sFade + 1.0f / 8.0f > 1.0f ? 1.0f : sFade + 1.0f / 8.0f;
     sKnob += (static_cast<float>(rear) - sKnob) * 0.4f;
     if (fabsf(sKnob - rear) < 0.01f) sKnob = static_cast<float>(rear);
+    sStickKnob += (static_cast<float>(stick) - sStickKnob) * 0.4f;
+    if (fabsf(sStickKnob - stick) < 0.01f) sStickKnob = static_cast<float>(stick);
     sPulse *= 0.78f;
     if (sPulse < 0.01f) sPulse = 0.0f;
 }
@@ -207,6 +217,7 @@ extern "C" void port_settings_panel_draw(int flags) {
     st.zoomTenths = port_zoom_tenths();
     st.rearAim = port_rear_aim_enabled() != 0;
     st.knob = sKnob;
+    st.stickKnob = sStickKnob;
     st.pulse = sPulse;
     st.alpha = sFade;
     st.compact = (flags & 1) != 0;

@@ -41,6 +41,8 @@ int port_zoom_menu_active(void) { return gZoomMenu; }
 int port_zoom_adjust(int) { return 15; }
 int port_rear_aim_enabled(void) { return gRearAim; }
 int port_rear_aim_toggle(void) { ++gToggles; gRearAim = !gRearAim; return gRearAim; }
+int port_stick_pointer_enabled(void) { return 0; }
+int port_stick_pointer_toggle(void) { return 0; }
 }
 
 struct Contact { int id; float x, y; };

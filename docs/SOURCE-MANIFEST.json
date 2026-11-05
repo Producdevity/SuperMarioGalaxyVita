@@ -18864,7 +18864,7 @@
     },
     {
       "path": "platform/src/port/perf.cpp",
-      "sha256": "b57eebe0897106e60d74062b1c035955c95a88e53ddabfbfd2f9fb10db0aec0b"
+      "sha256": "b74f6b07117d1c42acf1ccc6ef0246cf56b65cf1c5e3e57b87ada4a0140aa60a"
     },
     {
       "path": "platform/src/port/phase_cpu.h",
@@ -18876,15 +18876,15 @@
     },
     {
       "path": "platform/src/port/settings_panel.cpp",
-      "sha256": "dac1c73af8d44d897f0edca6fed235881139d6d2509329573fd7a975fa3c30e6"
+      "sha256": "080c913b75ab6cc3c7939a96e947d6a3c3ca53fa77a9bdd9c547e895be3abdab"
     },
     {
       "path": "platform/src/port/settings_panel_plan.cpp",
-      "sha256": "4e63f9ef68a081fd953fe1e8a1fa91bed7c0d84f4494ef3bae0b6182dd1e1c59"
+      "sha256": "d42dac740860654486406c84a661e04f572aa342b4fc71f204d92f5e501e76ec"
     },
     {
       "path": "platform/src/port/settings_panel_plan.h",
-      "sha256": "2b32eb16a5c2df9c0f1733bf12d1e1a3c3a984d5ab0e903ba4bb78e547130225"
+      "sha256": "3539cfd6b6e545a8f0b82d2be88840398abc73885398b08dbe6f00dddd8c1a2a"
     },
     {
       "path": "platform/src/port/wstring.cpp",
@@ -19752,7 +19752,7 @@
     },
     {
       "path": "tests/vita_controls.cpp",
-      "sha256": "0379613e40d196fc1a8c9eb844e7f2f0e661b6702216a67da10fe3ad42540f31"
+      "sha256": "048da7794189c3a92ead92703db974f405e9b6d9db12ecabada5f7acccbd6150"
     },
     {
       "path": "tests/vita_csv_status.cpp",
@@ -19824,7 +19824,7 @@
     },
     {
       "path": "tests/vita_rear_touch.cpp",
-      "sha256": "534cac4187ecee85ed0761ac932e146c5c2c85a244b01a0a5d41e64b37d19e02"
+      "sha256": "7a88642c4ac112aef6acc4a5d7e4df0af96e792b70de7c8b116ac3cf2493b94f"
     },
     {
       "path": "tests/vita_scheduling_audit.cpp",
@@ -20252,11 +20252,11 @@
     },
     {
       "path": "tools/settings_panel_preview/preview.cpp",
-      "sha256": "a117b6d1dbb68d17992ecc04509f2d983b0889894f72f9debe5787250a5316cc"
+      "sha256": "d0fe66a3e67673fc96f31b985fa0d4c300a14002b2e4b2a33432e1bffa77732d"
     },
     {
       "path": "tools/settings_panel_preview/render.py",
-      "sha256": "d81e5e1f06dbe0acdae30c0c35188b1ba7ece228c10662ba78d4e876d3ea2157"
+      "sha256": "ce7f10e2a0d7fcc269b19ec0ece0ed1c191f5d492d78b319310ccd29fbe4a03c"
     },
     {
       "path": "tools/sjis_literals.py",
@@ -21012,7 +21012,7 @@
     },
     {
       "path": "vita/runtime/input.cpp",
-      "sha256": "82a6ec25cfa745f90377a2a74c7140e7e981441a212b4c54aee034d8a4cca92a"
+      "sha256": "87cf79107782491b406233e92b12d12dac8e9aadbfd3e4e8534f35ece4739cae"
     },
     {
       "path": "vita/runtime/input.h",

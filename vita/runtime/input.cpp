@@ -10,6 +10,8 @@
 
 extern "C" int port_rear_aim_enabled(void);  // platform/src/port/perf.cpp: the option, kept in settings.ini
 extern "C" int port_rear_aim_toggle(void);
+extern "C" int port_stick_pointer_enabled(void);  // the same file: the right stick moves the pointer, not the camera
+extern "C" int port_stick_pointer_toggle(void);
 
 namespace {
 struct Vec { float x, y, z; };
@@ -18,8 +20,8 @@ bool calibrated, motionStarted, touchStarted, rearStarted, pointerValid;
 float pointerX, pointerY;
 SceTouchPanelInfo panel, rearPanel;
 // Controls (env.txt):
-//   PETARI_RSTICK=pointer   the right stick moves the pointer (default: it is the camera, the
-//                           Wii remote's D-pad: left / right turn, up first person, down back)
+//   PETARI_RSTICK=pointer   the right stick moves the pointer, whatever the pause menu's setting says (that setting's default:
+//                           it is the camera, the Wii remote's D-pad: left / right turn, up first person, down back)
 //   PETARI_TOUCH_A=0        a touch only moves the pointer (default: a short tap also presses A
 //                           where it lands, a finger held still holds A, a drag does neither)
 //   GXV_VITA_WIDE=0         (renderer) the picture unstretched between side bars; the pointer follows
@@ -36,7 +38,7 @@ float tapA; // seconds of A still to give after a tap
 bool menuPointer; // the left stick is moving the pointer (a 2D menu is up)
 std::atomic<bool> pendingReset{false}, mappingAvailable{true};
 bool tiltWasActive;
-bool zoomArmed, rearToggleArmed;
+bool zoomArmed, rearToggleArmed, stickToggleArmed;
 int zoomHeldDir;
 float zoomRepeat;
 unsigned blockedButtons;
@@ -120,7 +122,7 @@ void resetTransient() {
     rearId = -1; rearSeenCount = 0;
     memset(rearSeen, 0, sizeof rearSeen);
     rearLastX = rearLastY = rearVelX = rearVelY = 0;
-    zoomArmed = rearToggleArmed = false;
+    zoomArmed = rearToggleArmed = stickToggleArmed = false;
     zoomHeldDir = 0; zoomRepeat = 0;
     blockedButtons = ~0u;
     blockLeftStick = blockRightStick = blockFront = blockRear = true;
@@ -273,21 +275,21 @@ static void zoomButtons(unsigned buttons, float dt) {
     }
 }
 
-// In the pause menu Triangle turns rear touch aiming on or off (a press; held, nothing more happens).
-static void rearToggleButton(unsigned buttons) {
-    bool& armed = rearToggleArmed;
+// In the pause menu Triangle turns rear touch aiming on or off and Square switches the right stick between the camera and the
+// pointer (a press; held, nothing more happens).
+static void toggleButton(unsigned buttons, unsigned button, bool& armed, int (*toggle)(void)) {
     if (!port_zoom_menu_active()) {
         armed = false;
         return;
     }
-    const bool down = (buttons & SCE_CTRL_TRIANGLE) != 0;
+    const bool down = (buttons & button) != 0;
     if (!down) {
         armed = true;
         return;
     }
     if (armed) {
         armed = false;
-        port_rear_aim_toggle();
+        toggle();
     }
 }
 
@@ -379,6 +381,7 @@ extern "C" void port_vita_input_poll(float elapsedSeconds, PortPadState* pad) {
         if (normalized & L1) commandButtons |= SCE_CTRL_LTRIGGER;
         if (normalized & R1) commandButtons |= SCE_CTRL_RTRIGGER;
         if (normalized & Triangle) commandButtons |= SCE_CTRL_TRIANGLE;
+        if (normalized & Square) commandButtons |= SCE_CTRL_SQUARE;
         uint64_t required = 0;
         for (auto mask : active.masks) required |= mask;
         const auto& promptCaps = ActiveCapabilities();
@@ -445,9 +448,10 @@ extern "C" void port_vita_input_poll(float elapsedSeconds, PortPadState* pad) {
     if (!isfinite(elapsedSeconds)) elapsedSeconds = 0;
     float dt = clamp(elapsedSeconds, 0, 0.05f);
     zoomButtons(commandButtons, dt);
-    rearToggleButton(commandButtons);
+    toggleButton(commandButtons, SCE_CTRL_TRIANGLE, rearToggleArmed, port_rear_aim_toggle);
+    toggleButton(commandButtons, SCE_CTRL_SQUARE, stickToggleArmed, port_stick_pointer_toggle);
     const bool aiming = (control.buttons & SCE_CTRL_CIRCLE) != 0;
-    if (rstickPointer || aiming) {
+    if (rstickPointer || port_stick_pointer_enabled() || aiming) {
         if (aiming && pointerLife <= 0) pointerX = pointerY = 0; // (a fresh aim starts from the middle)
         if (rx != 0 || ry != 0) {
             pointerX = clamp(pointerX + rx * dt * 2.0f, -1, 1);

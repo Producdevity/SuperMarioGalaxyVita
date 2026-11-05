@@ -40,9 +40,10 @@ struct State {
     int zoomTenths = 15;                       // 10..20
     bool rearAim = false;
     float knob = 0.0f;   // the On / Off switch's highlight, 0 = Off .. 1 = On (eased towards the setting)
+    float stickKnob = 0.0f;  // the right stick's switch, 0 = Camera .. 1 = Pointer
     float pulse = 0.0f;  // 1 just after the zoom changed, easing to 0
     float alpha = 1.0f;  // the panel's fade-in
-    bool compact = false;  // the Luigi letter button is at the bottom of the screen: no hint line, a lower panel
+    bool compact = false;  // the Luigi letter button is at the bottom of the screen: a lower panel, tighter rows
     int language = 0;    // index into the translations (LanguageIndex)
 };
 
@@ -68,6 +69,7 @@ void Build(const State& state, const FontMetrics fonts[2], Plan* plan);
 
 // The picture font's characters for the handheld's buttons (platform/src/port/handheld_ui.cpp draws them over the Wii ones).
 constexpr uint16_t kPicTriangle = 0x32;  // the font's "C" button
+constexpr uint16_t kPicSquare = 0x35;    // "1"
 constexpr uint16_t kPicL = 0x49;         // "Z"
 constexpr uint16_t kPicR = 0x36;         // "2"
 

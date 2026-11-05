@@ -13,7 +13,7 @@ using namespace port::controls;
 static SceCtrlData raw;
 static SceTouchData front, rear;
 static int type = SCE_CTRL_TYPE_PHY, readResult = 1, menus = 0, zoom = 0, tilt = 0;
-static int reads = 0, zoomSteps = 0, toggles = 0;
+static int reads = 0, zoomSteps = 0, toggles = 0, stickToggles = 0, stickPointer = 0, stickFollows = 0;
 static bool motionOk = true;
 static SceMotionState motionState;
 extern "C" {
@@ -49,6 +49,8 @@ int port_zoom_menu_active() { return zoom; }
 int port_zoom_adjust(int n) { zoomSteps += n; return 15; }
 int port_rear_aim_enabled() { return 1; }
 int port_rear_aim_toggle() { return ++toggles; }
+int port_stick_pointer_enabled() { return stickPointer; }
+int port_stick_pointer_toggle() { ++stickToggles; stickPointer = stickFollows && !stickPointer; return stickPointer; }
 }
 static PortPadState poll(float dt = 1.0f / 60) { PortPadState p; port_vita_input_poll(dt, &p); return p; }
 static void neutral() { raw = {}; raw.lx = raw.ly = raw.rx = raw.ry = 128; front = rear = {}; }
@@ -159,7 +161,16 @@ int main(int argc, char** argv) {
     for (int i = 0; i < 80; ++i) poll();
     assert(zoomSteps == keptZoom && toggles == keptToggles);
     neutral(); poll(); raw.buttons = SCE_CTRL_TRIANGLE; poll(); assert(toggles == keptToggles+1);
+    // Square in the pause menu switches the right stick, once a press; out of it, the switch is left alone.
+    const int keptStick = stickToggles;
+    stickFollows = 1;
+    neutral(); poll(); raw.buttons = SCE_CTRL_SQUARE; for (int i = 0; i < 20; ++i) poll();
+    assert(stickToggles == keptStick+1 && stickPointer);
     zoom = 0;
+    neutral(); poll(); raw.buttons = SCE_CTRL_SQUARE; poll(); assert(stickToggles == keptStick+1);
+    // Pointer: the right stick moves it and turns nothing. Camera: it is the D-pad, as before.
+    neutral(); poll(); raw.rx = 255; { auto q = poll(); assert(q.pointerValid && q.pointerX > 0 && !(q.buttons & 2)); }
+    stickPointer = 0; neutral(); poll(); raw.rx = 255; assert(poll().buttons & 2);
     // Read-once means a later environment edit cannot switch the gameplay path.
     setenv("GXV_REMAP", off ? "1" : "0", 1);
     assert(RemapEnabled() == !off);

@@ -31,7 +31,7 @@ For building, see [Building](BUILDING.md); for what a release was built from, [S
 | `ux0:app/SMGV00001/` | the app (`eboot.bin`, LiveArea, the compiled-shader seed in `shadercache/`) |
 | `ux0:data/smg/game/` | the prepared game files (`sys/`, `files/`) |
 | `ux0:data/smg/saves/` | saves |
-| `ux0:data/smg/settings.ini` | pause-menu settings (camera zoom, rear touch aiming) |
+| `ux0:data/smg/settings.ini` | pause-menu settings (camera zoom, rear touch aiming, right stick) |
 | `ux0:data/smg/shadercache/` | vitaGL's compiled shaders (`<key>/v3/...`) and the shader warm-up list |
 | `ux0:data/smg/hdtex.pack` | optional HD textures ([tools/hdtex](../tools/hdtex/README.md)) |
 | `ux0:data/smg/env.txt` | optional `NAME=value` switches, read once at start-up |
@@ -194,7 +194,7 @@ not console timings.
 - **Caches stay valid across updates:** an older cache layout is moved in place, in whole folders, before the graphics library starts.
 ### Controls and settings
 
-- **Settings panel:** the pause menu's camera zoom and rear-touch setting are drawn as a panel in
+- **Settings panel:** the pause menu's camera zoom, rear-touch and right-stick settings are drawn as a panel in
   the game's own window style, message font and button pictures, in seven languages, with the
   game's menu sounds (`platform/src/port/settings_panel*.cpp`). The layout code is shared with an
   offline preview tool (`tools/settings_panel_preview/`).

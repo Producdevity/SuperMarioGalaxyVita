@@ -21,6 +21,8 @@ ROOT = HERE.parents[1]
 # The player build: no diagnostics and no console output, but a basic log in ux0:data/smg/log.txt (frame rate and hitches
 # every 5 s, picture-size changes, settings, errors), written in batches.
 QUIET_FLAGS = "-DPORT_RUNTIME_DIAGNOSTICS=0 -DPORT_LOGGING=1"
+# Measured on the native harness over twelve galaxies with Mario running about (tools/vgx_build/pgo/README.md).
+PROFILE = ROOT / "tools/vgx_build/pgo/game.profdata"
 # The renderer is compiled at -O3 (3 % fewer instructions per picture than -O2 in the ARM harness).
 VGX_FLAGS = "-O3"
 DEFAULT_LABEL = "1.1"
@@ -67,6 +69,7 @@ def build_environment(sdk, build, inherited, logging=False):
                CPATH=str(build / "case-shim"), VITA_VGX_CFLAGS=VGX_FLAGS)
     if not logging:
         env["VITA_EXTRA_CFLAGS"] = QUIET_FLAGS
+    env["VITA_EXTRA_CFLAGS"] = (env.get("VITA_EXTRA_CFLAGS", "") + f" -fprofile-instr-use={PROFILE}").strip()
     return env
 
 
@@ -154,7 +157,7 @@ def write_lto_ninja(database, out):
             if arg in ("-MD", "-MMD"):
                 continue
             clean.append(arg)
-        clean[1:1] = ["-MD", "-MF", obj + ".d", "-flto=thin"]
+        clean[1:1] = ["-MD", "-MF", obj + ".d", "-flto=thin", f"-fprofile-instr-use={PROFILE}"]
         objects.append(obj)
         lines += [f"build {obj}: cc {source}", f"  dir = {row['directory']}", f"  src = {os.path.basename(source)}",
                   "  cmd = " + " ".join(shlex.quote(a) for a in clean).replace("$", "$$")]

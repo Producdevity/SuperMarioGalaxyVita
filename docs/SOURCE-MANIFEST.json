@@ -20756,7 +20756,7 @@
     },
     {
       "path": "tools/vgx_build/build.py",
-      "sha256": "cdb6390e215e3ace371390e6221b0e81a32c5a77146cce0f6cb245e15ca0750b"
+      "sha256": "9dcb1f2a0f903dd6da409a107fecda6b67e6850accd1b76da3b26dceaca08ceb"
     },
     {
       "path": "tools/vgx_build/inputs.json",
@@ -20765,6 +20765,14 @@
     {
       "path": "tools/vgx_build/make_case_shim.py",
       "sha256": "5456f6d357096bc4a44fba3b7259ddc05668dd983c5566cd9d0b827930174203"
+    },
+    {
+      "path": "tools/vgx_build/pgo/README.md",
+      "sha256": "d1c67c52afa82cbbc0024b17e5c70a88cae17ed10c00bb49ff5ab44c498f945a"
+    },
+    {
+      "path": "tools/vgx_build/pgo/game.profdata",
+      "sha256": "c8126d744115f12d51e88ceb7f4ea53fa64cd0462a85ea0e39a2787024b2e5ef"
     },
     {
       "path": "tools/vgx_build/vita_runtime_gen_vgx.py",

@@ -104,6 +104,9 @@ not console timings.
 - **ThinLTO for the game code:** the 1,834 decompiled units as bitcode, linked into one object
   with `--lto-O2`. Game thread -12 % in the festival plaza (ARM harness, 2.540 -> 2.234 million
   instructions per turn).
+- **Execution profile:** `tools/vgx_build/pgo/game.profdata`, made on the native harness with Mario
+  running about in twelve galaxies, guides the compiler for the game, platform and renderer code
+  (see the README next to it).
 - The renderer is built at `-O3` (-3 % front-end instructions).
 - Helper threads (audio, input, clocks) moved off the game thread's core 0 to cores 1-2
   (`GXV_HELPER_CORES=0` restores the old placement).

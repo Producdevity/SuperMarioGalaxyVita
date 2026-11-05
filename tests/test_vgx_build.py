@@ -182,7 +182,8 @@ class VgxBuildTests(unittest.TestCase):
             "VITA_MEM1_MIB": "128", "VITA_MEM2_MIB": "256",
         })
         self.assertEqual(env["CPATH"], "/build/case-shim")
-        self.assertEqual(env["VITA_EXTRA_CFLAGS"], "-DPORT_RUNTIME_DIAGNOSTICS=0 -DPORT_LOGGING=1")  # (the basic log)
+        self.assertEqual(env["VITA_EXTRA_CFLAGS"],  # (the basic log)
+                         f"-DPORT_RUNTIME_DIAGNOSTICS=0 -DPORT_LOGGING=1 -fprofile-instr-use={builder.PROFILE}")
         self.assertEqual(env["VITA_VGX_CFLAGS"], "-O3")
         for key in ("CXXFLAGS", "VITA_MEM1_MIB", "VITA_MEM2_MIB"):
             self.assertNotIn(key, env)
@@ -190,7 +191,7 @@ class VgxBuildTests(unittest.TestCase):
     def test_logging_build_keeps_the_log_switches_out(self):
         builder = self.load_builder()
         env = builder.build_environment(Path("/sdk"), Path("/build"), {"PATH": "/usr/bin"}, logging=True)
-        self.assertNotIn("VITA_EXTRA_CFLAGS", env)
+        self.assertEqual(env["VITA_EXTRA_CFLAGS"], f"-fprofile-instr-use={builder.PROFILE}")
 
     def test_recorded_hash_mismatch_fails_verify(self):
         with self.build_fixture() as fixture:

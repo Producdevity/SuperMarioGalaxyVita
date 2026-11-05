@@ -19468,7 +19468,7 @@
     },
     {
       "path": "tests/test_vgx_build.py",
-      "sha256": "8e8c5104b73cf3bd54f0a1691fdfe369da4bbe9810378e1b71f1610b30f9b83e"
+      "sha256": "d79543322be6b56c672f896f0b4ccc61c0556f5ec9f81985a5ed3acd270d7297"
     },
     {
       "path": "tests/test_vgx_coldtrace_report.py",

@@ -72,7 +72,7 @@ g++ -O2 -std=c++17 -o thp_transcode tools/thp_transcode.cpp -ljpeg
 **Windows:** use WSL, Windows' built-in Linux. In PowerShell as administrator
 run `wsl --install`, restart, and open **Ubuntu** from the Start menu. Your
 Windows drives are under `/mnt/c/`, `/mnt/d/` and so on, so go to the install
-ZIP's folder (for example `cd "/mnt/c/Users/<you>/Downloads/Galaxy-Vita-install"`)
+ZIP's folder (for example `cd "/mnt/c/Users/<you>/Downloads/SuperMarioGalaxyVita-Producdevity-install"`)
 and use the Linux commands above. Run the next step in Ubuntu too.
 
 **Then, on any computer, shrink the movies** (each one takes a little while; let

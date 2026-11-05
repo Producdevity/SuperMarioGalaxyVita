@@ -33,16 +33,16 @@ class ReleaseMetadataTests(unittest.TestCase):
         self.assertEqual(self.release["version"], self.manifest["version"])
         self.assertEqual(self.manifest["releaseId"], "galaxy-v" + self.manifest["version"])
         self.assertRegex(self.manifest["version"], r"^\d+\.\d+$")
-        self.assertEqual(self.manifest["titleId"], "SMGV00001")
-        self.assertEqual(self.release["titleId"], "SMGV00001")
-        self.assertEqual(self.manifest["package"]["path"], "Galaxy-Vita.vpk")
+        self.assertEqual(self.manifest["titleId"], "PDEV00001")
+        self.assertEqual(self.release["titleId"], "PDEV00001")
+        self.assertEqual(self.manifest["package"]["path"], "SuperMarioGalaxyVita-Producdevity.vpk")
 
     def test_installer_reads_the_galaxy_inputs(self):
         kinds = {item["kind"] for item in self.manifest["requiredInputs"]}
         self.assertEqual(kinds, {"galaxy-disc", "shader-compiler"})
         self.assertEqual(self.manifest["destinations"]["data"], "ux0:data/smg/game")
         self.assertEqual(self.manifest["releaseState"], "ready")
-        for path in ("ux0:data/smg/saves", "ux0:data/smg/settings.ini"):
+        for path in ("ux0:data/smg-producdevity/saves", "ux0:data/smg-producdevity/settings.ini"):
             self.assertIn(path, self.manifest["protectedPaths"])
         for digest in self.manifest["appUpdateFrom"]:
             self.assertRegex(digest, r"^[0-9a-f]{64}$")
@@ -51,7 +51,7 @@ class ReleaseMetadataTests(unittest.TestCase):
         package = ROOT / self.manifest["package"]["path"]
         if not package.is_file():
             self.assertEqual(self.manifest["package"]["sha256"], PENDING)
-            self.skipTest("Galaxy-Vita.vpk is not in place yet")
+            self.skipTest("SuperMarioGalaxyVita-Producdevity.vpk is not in place yet")
         self.assertEqual(sha(package.read_bytes()), self.manifest["package"]["sha256"])
         with zipfile.ZipFile(package) as vpk:
             self.assertIsNone(vpk.testzip())

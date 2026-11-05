@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Refresh the release's checksums in one go. Run from anywhere, after Galaxy-Vita.vpk is in the repository root:
+"""Refresh the release's checksums in one go. Run from anywhere, after SuperMarioGalaxyVita-Producdevity.vpk is in the repository root:
 
     python3 tools/update-checksums.py [--date YYYY-MM-DD]
 
@@ -23,7 +23,7 @@ import sys
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-VPK = "Galaxy-Vita.vpk"
+VPK = "SuperMarioGalaxyVita-Producdevity.vpk"
 PENDING = "PENDING-VPK"
 # Never listed: version control, build output, caches, the player's own game data and HD pack.
 SKIP_DIRS = {".git", "__pycache__", ".pytest_cache", "build", "build-vgx", "local", "cooked", "prepared-game",

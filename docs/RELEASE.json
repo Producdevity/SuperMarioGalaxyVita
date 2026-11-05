@@ -1,26 +1,27 @@
 {
   "schemaVersion": 2,
-  "releaseId": "galaxy-v1.1",
-  "version": "1.1",
+  "releaseId": "galaxy-v1.2",
+  "version": "1.2",
   "date": "2026-11-05",
-  "titleId": "SMGV00001",
+  "titleId": "PDEV00001",
   "package": {
-    "path": "Galaxy-Vita.vpk",
-    "sha256": "7a9edc2570c953b9b95b0a61d3a9acb95a8cc0dfdf74c85e863e231d59af72e6",
-    "runtimeSha256": "2435735b633df3047cea89eea424e891e5ee3105d5c04911900345310fb7b264"
+    "path": "SuperMarioGalaxyVita-Producdevity.vpk",
+    "sha256": "c6925706f4b4f313f99de9c1a9849efd4fc260a0638ba9c945ab6059c2d8cc59",
+    "runtimeSha256": "9dcdfd94c9b1d6fefc6f9d48f0e6a9c856c54c7dae909ba60bc7a972a473ea05"
   },
   "source": {
-    "revision": "95dbb73965f16ddb9854f1ad4e977e63c7251504",
+    "revision": "02009c20ff8110abe9bb7a40a6deff881915a4d8",
     "manifest": "docs/SOURCE-MANIFEST.json"
   },
   "buildOptions": {
     "driver": "python3 -I tools/vgx_build/build.py all",
     "PORT_RUNTIME_DIAGNOSTICS": 0,
-    "PORT_LOGGING": 0,
+    "PORT_LOGGING": 1,
     "PORT_SILENT_STDIO": true,
     "gameLTO": "ThinLTO, ld.lld -r --lto-O2, emulated TLS",
     "rendererOpt": "-O3",
-    "vitaGL": "nhustd (tools/vitagl/build-release.sh)"
+    "vitaGL": "nhustd (tools/vitagl/build-release.sh)",
+    "executionProfile": "tools/vgx_build/pgo/game.profdata"
   },
   "toolchain": {
     "clang": "18.1.3",
@@ -33,10 +34,10 @@
     "destination": "ux0:data/smg/game"
   },
   "verification": {
-    "hostTests": "python3 -m unittest discover -s tests; the tools/test_*.sh host suites",
-    "emulator": "Vita3K (correctness only): boot, Gateway Galaxy, the Comet Observatory, shader cache migration on update and fresh install",
-    "earlierConsoleRuns": "Two test builds from this source line ran on a PS Vita on 23 Oct 2026 (automatic quality before and after the calm rules)",
-    "physicalVita": false,
+    "hostTests": "python3 -m unittest discover -s tests on a clone: all pass. tools/test_settings_runtime.sh and tools/test_vita_coldtrace_export.sh pass on the Clang 18 image. tools/test_vita_seed_cache.sh: 66 pass, the scenarios changed, legacy, marker-nul and zero-gxp fail, as they do at the commit before this work",
+    "consoleRuns": "This package on a PS Vita on 5 Nov 2026, installed beside SMGV00001 through vitacompanion: first start, repeat start, five galaxies, the original build started afterwards. Original saves and settings byte-identical afterwards; imported saves byte-identical to the originals",
+    "notCovered": "Launch from the LiveArea; CBOC Vita Installer; a PSVshell profile on PDEV00001; a console without PSVshell installed",
+    "physicalVita": true,
     "desktopInstaller": false
   },
   "publicReleaseAccepted": false

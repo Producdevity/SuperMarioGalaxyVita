@@ -1,5 +1,11 @@
 # Source Record
 
+## Version 1.2 (`galaxy-v1.2`)
+
+Producdevity's build. Version 1.1 plus the commits since the `v1.1` tag, built from `02009c20ff8110abe9bb7a40a6deff881915a4d8` with the player build flags, the execution profile `tools/vgx_build/pgo/game.profdata` and vitaGL `nhustd` (8 patches). Title ID `PDEV00001`, writable data in `ux0:data/smg-producdevity`, game files and HD pack read from `ux0:data/smg`.
+
+The compiled-shader seed is 1.1's 1,131 files plus 274 fragment shaders compiled in Vita3K with `GXV_TEVWRAP=1`, 1,405 in all.
+
 ## Version 1.1 (`galaxy-v1.1`)
 
 Version 1.0 plus the changes below, built from this repository (the release commit) with the 1.0 player build flags and vitaGL `nhustd` with patch `0008-no-present-submit.patch` (8 patches):

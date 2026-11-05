@@ -1,5 +1,5 @@
 {
-  "release": "galaxy-v1.1",
+  "release": "galaxy-v1.2",
   "scope": "Every source file of the release (decomp/, platform/, vita/, tests/, tools/, armhf/ and the root build files) with its SHA-256",
   "files": [
     {
@@ -8,7 +8,7 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "225ecea0539b508c5d7c6b85c4fc83a6b76f6a49de0c8667f37fc8fd858f5b20"
+      "sha256": "d21ab68c9cf2e9b0e5e730c1c1b00069ffc0a4fa18cbced0a3cab7b069653e43"
     },
     {
       "path": "CMakeLists.txt",
@@ -19464,7 +19464,7 @@
     },
     {
       "path": "tests/test_release_metadata.py",
-      "sha256": "4e5bbc04355570bd455089631c7866d6ce33f447f6c08502a98858f586505be3"
+      "sha256": "abbd02fb2561d1268f48bc017ea2dff51a88f4c85f6e06c3743aa38a2c237bd7"
     },
     {
       "path": "tests/test_vgx_build.py",
@@ -20132,7 +20132,7 @@
     },
     {
       "path": "tools/hdtex/README.md",
-      "sha256": "bcdfc057c97dbd9c44ab2e2bb8a677e143aac4d19562b60c733f125740ce1145"
+      "sha256": "ce3b1a4cfb0801a03b41d7cc9932d1613ac02dce450fb4c1063c52ce7ae0549e"
     },
     {
       "path": "tools/hdtex/build_pack.py",
@@ -20748,11 +20748,11 @@
     },
     {
       "path": "tools/update-checksums.py",
-      "sha256": "590bf42aefed478ff73ff11c44c9dfa339ae1159aab1ce518463723a4c768556"
+      "sha256": "419a8e812e5a0e35daea5dce2d23a019a02fd5300b4ddde2173800516e28bf03"
     },
     {
       "path": "tools/vgx_build/README.md",
-      "sha256": "ca22553c2e40f02a59aa90812810e60a64af9e18acd2a952f3b1c40162f20825"
+      "sha256": "9b6d305e0d0d12eeda4bb4a2a6aad74f849d4501b6307a494c51ab1fd1a1b8aa"
     },
     {
       "path": "tools/vgx_build/build.py",

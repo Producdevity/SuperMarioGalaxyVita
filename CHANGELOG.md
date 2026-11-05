@@ -1,3 +1,30 @@
+# Version 1.2 — November 5, 2026
+
+The first release of Producdevity's build. It installs next to the original, the movies stop stuttering, and heavy scenes run a lot better.
+
+### New
+- **Installs next to the original.** Its own bubble, Super Mario Galaxy (Producdevity), title ID `PDEV00001`. It reads the same game files and HD pack, so there's nothing to prepare again, and keeps its saves, settings and compiled graphics in `ux0:data/smg-producdevity`. The first start copies your saves and settings from the original build. The original and its saves aren't changed.
+- **Right stick pointer.** Press Square in the pause menu to switch the right stick between the camera and the pointer. The D-pad stays the camera.
+- **More graphics effects compiled ahead of time:** 1,405, up from 1,131.
+
+### Fixed
+- **Movie sound.** The opening movies no longer stutter. All three picture decoders now get a CPU core, the movie file is read ahead, and the sound keeps frames in hand. Measured on a PS Vita with no overclock: 0 silent blocks of sound in 11,437 through both opening movies, where 559 of 7,211 were silent in the second one before.
+- **Low CPU clock on some launches.** With a PSVshell profile, the game's clock request could race the plugin and leave the CPU at 444 MHz for the whole session. The request now waits until the plugin is done. No low launches in 92 test launches.
+
+### Faster
+- **The frame loop** no longer waits for the renderer to read each picture, and a turn without a picture skips work no picture would show.
+- **Collision, shadows and gravity** repeat less work: a shadow's line finds its earlier hits again, line searches stop at the nearest hit, and gravity fields out of reach are rejected early.
+- **Effects, matrices and the GX layer** do less per frame.
+- **Audio mixing** has a faster resampler and AFC decoder.
+- **Execution profile.** The game, platform and renderer code are compiled with a profile of real play.
+- **A second skipped picture** that would only pay back a sliver of time is forgiven.
+- **Automatic quality** steps down in play when pictures fall under 30 a second, and leaves movies alone.
+
+### Measured on a PS Vita
+This version, no overclocking plugin, Mario moving, last 30 seconds of a scripted run: Good Egg 47.9 fps, Honeyhive 37.0, Toy Time 31.9, Comet Observatory 31.4, Beach Bowl 24.7. The game kept 58.5 to 60.2 of its 60 updates a second.
+
+Coming from the original build? Install the VPK. It lands next to the old one. The first start takes about 4 minutes while the graphics are unpacked.
+
 # Version 1.1 — October 26, 2026
 
 Mario's eyes, a Settings menu, and a steadier start.

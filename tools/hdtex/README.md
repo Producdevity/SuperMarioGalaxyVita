@@ -17,7 +17,7 @@ On a Windows, Mac or Linux computer with Python 3 (about 2 GB of free space, rou
 5. Copy `hdtex-build/hdtex.pack` to `ux0:data/smg/hdtex.pack` on the Vita.
 
 The game finds it at the next start. Delete the file, or add `GXV_HDTEX=0` to
-`ux0:data/smg/env.txt`, to go back to the original textures.
+`ux0:data/smg-producdevity/env.txt`, to go back to the original textures.
 
 ## Rebuild
 

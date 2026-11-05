@@ -28,18 +28,18 @@ For building, see [Building](BUILDING.md); for what a release was built from, [S
 
 | Path | What it is |
 | --- | --- |
-| `ux0:app/SMGV00001/` | the app (`eboot.bin`, LiveArea, the compiled-shader seed in `shadercache/`) |
-| `ux0:data/smg/game/` | the prepared game files (`sys/`, `files/`) |
-| `ux0:data/smg/saves/` | saves |
-| `ux0:data/smg/settings.ini` | pause-menu settings (camera zoom, rear touch aiming, right stick) |
-| `ux0:data/smg/shadercache/` | vitaGL's compiled shaders (`<key>/v3/...`) and the shader warm-up list |
+| `ux0:app/PDEV00001/` | the app (`eboot.bin`, LiveArea, the compiled-shader seed in `shadercache/`) |
+| `ux0:data/smg/game/` | the prepared game files (`sys/`, `files/`), shared with the original build (`SMGV00001`) |
+| `ux0:data/smg-producdevity/saves/` | saves |
+| `ux0:data/smg-producdevity/settings.ini` | pause-menu settings (camera zoom, rear touch aiming, right stick) |
+| `ux0:data/smg-producdevity/shadercache/` | vitaGL's compiled shaders (`<key>/v3/...`) and the shader warm-up list |
 | `ux0:data/smg/hdtex.pack` | optional HD textures ([tools/hdtex](../tools/hdtex/README.md)) |
-| `ux0:data/smg/env.txt` | optional `NAME=value` switches, read once at start-up |
+| `ux0:data/smg-producdevity/env.txt` | optional `NAME=value` switches, read once at start-up |
 | `ur0:data/libshacccg.suprx` | the shader compiler (the player's own) |
 
 ## Runtime Switches
 
-Put one `NAME=value` per line in `ux0:data/smg/env.txt`. Defaults are the release's behaviour;
+Put one `NAME=value` per line in `ux0:data/smg-producdevity/env.txt`. Defaults are the release's behaviour;
 every switch keeps the older path reachable for comparison. The ones a player might want:
 
 | Switch | Default | Effect |

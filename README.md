@@ -1,5 +1,8 @@
 # Super Mario Galaxy Vita
 
+> Producdevity's build of [CBOC's port](https://github.com/CBOC-Vita-Lab/galaxy-vita). It installs next to the original as its own bubble, uses the same game files,
+> and copies your saves on its first start. What changed is in the [changelog](CHANGELOG.md).
+
 This is Super Mario Galaxy running natively on a PS Vita. There's no emulator and no streaming involved: the game itself
 was rebuilt to run on the Vita's own processor and graphics chip. We haven't found anyone who has run Galaxy on the Vita
 before, so as far as we know this is a first.
@@ -9,7 +12,7 @@ aim Star Bits, touch the screen where you used to point the Wii Remote, and tilt
 
 ![Mario in Good Egg Galaxy on the PS Vita](store/screenshots/01-good-egg.png)
 
-**[Download the latest version](https://github.com/CBOC-Vita-Lab/galaxy-vita/releases/latest)** · [Install guide](MANUAL-INSTALL.md) · [Controls](CONTROLS.md) · [What's in 1.0](CHANGELOG.md)
+**[Download the latest version](https://github.com/Producdevity/SuperMarioGalaxyVita/releases/latest)** · [Install guide](MANUAL-INSTALL.md) · [Controls](CONTROLS.md) · [What's new](CHANGELOG.md)
 
 You'll need your own copy of the game (Wii, USA, `RMGE01`).
 
@@ -32,22 +35,27 @@ The full list is in [Controls](CONTROLS.md).
 
 ## How Smooth Is It?
 
-Frames per second (fps) is how many new pictures you see each second. 60 is the most the Vita's screen can show, and many
-console games aim for 30. Measured with this exact version on a PS Vita, in scripted 2½-minute runs of running, jumping,
-triple jumps, spins, camera turns and pauses:
+Frames per second (fps) is how many new pictures you see each second. 60 is the most the Vita's screen can show. Measured
+with this exact version on a PS Vita with no overclocking plugin, over the last 30 seconds of a scripted run with Mario
+running, jumping and spinning:
 
 | | |
 |---|---|
-| **Good Egg Galaxy** | **51 fps** on average (41 at its lowest, 56 at its highest) |
-| **Comet Observatory**, the busiest place in the game | **43 fps** on average (32 lowest, 55 highest) |
-| **Quiet moments and menus** | a full **60 fps** |
-| **Stutters longer than a tenth of a second while playing** | **0** |
-| **Game speed** | Full speed: the game keeps its 60 updates a second. When a moment is too busy, a picture is skipped instead of the game slowing down. |
+| **Good Egg Galaxy** | **47.9 fps** (47.7 at its lowest) |
+| **Honeyhive Galaxy** | **37.0 fps** (36.5 lowest) |
+| **Toy Time Galaxy** | **31.9 fps** (31.6 lowest) |
+| **Comet Observatory** | **31.4 fps** (30.9 lowest) |
+| **Beach Bowl Galaxy**, the heaviest place measured | **24.7 fps** (24.1 lowest) |
+| **Stutters longer than a tenth of a second** | **0** in those stretches |
+| **Game speed** | 58.5 to 60.2 of the game's 60 updates a second. When a moment is too busy, a picture is skipped instead of the game slowing down. |
 | **Sharpness** | 640×456 up to the Vita's full 960×544 with anti-aliasing, chosen automatically. It only changes during pauses and fades, so it never hitches mid-jump. |
-| **Graphics effects compiled ahead of time** | 1,131, so new effects don't pause the game |
-| **Download** | about 6 MB (2.5 GB on the memory card with your game files) |
+| **Graphics effects compiled ahead of time** | 1,405, so new effects don't pause the game |
+| **Download** | about 7 MB (2.5 GB on the memory card with your game files) |
 
-(The lowest and highest numbers are averages over 5-second stretches.)
+(The lowest number is the slowest 5-second stretch.)
+
+An overclock helps a lot here. On the same route, the build just before this one with a PSVshell profile at about 490 MHz
+ran Good Egg at 57.4 fps and Beach Bowl at 31.8. PSVshell profiles are per title, so make one for this build if you use it.
 
 ![The Comet Observatory on the PS Vita](store/screenshots/02-comet-observatory.png)
 
@@ -76,7 +84,7 @@ call it one of the best games ever made, and it plays wonderfully on a handheld.
 - **Vita button prompts.** The game's own text shows Cross, Circle, Triangle, Square, L and START instead of Wii buttons.
 - **The whole game,** with its menus, storybook, movies, music and normal in-game saves.
 
-First launch takes a little longer while the graphics are prepared. See [Known Issues](KNOWN-ISSUES.md) for what's still being worked on.
+The first start takes about 4 minutes while the graphics are unpacked. It only happens once. See [Known Issues](KNOWN-ISSUES.md) for what's still being worked on.
 
 ## Install
 
@@ -84,16 +92,16 @@ First launch takes a little longer while the graphics are prepared. See [Known I
 
 ### Easy way: CBOC Vita Installer
 
-Open [CBOC Vita Installer](https://github.com/CBOC-Vita-Lab/vita-installer/releases/latest), pick Super Mario Galaxy, choose your disc image, and press Install. It prepares the game files and sends everything to your Vita over Wi-Fi or USB. [Desktop guide](EASY-INSTALL.md)
+Open [CBOC Vita Installer](https://github.com/CBOC-Vita-Lab/vita-installer/releases/latest), paste this project's GitHub link (https://github.com/Producdevity/SuperMarioGalaxyVita) or drop the install ZIP on it, choose your disc image, and press Install. **Get** next to Super Mario Galaxy installs the original build, not this one. [Desktop guide](EASY-INSTALL.md)
 
 ### Manual way
 
-1. Download `Galaxy-Vita.vpk` from the [latest release](https://github.com/CBOC-Vita-Lab/galaxy-vita/releases/latest).
+1. Download `SuperMarioGalaxyVita-Producdevity.vpk` from the [latest release](https://github.com/Producdevity/SuperMarioGalaxyVita/releases/latest).
 2. Prepare your game files from your disc image, including shrinking the movies so they play smoothly ([Prepare your game](MANUAL-PREPARE-GAME.md)).
 3. Copy them to `ux0:data/smg/game/`, and copy the VPK to your Vita.
 4. Install the VPK in VitaShell and launch the bubble.
 
-**Updating?** Just install the new VPK over the old one. Your saves and settings stay.
+**Already have the original build?** Skip steps 2 and 3. This build uses the same game files and copies your saves and settings on its first start. The original stays as it is.
 
 ## Playing
 
@@ -110,14 +118,14 @@ Open [CBOC Vita Installer](https://github.com/CBOC-Vita-Lab/vita-installer/relea
 | **Rear touch** (optional) | Slide to aim the pointer |
 | **START** | Pause |
 
-**In the pause menu:** L and R set the camera zoom, and Triangle turns rear touch aiming on or off. Your choices are saved for next time. The full list is in [Controls](CONTROLS.md).
+**In the pause menu:** L and R set the camera zoom, Triangle turns rear touch aiming on or off, and Square switches the right stick between the camera and the pointer. Your choices are saved for next time. The full list is in [Controls](CONTROLS.md).
 
 ## Download Contents
 
 | File | What it is |
 |---|---|
-| `Galaxy-Vita.vpk` | The game app for your Vita. Install it in VitaShell. |
-| `Galaxy-Vita-install.zip` | The VPK plus the guides, the game-preparation tools, checksums and the full source. |
+| `SuperMarioGalaxyVita-Producdevity.vpk` | The game app for your Vita. Install it in VitaShell. |
+| `SuperMarioGalaxyVita-Producdevity-install.zip` | The VPK plus the guides, the game-preparation tools, checksums and the full source. |
 
 ## For Developers
 

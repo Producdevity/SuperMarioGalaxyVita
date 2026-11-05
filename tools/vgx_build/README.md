@@ -39,10 +39,10 @@ Each stage is incremental and keeps its compiler log under `<build>/logs`. The f
 `runtime` and `link` need to run again.
 
 The default is the player build: diagnostics are compiled out and only a basic log is kept
-(`PORT_RUNTIME_DIAGNOSTICS=0`, `PORT_LOGGING=1`, `PORT_SILENT_STDIO=ON`): `ux0:data/smg/log.txt` gets the frame rate
+(`PORT_RUNTIME_DIAGNOSTICS=0`, `PORT_LOGGING=1`, `PORT_SILENT_STDIO=ON`): `ux0:data/smg-producdevity/log.txt` gets the frame rate
 and hitches every 5 s, picture-size changes, settings and errors. `--logging` makes a test
 build with the full diagnostic log (much more detail; never publish one). `--no-lto` links the plain game archive.
-`--label` sets the build label the renderer reports (default `1.1`).
+`--label` sets the build label the renderer reports (default `1.2`).
 
 ## Result
 
@@ -52,7 +52,7 @@ build with the full diagnostic log (much more detail; never publish one). `--no-
 python3 -I tools/vgx_build/build.py verify --build-dir /build
 ```
 
-The CMake target in `vita/vgx-game` also makes a plain `smg-vgx.vpk` (title ID `SMGV00001`) when its
+The CMake target in `vita/vgx-game` also makes a plain `smg-vgx.vpk` (title ID `PDEV00001`) when its
 LiveArea pictures are present; see [docs/BUILDING.md](../../docs/BUILDING.md#packaging).
 
 ## Safety

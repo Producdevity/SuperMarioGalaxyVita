@@ -30,7 +30,7 @@ the link. On a case-sensitive file system the driver adds a small include shim f
 
 ## Packaging
 
-The release VPK (`Galaxy-Vita.vpk`, title ID `SMGV00001`) holds:
+The release VPK (`SuperMarioGalaxyVita-Producdevity.vpk`, title ID `PDEV00001`) holds:
 
 | Member | Where it comes from |
 | --- | --- |
@@ -41,7 +41,7 @@ The release VPK (`Galaxy-Vita.vpk`, title ID `SMGV00001`) holds:
 
 `cmake --build /build/vita-vgx-game` makes `smg-vgx.vpk` from the first three. The release adds
 the seed to it. A VPK without the seed works too; the console then compiles the shaders as the game
-meets them and keeps them in `ux0:data/smg/shadercache/`.
+meets them and keeps them in `ux0:data/smg-producdevity/shadercache/`.
 
 ## Developer Checks
 
@@ -61,7 +61,7 @@ None of these checks touch a Vita or game data. Gameplay checks happen on a cons
 | `decomp/` | the Petari decompilation (game, JSystem, NW4R, RVL SDK) |
 | `platform/` | the Wii SDK replacement, the GX layer and the vgx renderer (`platform/vgx/`) |
 | `vita/runtime/` | Vita input, audio, memory and handheld controls |
-| `vita/vgx-game/` | the `SMGV00001` link and package target |
+| `vita/vgx-game/` | the `PDEV00001` link and package target |
 | `vita/CMakeLists.txt` | the game-source build (`galaxy_vita_sources`) |
 | `tools/cook/` | the game-data converter |
 | `tools/vgx_build/`, `tools/vitagl/` | the build driver and the vitaGL recipe |

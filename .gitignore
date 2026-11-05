@@ -18,7 +18,7 @@ __pycache__/
 /prepared-game/
 /hdtex-build/
 *.vpk
-!/Galaxy-Vita.vpk
+!/SuperMarioGalaxyVita-Producdevity.vpk
 *.iso
 *.rvz
 *.wbfs

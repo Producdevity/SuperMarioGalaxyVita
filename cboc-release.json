@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "releaseId": "galaxy-v1.1",
-  "titleId": "SMGV00001",
-  "displayName": "Super Mario Galaxy",
-  "version": "1.1",
+  "releaseId": "galaxy-v1.2",
+  "titleId": "PDEV00001",
+  "displayName": "Super Mario Galaxy (Producdevity)",
+  "version": "1.2",
   "minInstallerVersion": "1.1",
   "visibility": "public",
   "releaseState": "ready",
   "recipeId": "galaxy",
   "package": {
-    "path": "Galaxy-Vita.vpk",
-    "sha256": "7a9edc2570c953b9b95b0a61d3a9acb95a8cc0dfdf74c85e863e231d59af72e6",
-    "runtimeSha256": "2435735b633df3047cea89eea424e891e5ee3105d5c04911900345310fb7b264"
+    "path": "SuperMarioGalaxyVita-Producdevity.vpk",
+    "sha256": "c6925706f4b4f313f99de9c1a9849efd4fc260a0638ba9c945ab6059c2d8cc59",
+    "runtimeSha256": "9dcdfd94c9b1d6fefc6f9d48f0e6a9c856c54c7dae909ba60bc7a972a473ea05"
   },
   "requiredInputs": [
     {
@@ -36,9 +36,10 @@
     }
   ],
   "protectedPaths": [
-    "ux0:data/smg/saves",
-    "ux0:data/smg/settings.ini",
-    "ux0:data/smg/env.txt",
+    "ux0:data/smg-producdevity/saves",
+    "ux0:data/smg-producdevity/settings.ini",
+    "ux0:data/smg-producdevity/player-settings.cfg",
+    "ux0:data/smg-producdevity/env.txt",
     "ux0:data/smg/hdtex.pack"
   ],
   "prerequisites": [
@@ -49,8 +50,5 @@
     "maxFileBytes": 17179869184,
     "maxTotalBytes": 34359738368
   },
-  "appUpdateFrom": [
-    "49352f73a44c9d026566b531215c4c498e8146d312e15354d10a05e7099f7a9b",
-    "dc7a1e51f873ed8eaf1829eee07be814e023aa36c504609e85491b352d93326a"
-  ]
+  "appUpdateFrom": []
 }

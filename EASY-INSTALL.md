@@ -12,8 +12,9 @@ Windows and Linux. Nothing else to install: no Python, no Dolphin, no FTP client
 2. On the Vita, open VitaShell and press **SELECT**. The installer finds the
    Vita on your Wi-Fi by itself. (USB mode, or the Vita's memory card in a card
    reader, works too and is faster.)
-3. Click **Get** next to Super Mario Galaxy, or drop `Galaxy-Vita-install.zip`
-   onto the window.
+3. Paste this project's GitHub link (https://github.com/Producdevity/SuperMarioGalaxyVita), or drop
+   `SuperMarioGalaxyVita-Producdevity-install.zip` onto the window. **Get** next to
+   Super Mario Galaxy installs the original build, not this one.
 4. Choose your own game: a Wii USA (`RMGE01`) ISO, RVZ or WBFS, or a folder
    extracted with Dolphin. The installer checks it's the right disc.
 5. Choose `libshacccg.suprx` if it asks. It doesn't ask if the Vita already
@@ -30,9 +31,9 @@ Then it copies about 2.5 GB to `ux0:data/smg/game/` and installs the app. Over
 Wi-Fi there's nothing to press on the Vita. Over USB or a card reader, finish by
 pressing **Cross** on the VPK in VitaShell's `ux0:VPK` folder.
 
-Your saves (`saves/`), settings (`settings.ini` and `env.txt`) and HD pack are
+Your saves and settings (`ux0:data/smg-producdevity/`) and HD pack are
 never touched. When a new version comes out, open the installer with the Vita
-connected: it shows **Update** next to Super Mario Galaxy, sends only what
+connected: it shows **Update** next to this build, sends only what
 changed, and doesn't convert or send your game again. If a transfer stops,
 press **Install** again; finished files are skipped.
 

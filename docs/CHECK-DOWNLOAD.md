@@ -30,10 +30,10 @@ its line in `SHA256SUMS` (letter case doesn't matter):
 
 | Computer | Command, from the extracted folder |
 | --- | --- |
-| Windows PowerShell | `Get-FileHash -Algorithm SHA256 Galaxy-Vita.vpk` |
-| macOS Terminal | `shasum -a 256 Galaxy-Vita.vpk` |
-| Linux Terminal | `sha256sum Galaxy-Vita.vpk` |
+| Windows PowerShell | `Get-FileHash -Algorithm SHA256 SuperMarioGalaxyVita-Producdevity.vpk` |
+| macOS Terminal | `shasum -a 256 SuperMarioGalaxyVita-Producdevity.vpk` |
+| Linux Terminal | `sha256sum SuperMarioGalaxyVita-Producdevity.vpk` |
 
 A matching checksum shows the file arrived intact. It says nothing about game
 compatibility or where the file came from, so get it from the project's
-[release page](https://github.com/CBOC-Vita-Lab/galaxy-vita/releases).
+[release page](https://github.com/Producdevity/SuperMarioGalaxyVita/releases).

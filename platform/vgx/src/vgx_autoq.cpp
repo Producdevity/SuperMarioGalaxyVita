@@ -347,6 +347,14 @@ bool Controller::Add(const FrameTimes& f) {
             return true;
         }
     }
+    if (cfg_.calm && f.movie) {
+        ResetWindow();
+        ResetHolds();
+        pendingUp_ = 0;
+        roomAt_ = 0;
+        pendingBelow_ = false;
+        return false;
+    }
     if (cfg_.calm && f.quiet) {
         // A quiet moment: not measured; a step up the last windows of play allowed is taken now.
         ResetWindow();

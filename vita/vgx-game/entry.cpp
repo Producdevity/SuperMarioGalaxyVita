@@ -432,7 +432,8 @@ extern "C" int port_vita_game_entry(int argc, char** argv) {
         static bool lateMeasured = false;
         if (PORT_RUNTIME_DIAGNOSTICS && !lateMeasured && now - start >= 8000000000ll) {
             lateMeasured = true;
-            port_log("clocks: the ARM core measures %u MHz (8 s into the run)", MeasureArmMHz());
+            port_log("clocks: the ARM core measures %u MHz (8 s into the run; on the %s, battery %d %%)", MeasureArmMHz(),
+                     scePowerIsPowerOnline() ? "charger" : "battery", scePowerGetBatteryLifePercent());
         }
         static const long clockPeriod = [] { const char* e = std::getenv("GXV_CLOCK_PERIOD"); return e && *e ? std::atol(e) : 0l; }();
         static int64_t lastClock = start;

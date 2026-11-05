@@ -90,6 +90,8 @@
 //           (or the start rung): the change falls in the load, not in play. A long gap within the same scene keeps
 //           the rung. Up to 32 scenes are remembered.
 //   Quiet frames are not measured (a black screen or a still menu says nothing about play).
+//   movies  are neither measured nor a moment to change: a movie is one quad, its 40 % GPU load took the opening area from
+//           544x388 to 720x480 and back in four freezes of 120-260 ms each (console, 5 Nov).
 //
 // Opt-in 30 Hz target (GXV_AUTOQ_TARGET=30, default 0): the throughput estimate
 // is max(two game turns' CPU work, back-end CPU per picture, GPU busy/picture),
@@ -190,6 +192,7 @@ struct FrameTimes {
     bool busyKnown = false;    // ... a frame finished on the GPU since the previous present, and this is its busy time
     uint32_t gpuBusyUs = 0;
     bool quiet = false;        // calm mode: a quiet moment (pause menu, closed fade or wipe): not measured, a step up may be taken
+    bool movie = false;        // calm mode: a movie is playing: not measured, and no change of size
     uint32_t scene = 0;        // calm mode: the scene's key (0 = unknown)
 };
 

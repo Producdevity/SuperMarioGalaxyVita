@@ -96,6 +96,7 @@
 // The game's state for automatic quality's calm mode (vita/runtime/flat_view.cpp, platform/src/port/perf.cpp; weak: absent in
 // the desktop and test builds, where calm mode then runs without quiet moments and stage keys).
 extern "C" int port_screen_quiet(void) __attribute__((weak));
+extern "C" int port_skip_movie_playing(void) __attribute__((weak));
 extern "C" uint32_t port_scene_key(void) __attribute__((weak));
 #ifdef __VGX_VITA__
 extern "C" void vglSetNextSceneDepthModes(GLboolean load, GLboolean store) __attribute__((weak));
@@ -3355,10 +3356,12 @@ void AutoQualityFrame() {
     int want = autoq::kNoRung;
     // (calm mode: the game's quiet moments and stage, as they are now; the frames handed over are a frame or two older)
     const bool quiet = port_screen_quiet && port_screen_quiet() != 0;
+    const bool movie = port_skip_movie_playing && port_skip_movie_playing() != 0;
     const uint32_t scene = port_scene_key ? port_scene_key() : 0;
     while (autoq::clock::NextDone(f)) {
         ++g_autoqTimed;
         f.quiet = quiet;
+        f.movie = movie;
         f.scene = scene;
         if (g_autoq->Add(f)) want = g_autoq->Current();
     }

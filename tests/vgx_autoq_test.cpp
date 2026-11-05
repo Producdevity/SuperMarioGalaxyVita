@@ -66,7 +66,7 @@ double Gpu(const Load& l, int rung) { return l.gfix + l.gpix * std::pow(Cost(run
 Result Run(double seconds, const std::function<Load(double)>& scene, int fixedRung = -1, double noise = 0.0,
            const std::function<double(double)>& gap = nullptr, uint32_t seed = 1, Config cfg = Config(), bool log = false,
            const std::function<bool(int)>& fits = nullptr, const std::function<bool(double)>& quiet = nullptr,
-           const std::function<uint32_t(double)>& sceneKey = nullptr) {
+           const std::function<uint32_t(double)>& sceneKey = nullptr, const std::function<bool(double)>& movie = nullptr) {
     Controller c(cfg);
     std::mt19937 rng(seed);
     std::uniform_real_distribution<double> u(-noise, noise);
@@ -117,6 +117,7 @@ Result Run(double seconds, const std::function<Load(double)>& scene, int fixedRu
         f.gpuDoneUs = static_cast<uint64_t>(Dq * 1000.0) + 1;
         f.backendRunUs = static_cast<uint64_t>(run * 1000.0) + 1;
         f.quiet = quiet && quiet(t);
+        f.movie = movie && movie(t);
         f.scene = sceneKey ? sceneKey(t) : 0;
         if (g_timers) { // the GPU timers clock: the frame's own GPU work, no completion time
             f.timers = true;
@@ -487,6 +488,22 @@ int CalmScenarios() {
         std::printf("  without: max rung %d; with the pause: rung %d at 12 s, %u changes\n", none.maxRung, paused.rungAt.size() > 12 ? paused.rungAt[12] : -1, paused.changes);
         Check(none.maxRung == kToday, "no step up in 40 s of play without a quiet moment");
         Check(paused.rungAt.size() > 12 && paused.rungAt[12] > kToday && paused.playChanges == 0, "the step up taken in the pause, none in play");
+    }
+    // B1. The console's opening area around a movie (5 Nov): at 544x388 in play, the movie's one quad leaves the GPU 40 % busy
+    //     for two minutes and a fade closes the screen at its end. The old rules took that for room: 544x388 -> 720x480 at the
+    //     fade, and four freezes on the way back down. Measured or not, nothing a movie shows may move the rung.
+    {
+        std::printf("opening area, a two-minute movie at 20 s, a fade at its end:\n");
+        auto scene = [](double t) { return t >= 20 && t < 140 ? Load{16.7, 3, 6, 0.5} : Load{16.7, 11, 19, 20}; };
+        auto movie = [](double t) { return t >= 20 && t < 140; };
+        auto fade = [](double t) { return t >= 139 && t < 141; };
+        const Result r = Run(180, scene, -1, 0.03, nullptr, 47, Base(), false, nullptr, fade, nullptr, movie);
+        const Result old = Run(180, scene, -1, 0.03, nullptr, 47, Base(), false, nullptr, fade);
+        const int before = r.rungAt.size() > 18 ? r.rungAt[18] : -9;
+        std::printf("  rung before the movie %d, highest %d (without the signal %d), final %d, %u changes\n", before, r.maxRung, old.maxRung, r.finalRung, r.changes);
+        Check(old.maxRung > before, "without the movie signal the fade takes a step up");
+        Check(r.maxRung <= kToday && r.rungAt.size() > 130 && r.rungAt[130] == before, "no change of size during a movie");
+        Check(r.rungAt.size() > 145 && r.rungAt[145] <= before, "no step up from a movie's light frames at its end");
     }
     // B2. The console's opening area (3 Nov): GPU-limited at every rung (39.0 / 37.0 / 33.5 ms at 640x456 / 592x424 /
     //     544x388: about 19 ms fixed and 20 ms that follow the pixels), standing in play with no quiet moment: under 30

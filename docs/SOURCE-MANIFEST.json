@@ -18460,7 +18460,7 @@
     },
     {
       "path": "platform/include/port/compat.h",
-      "sha256": "8bd2f6ca633e279efad28197f3486ba8cda83414e800ece6ce73ac78a84a75ec"
+      "sha256": "75d789c54ba7360c1e5b331a7e5035cf5268c97145387cbb56cfadfc6fb17f5a"
     },
     {
       "path": "platform/include/port/control_bindings.h",
@@ -18836,7 +18836,7 @@
     },
     {
       "path": "platform/src/port/cutscene_skip.cpp",
-      "sha256": "a3ab51c3cdec22c68d00b2412f97bffbca71fdf7f543b8640e43d6e5955a2af5"
+      "sha256": "a25b60508a2e8b1c283dad81d344b32e70371b86e295a44af40180920c5d7540"
     },
     {
       "path": "platform/src/port/handheld_art.inc",
@@ -19000,15 +19000,15 @@
     },
     {
       "path": "platform/vgx/src/vgx_autoq.cpp",
-      "sha256": "cbe0bc7c22f2aec06943c0bdc97ae8252266892feda69ef4bd6a36e8c9353abd"
+      "sha256": "2b41ee5a94f29dc3f352854eba15ae3a2525350a78c716e14cd1b9e8bdc44ead"
     },
     {
       "path": "platform/vgx/src/vgx_autoq.h",
-      "sha256": "7613432c1342f0f65949d223cc6cb621380cbef55d0ed856bcc4d7bd7555544c"
+      "sha256": "69f7a594ccef61c04f8b46cc04cc7fc810a6338cae7161a6325a5ebe5d2e15b4"
     },
     {
       "path": "platform/vgx/src/vgx_backend_gl.cpp",
-      "sha256": "eb0df5a1e41ab0005e593eb1a14ee211bfe9c111ac84d38cd4a84cf322f0030f"
+      "sha256": "46a36149f62b8af6b7ab3a246f8eda1a0e4612d862c50e2d284da185b0f21afa"
     },
     {
       "path": "platform/vgx/src/vgx_backend_null.cpp",
@@ -19504,7 +19504,7 @@
     },
     {
       "path": "tests/vgx_autoq_test.cpp",
-      "sha256": "5cee1757ad879baa49ce667edf4df11c932caf1d7f08e12ec60bfe6d73b90667"
+      "sha256": "1e7635ca987313339f3df55d9a53d63cd99a640c5fde4d3ac7484c8a361d30b0"
     },
     {
       "path": "tests/vgx_backend_clock.cpp",
@@ -21048,7 +21048,7 @@
     },
     {
       "path": "vita/vgx-game/entry.cpp",
-      "sha256": "cbc205fe4a711a612cd755d475a52d4b340707fc8e4a30d0131ca4144822d2ef"
+      "sha256": "04ebe2d8cedbb2530f250d284442db7c9871ab33827d2457b5f153622ded642c"
     },
     {
       "path": "vita/vgx-game/fd_guard.cpp",

@@ -256,6 +256,38 @@ static unsigned MeasureArmMHz() {
     return static_cast<unsigned>(best + 0.5);
 }
 
+// The clocks the start-up request got (0: left at the console's defaults, or refused). An application's clocks can be back at
+// the defaults after the console has slept (the overclocking plugins check theirs again for this reason), so the host loop
+// asks for them again when the system reports less.
+struct Clocks { int arm, bus, gpu, xbar; };
+static Clocks sClocks = {};
+static void KeepClocks() {
+    const int arm = scePowerGetArmClockFrequency(), bus = scePowerGetBusClockFrequency(), gpu = scePowerGetGpuClockFrequency(),
+              xbar = scePowerGetGpuXbarClockFrequency();
+    if (arm >= sClocks.arm && bus >= sClocks.bus && gpu >= sClocks.gpu && xbar >= sClocks.xbar) return;
+    if (arm < sClocks.arm) scePowerSetArmClockFrequency(sClocks.arm);
+    if (bus < sClocks.bus) scePowerSetBusClockFrequency(sClocks.bus);
+    if (gpu < sClocks.gpu) scePowerSetGpuClockFrequency(sClocks.gpu);
+    if (xbar < sClocks.xbar) scePowerSetGpuXbarClockFrequency(sClocks.xbar);
+    port_log_summary("clocks: were CPU %d MHz, bus %d MHz, GPU %d MHz, GPU xbar %d MHz; set again: %d, %d, %d, %d", arm, bus, gpu, xbar,
+                     scePowerGetArmClockFrequency(), scePowerGetBusClockFrequency(), scePowerGetGpuClockFrequency(),
+                     scePowerGetGpuXbarClockFrequency());
+}
+
+// PSVshellPlus applies a title's profile as the game comes to the front, 0.25-0.45 s after the process starts: it sets the CPU, then
+// the GPU and crossbar, and only then locks the CPU against the game. A request that overlaps this puts the core back at 444 for the
+// whole run, and the lock then ignores every later request. So the CPU request waits until the shell is done, and is left out when
+// the core already runs above 444.
+static int RequestArmClock(SceSize, void*) {
+    const uint64_t elapsed = sceKernelGetProcessTimeWide();
+    if (elapsed < 1000000) sceKernelDelayThread(static_cast<SceUInt>(1000000 - elapsed));
+    const unsigned mhz = MeasureArmMHz();
+    if (mhz < 460) scePowerSetArmClockFrequency(444);
+    sClocks.arm = scePowerGetArmClockFrequency() >= 444 ? 444 : 0;
+    port_log("clocks: 1 s into the process the ARM core measures %u MHz (%s)", mhz, mhz < 460 ? "asked for 444" : "above 444: no request");
+    return sceKernelExitDeleteThread(0);
+}
+
 extern "C" int port_thp_bench(const char* path);  // (platform/src/sdk/thp_video.cpp)
 
 extern "C" int port_vita_game_entry(int argc, char** argv) {
@@ -283,12 +315,16 @@ extern "C" int port_vita_game_entry(int argc, char** argv) {
         const char* e = std::getenv("GXV_VITA_CLOCKS");
         int arm = 0, bus = 0, gpu = 0, xbar = 0;
         if (!(e && *e && std::atoi(e) == 0)) {
-            arm = scePowerSetArmClockFrequency(444);
+            const SceUID armRequest = sceKernelCreateThread("clock request", RequestArmClock, 0x10000100, 0x4000, 0, 0, nullptr);
+            if (armRequest < 0 || sceKernelStartThread(armRequest, 0, nullptr) < 0) arm = scePowerSetArmClockFrequency(444);
             bus = scePowerSetBusClockFrequency(222);
             gpu = scePowerSetGpuClockFrequency(222);
             // (the crossbar takes 83, 111 or 166 MHz: 222 is refused; 166 is the most, GXV_VITA_XBAR=111 measures the default)
             const char* xe = std::getenv("GXV_VITA_XBAR");
-            xbar = scePowerSetGpuXbarClockFrequency(xe && *xe ? std::atoi(xe) : 166);
+            const int xbarWanted = xe && *xe ? std::atoi(xe) : 166;
+            xbar = scePowerSetGpuXbarClockFrequency(xbarWanted);
+            sClocks = {scePowerGetArmClockFrequency() >= 444 ? 444 : 0, scePowerGetBusClockFrequency() >= 222 ? 222 : 0,
+                       scePowerGetGpuClockFrequency() >= 222 ? 222 : 0, scePowerGetGpuXbarClockFrequency() >= xbarWanted ? xbarWanted : 0};
         }
         port_log("clocks: CPU %d MHz, bus %d MHz, GPU %d MHz, GPU xbar %d MHz (set calls returned 0x%X 0x%X 0x%X 0x%X)", scePowerGetArmClockFrequency(),
                  scePowerGetBusClockFrequency(), scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency(), static_cast<unsigned>(arm),
@@ -401,6 +437,11 @@ extern "C" int port_vita_game_entry(int argc, char** argv) {
             }
         }
         port_input_set(0, &pad);
+        static int64_t lastClockCheck = start;
+        if (now - lastClockCheck >= 5000000000ll) {
+            lastClockCheck = now;
+            KeepClocks();
+        }
         if (PORT_RUNTIME_DIAGNOSTICS && now - lastReport >= 10000000000ll) { // every 10 s: where the game is, and the memory
             lastReport = now;
             // Twenty seconds without a finished frame: say where everything is (three times at most per stall).

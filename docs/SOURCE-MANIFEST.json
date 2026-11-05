@@ -19172,7 +19172,7 @@
     },
     {
       "path": "platform/vgx/vita/vgx_host_galaxy_vita.cpp",
-      "sha256": "db14237d2d35392c8d4d9e511fb50f3e36e982689f7192857dc82ac9699b9ee0"
+      "sha256": "d02fd31e40d47b4aa06a88602bc142f098f5c78c21e51f3b45e53e9cd751eeb6"
     },
     {
       "path": "platform/vgx/vita/vgx_host_vita.cpp",
@@ -19740,7 +19740,7 @@
     },
     {
       "path": "tests/vita_coldtrace_export.cpp",
-      "sha256": "aba5bec54b41bfda1ba84fed2af3bd1bff3043bd7ba278cade8982b46fd651f3"
+      "sha256": "06bd5058d9318cce01e4e3c073ef4c6af340f1102083d8879b17e45b0ffc3b63"
     },
     {
       "path": "tests/vita_coldtrace_fixture.h",
@@ -19832,7 +19832,7 @@
     },
     {
       "path": "tests/vita_seed_cache.cpp",
-      "sha256": "b323d0243cf208cd056491f083e8e861d6eaf8610c76277483cfd442b64159cb"
+      "sha256": "9b80c3234181354d038994a881c6206d6af543e0c3dc94a19613764636f2fd67"
     },
     {
       "path": "tests/vita_shader_cache.cpp",
@@ -20756,7 +20756,7 @@
     },
     {
       "path": "tools/vgx_build/build.py",
-      "sha256": "9dcb1f2a0f903dd6da409a107fecda6b67e6850accd1b76da3b26dceaca08ceb"
+      "sha256": "1d3bd86d13140eb35a9d9eb26c52ece469a3e35c6248c937dc08d40edb3495c8"
     },
     {
       "path": "tools/vgx_build/inputs.json",
@@ -21044,11 +21044,11 @@
     },
     {
       "path": "vita/vgx-game/CMakeLists.txt",
-      "sha256": "5674220c77327a62a3d3d05ac23c4ab4111ffc23580642a346c4ee8cb3d74fbb"
+      "sha256": "5c26460749945ed1f5066ce733e64c2f1d1eefcc4bb4157f1b8f960cea28eaef"
     },
     {
       "path": "vita/vgx-game/coldtrace_export.cpp",
-      "sha256": "ba76e3f9ba26b5bf9e96f527a367bae8592306c36fa1916d2e6ce728910d02fb"
+      "sha256": "7015c74b51af55dc9e06b3b46b0055b2b598391447d720332b0bd51581343270"
     },
     {
       "path": "vita/vgx-game/coldtrace_wrap.cpp",
@@ -21056,11 +21056,11 @@
     },
     {
       "path": "vita/vgx-game/entry.cpp",
-      "sha256": "cc030e5b444dc27bb2200f516d845c24b03d08ae98190435276a62874eab6bad"
+      "sha256": "0388b1ff12cf948e7b2742b0e55e6af6cfd71d26d65c3c561f3efd2651cb6cbe"
     },
     {
       "path": "vita/vgx-game/fd_guard.cpp",
-      "sha256": "d757bc64d62e4edb706ec9a41636fb6432822585117a1de8bd75cffe2486ff34"
+      "sha256": "48a41a3b6de64857050f4e09f343600b466c7cfc47aba618bd8b557db41601df"
     },
     {
       "path": "vita/vgx-game/loading_artwork.cmake",
@@ -21068,7 +21068,7 @@
     },
     {
       "path": "vita/vgx-game/main.cpp",
-      "sha256": "19d70ef0e54a6facd44ac9b99ba4c0219fe1bd2d62ec232f0817b97875a30332"
+      "sha256": "35d4e8cee730e939a305b68fa3d956b59e372a21c0ee491b2875652eb88c207e"
     },
     {
       "path": "vita/vgx-game/sce_sys/icon0.png",
@@ -21100,7 +21100,7 @@
     },
     {
       "path": "vita/vgx-game/settings_runtime.cpp",
-      "sha256": "8a594d6acb7c8ca8a82504afdb73f420d505ecb6869cc6230a4b490be92e4fe6"
+      "sha256": "350eb9f47e859a6e80e734394d00bd312e11788f83c44f9862363152bf6fe1dd"
     },
     {
       "path": "vita/vgx-game/settings_runtime.h",

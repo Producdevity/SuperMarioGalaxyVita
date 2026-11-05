@@ -1,21 +1,23 @@
 // The Vita game's host thread: data folder, log, environment file, input; then port_boot()
 // (which starts the renderer's thread, vitaGL and the guest) and the pad-polling loop.
 //
-//   ux0:data/smg/game       the converted disc (sys/, files/); an installed copy of the owner's data
-//   ux0:data/smg/saves      saves
-//   ux0:data/smg/log.txt    the port's log (previous session: log.txt.prev); every [vgx-vita] line
-//   ux0:data/smg/env.txt    NAME=value lines put into the environment before anything starts
+//   ux0:data/smg/game       the converted disc (sys/, files/), shared with the original build (SMGV00001)
+//   SMG_DATA/saves          saves
+//   SMG_DATA/log.txt        the port's log (previous session: log.txt.prev); every [vgx-vita] line
+//   SMG_DATA/env.txt        NAME=value lines put into the environment before anything starts
 //                           (GXV_* renderer switches, see platform/vgx/vita/vgx_host_galaxy_vita.cpp;
 //                           the game's own PETARI_* debug hooks, e.g. PETARI_STAGE=HeavensDoorGalaxy:1)
-//   ux0:data/smg/input.txt  optional scripted pad input in the desktop harness's syntax
+//   SMG_DATA/input.txt      optional scripted pad input in the desktop harness's syntax
 //                           (scripts/inputs/README.md: "<t>[-<t1>]:A|B|PX=0.3|SY=1", one entry per line, # comments),
 //                           OR-ed over the real pad. t is wall-clock seconds since the start of this process, or with
 //                           PETARI_GAME_CLOCK=1 game seconds (60 finished frames each), which keeps a script in step
 //                           with a game that the emulator runs far below 60 fps. With PETARI_SCRIPT_ANCHOR_DRAWS=<n>
 //                           (needs PETARI_GAME_CLOCK=1) t = 0 is the first picture with n or more draw calls (the
 //                           title screen: 200), and nothing is scripted before: the scene loads take minutes there.
-//   ux0:data/smg/shadercache  vitaGL's compiled-shader cache
+//   SMG_DATA/shadercache    vitaGL's compiled-shader cache
 #include <malloc.h>
+#include <psp2/io/dirent.h>
+#include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
 #include <psp2/kernel/processmgr.h>
 #include <psp2/kernel/sysmem.h>
@@ -36,7 +38,8 @@
 #include "port/port.h"
 #include "port/diagnostics.h"
 
-#define SMG_DATA "ux0:data/smg"
+#define SMG_DATA "ux0:data/smg-producdevity"
+#define SMG_SHARED "ux0:data/smg"  // the original build's folder: game files are read from it
 
 extern "C" void port_boot(const char*, const char*);
 extern "C" int port_vita_pin_core(int core);
@@ -288,13 +291,69 @@ static int RequestArmClock(SceSize, void*) {
     return sceKernelExitDeleteThread(0);
 }
 
+static bool CopyOneFile(const char* from, const char* to) {
+    const SceUID in = sceIoOpen(from, SCE_O_RDONLY, 0);
+    if (in < 0) return false;
+    const SceUID out = sceIoOpen(to, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0666);
+    if (out < 0) { sceIoClose(in); return false; }
+    static char buffer[64 * 1024];
+    bool ok = true;
+    for (;;) {
+        const int n = sceIoRead(in, buffer, sizeof(buffer));
+        if (n < 0) ok = false;
+        if (n <= 0) break;
+        if (sceIoWrite(out, buffer, static_cast<SceSize>(n)) != n) { ok = false; break; }
+    }
+    sceIoClose(in);
+    return sceIoClose(out) == 0 && ok;
+}
+
+static bool CopyFolder(const char* from, const char* to, int depth = 0) {
+    if (depth > 8) return false;
+    sceIoMkdir(to, 0777);
+    const SceUID dir = sceIoDopen(from);
+    if (dir < 0) return false;
+    bool ok = true;
+    SceIoDirent entry;
+    for (;;) {
+        std::memset(&entry, 0, sizeof(entry));
+        const int next = sceIoDread(dir, &entry);
+        if (next < 0) ok = false;
+        if (next <= 0) break;
+        if (std::strcmp(entry.d_name, ".") == 0 || std::strcmp(entry.d_name, "..") == 0) continue;
+        char a[320], b[320];
+        std::snprintf(a, sizeof(a), "%s/%s", from, entry.d_name);
+        std::snprintf(b, sizeof(b), "%s/%s", to, entry.d_name);
+        if (!(SCE_S_ISDIR(entry.d_stat.st_mode) ? CopyFolder(a, b, depth + 1) : CopyOneFile(a, b))) ok = false;
+    }
+    sceIoDclose(dir);
+    return ok;
+}
+
+// The first start takes a copy of the original build's saves and settings; its folder is only read, so both builds can stay
+// installed. A start that finds SMG_DATA "/saves" never copies, so the folder gets that name only once it is complete.
+static void ImportOriginalData() {
+    SceIoStat info{};
+    if (sceIoGetstat(SMG_DATA "/saves", &info) >= 0 || sceIoGetstat(SMG_SHARED "/saves", &info) < 0) return;
+    const bool copied = CopyFolder(SMG_SHARED "/saves", SMG_DATA "/saves-import");
+    for (const char* name : {"settings.ini", "player-settings.cfg"}) {
+        char from[96], to[96];
+        std::snprintf(from, sizeof(from), SMG_SHARED "/%s", name);
+        std::snprintf(to, sizeof(to), SMG_DATA "/%s", name);
+        if (sceIoGetstat(from, &info) >= 0) CopyOneFile(from, to);
+    }
+    const bool moved = copied && sceIoRename(SMG_DATA "/saves-import", SMG_DATA "/saves") >= 0;
+    port_log_summary("saves: %s from " SMG_SHARED, moved ? "copied" : "could not be copied");
+}
+
 extern "C" int port_thp_bench(const char* path);  // (platform/src/sdk/thp_video.cpp)
 
 extern "C" int port_vita_game_entry(int argc, char** argv) {
     sceIoMkdir("ux0:data", 0777);
     sceIoMkdir(SMG_DATA, 0777);
-    sceIoMkdir(SMG_DATA "/saves", 0777);
     port_log_file(SMG_DATA "/log.txt");
+    ImportOriginalData();
+    sceIoMkdir(SMG_DATA "/saves", 0777);
     if (!PORT_RUNTIME_DIAGNOSTICS)
         port_log_summary("Super Mario Galaxy Vita, basic log: frame rate and hitches every 5 s, picture-size changes, settings, errors; built %s %s",
                          __DATE__, __TIME__);
@@ -330,7 +389,7 @@ extern "C" int port_vita_game_entry(int argc, char** argv) {
                  scePowerGetBusClockFrequency(), scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency(), static_cast<unsigned>(arm),
                  static_cast<unsigned>(bus), static_cast<unsigned>(gpu), static_cast<unsigned>(xbar));
         if (PORT_RUNTIME_DIAGNOSTICS) port_log("clocks: the ARM core measures %u MHz (the system reports %d; with a PSVshellPlus profile for %s the measured number is the one to read: 496-500 means the profile works, 440-444 means it does not)",
-                 MeasureArmMHz(), scePowerGetArmClockFrequency(), "SMGV00001");
+                 MeasureArmMHz(), scePowerGetArmClockFrequency(), "PDEV00001");
     }
     if (const char* mb = std::getenv("PETARI_MEMBENCH"); PORT_RUNTIME_DIAGNOSTICS && mb && *mb == '1') {
         membench::All();
@@ -381,7 +440,7 @@ extern "C" int port_vita_game_entry(int argc, char** argv) {
     // 0x9F) it got no time at all while the game thread computed without stopping (a stage load: several seconds), so a
     // button pressed then was seen late or not at all.  It runs a hundred microseconds at a time: the clocks' priority.
     port_vita_thread_class(1);
-    port_boot(SMG_DATA "/game", SMG_DATA "/saves");
+    port_boot(SMG_SHARED "/game", SMG_DATA "/saves");
     port_vgx_vita_log_memory("after port_boot");
     int64_t previous = port_host_time_ns();
     const int64_t start = previous;

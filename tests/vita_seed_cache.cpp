@@ -18,7 +18,7 @@ size_t readChunk = ~size_t(0), writeChunk = ~size_t(0);
 unsigned directoryOpens = 0, inputOpens = 0, outputOpens = 0;
 unsigned packageReads = 0;
 unsigned shaderSources = 0;
-constexpr const char* cache = "ux0:data/smg/shadercache/c0477cd7";
+constexpr const char* cache = "ux0:data/smg-producdevity/shadercache/c0477cd7";
 const std::string seed = std::string(kSeedDir) + "/c0477cd7";
 const std::string packageList = std::string(kSeedDir) + "/vgx_shaderlist.bin";
 const std::string marker = std::string(cache) + "/seeded";

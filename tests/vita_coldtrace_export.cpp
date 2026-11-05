@@ -34,7 +34,7 @@ void vgxvita_prepareShaderCacheWrite_v1(const char*, int, SceMode) {
 }
 SceUID sceIoOpen(const char* path,int flags,SceMode permissions) {
     FilesystemGate();++opens;
-    Require(std::strcmp(path,"ux0:data/smg/coldtrace-v3.json")==0,"only the fixed report path may be opened");
+    Require(std::strcmp(path,"ux0:data/smg-producdevity/coldtrace-v3.json")==0,"only the fixed report path may be opened");
     Require(flags==(SCE_O_WRONLY|SCE_O_CREAT|SCE_O_EXCL) && permissions==0600,"report creation never truncates an existing file");
     return std::strcmp(mode,"exists")==0?-17:7;
 }
@@ -45,7 +45,7 @@ SceSSize sceIoWrite(SceUID fd,const void* bytes,SceSize count) {
     Require(n<=sizeof(output)-used,"synthetic report storage is bounded");std::memcpy(output+used,bytes,n);used+=n;return static_cast<SceSSize>(n);
 }
 int sceIoClose(SceUID fd){FilesystemGate();Require(fd==7,"close uses only the owned report handle");++closes;return std::strstr(mode,"close-fail")?-31:0;}
-int sceIoRemove(const char* path){FilesystemGate();Require(std::strcmp(path,"ux0:data/smg/coldtrace-v3.json")==0,"cleanup targets only the new report");++removes;
+int sceIoRemove(const char* path){FilesystemGate();Require(std::strcmp(path,"ux0:data/smg-producdevity/coldtrace-v3.json")==0,"cleanup targets only the new report");++removes;
     if(std::strcmp(mode,"close-fail-remove-fail")==0)return -41;used=0;return 0;}
 }
 int main(int argc,char** argv) {

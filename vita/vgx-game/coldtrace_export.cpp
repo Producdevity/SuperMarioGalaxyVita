@@ -9,7 +9,7 @@
 static_assert(PORT_VGX_COLDTRACE_CONTROL_VERSION==1 && VGX_COLDTRACE_DETAIL_VERSION==3);
 namespace {
 using namespace vgx::coldtrace;
-constexpr const char* kReportPath="ux0:data/smg/coldtrace-v3.json";
+constexpr const char* kReportPath="ux0:data/smg-producdevity/coldtrace-v3.json";
 constinit Control control(g_recorder);
 int64_t WriteFile(const char* bytes,size_t size,void* handle) noexcept {
     return sceIoWrite(*static_cast<SceUID*>(handle),bytes,static_cast<SceSize>(size));

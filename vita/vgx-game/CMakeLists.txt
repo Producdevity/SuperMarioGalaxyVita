@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(galaxy_vgx_game LANGUAGES CXX)
 # Link stage of the vgx build (scripts/build-vita-vgx.sh link): the runtime archive (platform + vgx +
-# the Vita host), the game archive and vitaGL with its friends. Title SMGV00001, data in ux0:data/smg.
+# the Vita host), the game archive and vitaGL with its friends. Title PDEV00001, data in ux0:data/smg-producdevity, game files in ux0:data/smg/game.
 include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
 get_filename_component(root "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
 foreach(archive IN ITEMS RUNTIME_ARCHIVE GAME_ARCHIVE)
@@ -20,7 +20,7 @@ if(VGL_SHADER_READER_ARCHIVE)
     endif()
     set(vgl_archive "${VGL_SHADER_READER_ARCHIVE}")
 endif()
-set(SMG_TITLE_ID "SMGV00001" CACHE STRING "Title ID")
+set(SMG_TITLE_ID "PDEV00001" CACHE STRING "Title ID")
 add_executable(galaxy_native main.cpp entry.cpp settings_runtime.cpp fd_guard.cpp)
 target_link_options(galaxy_native PRIVATE "-Wl,--wrap=_lseek_r")
 if(VGL_SHADER_READER_ARCHIVE)
@@ -97,7 +97,7 @@ set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d ATTRIBUTE2=12")
 # Bubble and LiveArea are original drawings; the preserved title background is documented in docs/ASSETS.md.
 set(sys "${CMAKE_CURRENT_SOURCE_DIR}/sce_sys")
 include("${CMAKE_CURRENT_LIST_DIR}/loading_artwork.cmake")
-vita_create_vpk(smg-vgx.vpk ${SMG_TITLE_ID} eboot.bin VERSION 01.10 NAME "Super Mario Galaxy"
+vita_create_vpk(smg-vgx.vpk ${SMG_TITLE_ID} eboot.bin VERSION 01.20 NAME "Super Mario Galaxy (Producdevity)"
     ${smg_loading_picture}
     FILE "${sys}/icon0.png" sce_sys/icon0.png
     FILE "${sys}/pic0.png" sce_sys/pic0.png

@@ -12,7 +12,7 @@
 extern "C" {
 void* __vita_fd_grab(int fd);
 void __vita_fd_drop(void* descriptor);
-void port_log_summary(const char* fmt, ...) __attribute__((weak));  // (the basic log in ux0:data/smg/log.txt)
+void port_log_summary(const char* fmt, ...) __attribute__((weak));  // (the basic log in ux0:data/smg-producdevity/log.txt)
 off_t __real__lseek_r(struct _reent* reent, int fd, off_t offset, int whence);
 
 off_t __wrap__lseek_r(struct _reent* reent, int fd, off_t offset, int whence) {

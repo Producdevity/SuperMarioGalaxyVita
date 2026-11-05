@@ -35,7 +35,7 @@ extern "C" const char* port_dvd_root(void);
 
 namespace {
 using namespace port::settings;
-constexpr const char* kPath = "ux0:data/smg/player-settings.cfg";
+constexpr const char* kPath = "ux0:data/smg-producdevity/player-settings.cfg";
 constexpr size_t kPixels = 960 * 544, kFrameBytes = kPixels * sizeof(uint32_t);
 std::atomic<bool> sRequested{false}, sActive{false};
 HoldGate sInputHold;

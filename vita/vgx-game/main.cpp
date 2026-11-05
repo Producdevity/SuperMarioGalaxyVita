@@ -1,4 +1,4 @@
-// Entry of the vgx build (title SMGV00001): the sceGxm worker of vita/game is gone, vitaGL is
+// Entry of the vgx build (title PDEV00001): the sceGxm worker of vita/game is gone, vitaGL is
 // started by the renderer's own thread (platform/vgx/vita/vgx_host_galaxy_vita.cpp).
 #include <psp2/kernel/processmgr.h>
 #include <psp2/kernel/threadmgr.h>

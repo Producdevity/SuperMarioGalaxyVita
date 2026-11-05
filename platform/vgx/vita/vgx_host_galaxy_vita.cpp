@@ -92,7 +92,7 @@ extern "C" int port_boot_title_is_visible(void); // perf.cpp: the title screen h
 extern "C" void vglSetAnisotropicFilter(uint32_t sceFilter) __attribute__((weak)); // vitaGL with ANISO_SWITCH (GXV_ANISO)
 // The title's data folder (also named in vita/vgx-game/entry.cpp and the notes).
 #ifndef GXV_VITA_DATA_DEVICE
-#define GXV_VITA_DATA_DEVICE "ux0:data/smg"
+#define GXV_VITA_DATA_DEVICE "ux0:data/smg-producdevity"
 #endif
 #ifndef GXV_COMMIT
 #define GXV_COMMIT "unknown"
@@ -250,7 +250,7 @@ void PaceDisplay(void*);
 //   kDone    the picture has faded out after the title appeared; the game's pictures take over.
 //   kYielded an actionable startup dialog was drawn: game pictures remain visible until the real title arrives.
 // The bar follows the stages of the start-up, weighted by how long each took on the last start
-// (ux0:data/smg/loadtimes.txt); a stage that knows its progress (unpacking the shaders, the warm-up
+// (GXV_VITA_DATA_DEVICE/loadtimes.txt); a stage that knows its progress (unpacking the shaders, the warm-up
 // list) reports it, the others advance with time.
 //   GXV_VITA_SPLASH=0   no loading screen
 namespace splash {
@@ -629,7 +629,7 @@ void Service(uint64_t minGapUs = 0) {
 
 } // namespace splash
 
-// ux0:data/smg/shadercache/<8 hex digits>: the folder vitaGL keeps compiled shaders in. A
+// GXV_VITA_DATA_DEVICE/shadercache/<8 hex digits>: the folder vitaGL keeps compiled shaders in. A
 // package whose key differs starts with an empty folder (the old one is left behind).
 const char* ShaderCacheFolder() {
     static char path[160] = "";

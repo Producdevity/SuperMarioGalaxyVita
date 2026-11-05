@@ -18,14 +18,14 @@ import sys
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-# The player build: no diagnostics and no console output, but a basic log in ux0:data/smg/log.txt (frame rate and hitches
+# The player build: no diagnostics and no console output, but a basic log in ux0:data/smg-producdevity/log.txt (frame rate and hitches
 # every 5 s, picture-size changes, settings, errors), written in batches.
 QUIET_FLAGS = "-DPORT_RUNTIME_DIAGNOSTICS=0 -DPORT_LOGGING=1"
 # Measured on the native harness over twelve galaxies with Mario running about (tools/vgx_build/pgo/README.md).
 PROFILE = ROOT / "tools/vgx_build/pgo/game.profdata"
 # The renderer is compiled at -O3 (3 % fewer instructions per picture than -O2 in the ARM harness).
 VGX_FLAGS = "-O3"
-DEFAULT_LABEL = "1.1"
+DEFAULT_LABEL = "1.2"
 ARTIFACTS = {
     "gameArchive": "vita-source/libgalaxy_vita_sources.a",
     "gameArchiveLto": "vita-source-lto/libgalaxy_vita_sources.a",
@@ -176,8 +176,8 @@ def main():
     parser.add_argument("--jobs", type=int, default=2)
     parser.add_argument("--no-lto", action="store_true", help="link the plain game archive instead of the ThinLTO one")
     parser.add_argument("--logging", action="store_true",
-                        help="a test build that keeps the port's log (ux0:data/smg/log.txt); never for a release")
-    parser.add_argument("--label", default=DEFAULT_LABEL, help="the build label the renderer logs (default 1.1)")
+                        help="a test build that keeps the port's log (ux0:data/smg-producdevity/log.txt); never for a release")
+    parser.add_argument("--label", default=DEFAULT_LABEL, help="the build label the renderer logs (default 1.2)")
     args = parser.parse_args()
     if not 1 <= args.jobs <= 32:
         raise ValueError("--jobs must be between 1 and 32")

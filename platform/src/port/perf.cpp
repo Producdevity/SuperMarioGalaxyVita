@@ -755,6 +755,13 @@ int port_frameskip_turn(int allowed) {
         return e && *e ? (atoi(e) < 0 ? 0 : (atoi(e) > 12 ? 12 : atoi(e))) : 6;
     }();
     static const int64_t period = 16683350;  // ns
+    // A galaxy whose drawn and skipped turns come to a hair over two refreshes fell behind by that hair each pair, and paid with a
+    // second skip every few pictures: 28 a second, in steps of 33 and 50 ms. A second skip that would only pay this little is
+    // forgiven instead: the pictures stay at every other turn, and the game runs that hair slow. Any real delay is still paid.
+    static const int64_t forgiven = [] {
+        const char* e = getenv("PETARI_SKIP_FORGIVE_US");
+        return (e && *e ? atoi(e) : 3000) * 1000ll;
+    }();
     static int64_t last = 0, debt = 0;
     static int run = 0;
     static int64_t estDrawn = 2 * period, estSkipped = period;  // recent turns' durations (port_matdl_defer's prediction)
@@ -775,6 +782,7 @@ int port_frameskip_turn(int allowed) {
     debt += dt - period;
     if (debt < 0) debt = 0;
     if (debt > 4 * period) debt = 4 * period;
+    if (run > 0 && debt >= period / 2 && debt - period / 2 < forgiven) debt = period / 2 - 1;
     const bool behind = debt >= period / 2 && run < maxRun;
     const bool gpuBusy = pipeDepth > 0 && port_vgx_backend_pending && port_vgx_backend_pending() >= static_cast<unsigned>(pipeDepth) && run < maxPipeRun;
     // (the next turn skips as late when the debt it will start with is still over half a refresh, with a margin of 2 ms, and the

@@ -51,6 +51,7 @@ every switch keeps the older path reachable for comparison. The ones a player mi
 | `GXV_HDTEX` | 1 | HD textures when `hdtex.pack` exists. `0` off |
 | `GXV_SHARPEN` | auto | Sharpening of an upscaled picture: `auto`, `off` or an amount |
 | `GXV_RENDER_SIZE` | | A fixed internal size such as `640x456` (also turns the automatic quality off) |
+| `PETARI_SKIP_FORGIVE_US` | 3000 | A second skip in a row that would pay less than this is not taken: pictures stay at every other turn, the game runs up to 1 % slow. `0` pays everything |
 | `PETARI_SETTINGS_PANEL` | 1 | The settings panel in the pause menu. `0` hides it |
 | `PETARI_SETTINGS_SE` | 1 | Its sounds. `0` silences them |
 | `PETARI_REAR_ACCUM` | 1 | Rear touch aiming adds up slow slides. `0`: only faster slides move the pointer |

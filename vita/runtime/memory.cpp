@@ -130,6 +130,7 @@ extern "C" int port_vita_pin_core(int core) {
 //   2 disc reader (its copies of file data are short, the loads wait for them)        0x70
 //   3 game, renderer front end and back end                                           0x90
 //   4 background work (movie decoders): only the time the others leave                0xBF
+//   5 the movie reader: the decoders fill both helper cores, at their priority a 170 KB read took 110 ms and up to 360 ms  0x70
 // GXV_PRIO=<mask> chooses which of the classes 1-3 are applied (bit 0 = class 1, bit 1 = class 2, bit 2 = class 3; "keep" = 0 =
 // every thread stays where the library put it). The default is class 1 only. Measured with the attack movie (three decoder
 // threads, 40 ms of wall time per frame at the lowest priority): the disc reader at 0x70 makes the decoders 11 % slower
@@ -141,8 +142,8 @@ extern "C" int port_vita_thread_class(int cls) {
         if (!e || !*e) return 1u;
         return !strcmp(e, "keep") ? 0u : static_cast<unsigned>(atoi(e));
     }();
-    static const int kPriority[5] = {0xBF, 0x50, 0x70, 0x90, 0xBF};
-    if (cls < 1 || cls > 4) return invalid_argument;
+    static const int kPriority[6] = {0xBF, 0x50, 0x70, 0x90, 0xBF, 0x70};
+    if (cls < 1 || cls > 5) return invalid_argument;
     // The clocks (1), the disc and host-job threads (2) and background work (4) keep off core 0, the game's: the system scheduler
     // otherwise places these unpinned threads anywhere, and at 0x50 / 0x70 they preempt the game thread there. In the Observatory
     // (18 Oct console log, thp48d) the game thread's turn ran 20-23 % longer by the clock than it computed; these threads and the

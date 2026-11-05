@@ -5,6 +5,10 @@
 #include <JSystem/JAudio2/JASAiCtrl.hpp>
 #include <JSystem/JKernel/JKRHeap.hpp>
 #include <cstring>
+#ifdef TARGET_PC
+#include "port/diagnostics.h"
+#include "port/port.h"
+#endif
 
 #ifdef TARGET_PC
 // (platform/src/sdk/thp_video.cpp: the decoder copies the compressed picture for its worker threads and needs its length)
@@ -21,6 +25,30 @@ static u16 VolumeTable[] = {0,     2,     8,     18,    32,    50,    73,    99,
                             25484, 25941, 26402, 26868, 27337, 27810, 28288, 28769, 29255, 29744, 30238, 30736, 31238, 31744, 32254, 32768};
 
 static s32 WorkBuffer[16] __attribute__((aligned(32)));
+#ifdef TARGET_PC
+static bool sAudioOnly = false;  // decode() on the game thread: the frame's picture is not decoded
+#endif
+#if defined(TARGET_PC) && PORT_RUNTIME_DIAGNOSTICS
+// The sound's own log line sees the mixed blocks arrive on time, not that a movie had nothing to put in them.
+static struct {
+    u32 turns, decoded, noFrame, blocks, silent;
+    s64 at;
+} sMovieLog;
+void port_movie_log_turn(s32 result) {
+    sMovieLog.turns++;
+    sMovieLog.decoded += result == 0;
+    sMovieLog.noFrame += result == 2;
+    const s64 now = port_host_time_ns();
+    if (now - sMovieLog.at >= 10000000000ll) {
+        if (sMovieLog.at != 0) {
+            port_log("movie: %u turns, %u frames, %u not read in time; %u blocks of sound, %u silent", sMovieLog.turns, sMovieLog.decoded,
+                     sMovieLog.noFrame, sMovieLog.blocks, sMovieLog.silent);
+        }
+        sMovieLog = {};
+        sMovieLog.at = now;
+    }
+}
+#endif
 
 // One stereo frame of s16 samples.  The original clears with sizeof(s16*),
 // which is the same 4 bytes on the Wii but overruns the mix buffer on 64-bit.
@@ -298,6 +326,10 @@ s32 THPSimplePlayerWrapper::decode(s32 audio) {
                     case 0:
 #ifdef TARGET_PC
                         port_thp_frame_size(*compSize);
+                        if (sAudioOnly) {
+                            mTextureSet[_310].frameNumber = mReadBuffer[mNextDecodeIndex].frameNumber;
+                            break;
+                        }
 #endif
                         if (!videoDecode(ptr)) {
                             return 1;
@@ -350,6 +382,28 @@ s32 THPSimplePlayerWrapper::decode(s32 audio) {
 
     return 2;
 }
+
+#ifdef TARGET_PC
+// The frames of sound decoded and not played yet; -1: this movie has no sound.
+s32 THPSimplePlayerWrapper::audioFramesInHand() const {
+    if (!mAudioExist) {
+        return -1;
+    }
+    s32 frames = 0;
+    for (s32 i = 0; i < 20; i++) {
+        frames += mAudioBuffer[i].validSample != 0;
+    }
+    return frames;
+}
+
+// The next frame's sound, its picture dropped.
+s32 THPSimplePlayerWrapper::decodeAudioOnly(s32 audio) {
+    sAudioOnly = true;
+    const s32 result = decode(audio);
+    sAudioOnly = false;
+    return result;
+}
+#endif
 
 s32 THPSimplePlayerWrapper::drawCurrentFrame(_GXRenderModeObj* rmode, u32 x, u32 y, u32 polyW, u32 polyH) {
     if (mTextureSet[_310].frameNumber < 0) {
@@ -715,6 +769,9 @@ void THPSimplePlayerWrapper::mixAudio(s16* pDest, u32 sample) {
     u16 attenuation;
 
     if (isAudioProcessValid()) {
+#if defined(TARGET_PC) && PORT_RUNTIME_DIAGNOSTICS
+        sMovieLog.blocks++;
+#endif
         if (_2F0) {
             _2F0 = 0;
             _2F4 = 0.0f;
@@ -728,6 +785,9 @@ void THPSimplePlayerWrapper::mixAudio(s16* pDest, u32 sample) {
                 return;
             }
         } else if (!mAudioBuffer[(mAudioOutputIndex + 1) % 0x14].validSample) {
+#if defined(TARGET_PC) && PORT_RUNTIME_DIAGNOSTICS
+            sMovieLog.silent++;
+#endif
             MR::zeroMemory(pDest, sample * kStereoFrameBytes);
             return;
         }

@@ -43,7 +43,7 @@ int port_vita_thread_stack(void** base, uint32_t* size);
 // back end (vitaGL and the sceGxm display queue), 2 the renderer's front end ("player"),
 // audio output and the other helpers.
 int port_vita_pin_core(int core);
-int port_vita_thread_class(int cls);  // 1 clocks, 2 disc reader, 3 game and renderer, 4 background (see memory.cpp)
+int port_vita_thread_class(int cls);  // 1 clocks, 2 disc reader, 3 game and renderer, 4 background, 5 movie reader (see memory.cpp)
 
 #ifdef __cplusplus
 }

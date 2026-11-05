@@ -724,14 +724,15 @@ void pinWorker(int index) {
 #if defined(__vita__) && !defined(THP_STANDALONE)
     // Worker 0: the render core; worker 1: the auxiliary core; worker 2: the game core. While the movie plays there is no
     // 3D scene, so those cores have time; at the lowest priority the workers only take what the others leave.
+    // (The thread library starts every thread at the lowest user priority, 0xBF, the same as the game and the renderer, so a
+    // "lower than the game's" priority cannot be made by adding to it: the game's threads are raised instead, port_thread_class.
+    // That also moves the thread off core 0, so the pin comes after it.)
+    if (port_vita_thread_class) {
+        port_vita_thread_class(4);
+    }
     static const int kCores[kMaxWorkers] = {1, 2, 0};
     if (port_vita_pin_core) {
         port_vita_pin_core(kCores[index % kMaxWorkers]);
-    }
-    // (The thread library starts every thread at the lowest user priority, 0xBF, the same as the game and the renderer, so a
-    // "lower than the game's" priority cannot be made by adding to it: the game's threads are raised instead, port_thread_class.)
-    if (port_vita_thread_class) {
-        port_vita_thread_class(4);
     }
 #else
     (void)index;

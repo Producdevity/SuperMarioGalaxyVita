@@ -1,4 +1,7 @@
 #include "Game/Screen/MoviePlayerSimple.hpp"
+#ifdef TARGET_PC
+#include "port/diagnostics.h"
+#endif
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Screen/THPSimplePlayerWrapper.hpp"
 #include "Game/System/GameSystem.hpp"
@@ -190,6 +193,10 @@ void MoviePlayerSimple::exePreload() {
     appear();
 }
 
+#if defined(TARGET_PC) && PORT_RUNTIME_DIAGNOSTICS
+void port_movie_log_turn(s32 result);  // THPSimplePlayerWrapper.cpp
+#endif
+
 void MoviePlayerSimple::exePlaying() {
     if (mMovie->mCurrentFrame + 1 == mPlayerWrapper->getTotalFrame()) {
         mMovie->_24 = 0;
@@ -202,7 +209,26 @@ void MoviePlayerSimple::exePlaying() {
     }
 
     if (!mMovie->_19) {
+#ifdef TARGET_PC
+        // The console's turns come at 60.1 a second and the movie's sound goes at 59.94: left alone, the pictures would pull ahead of
+        // the sound by a frame every six seconds.
+        if (mPlayerWrapper->audioFramesInHand() >= 8) {
+            return;
+        }
+#endif
         s32 result = mPlayerWrapper->decode(0);
+#if defined(TARGET_PC) && PORT_RUNTIME_DIAGNOSTICS
+        port_movie_log_turn(result);
+#endif
+#ifdef TARGET_PC
+        // One frame a turn is exactly what the sound uses, so a frame that came late was lost for good, and from then on the sound had
+        // nothing in hand for the next late one: a block of silence each time. With a few frames in hand the audio thread's
+        // bursts and a late read pass unheard; the pictures run a few turns behind on the decoder threads anyway.
+        const s32 inHand = mPlayerWrapper->audioFramesInHand();
+        if (result == 0 && inHand >= 0 && inHand < 6) {
+            mPlayerWrapper->decodeAudioOnly(0);
+        }
+#endif
 
         switch (result) {
         case 0:

@@ -31,6 +31,7 @@
 
 #include "port/heap_routing.h"
 #include "port/port.h"
+#include "movie_stream.h"
 #include "port/diagnostics.h"
 extern "C" void port_gpu_memory_written(void* addr, uint32_t size);
 #include "port/qemu_hooks.h"
@@ -983,75 +984,24 @@ static u32 sSeqEntry = ~0u;  // the file of the last read and where it ended: th
 static u64 sSeqEnd = 0;
 static unsigned sReadAheadHits, sReadAheadMisses;
 
-// Movies (.thp).  The player reads one frame at a time, the next only after the one before has arrived, and the frames are of
-// every size (14 KB at the start of PrologueA, up to 51 KB in busy scenes), so the exact-piece read-ahead above never matches
-// and only delays the next frame by a read of its own: with it the opening movie got 53 frames a second instead of 60, and the
-// sound broke up.  A movie instead keeps a window of the file after the last frame: a frame inside the window is answered from
-// memory, and when less than kMovieLow of the window is left the worker tops it up with ONE large read (the card is much faster
-// per byte in big reads: a 15 KB read costs about 5 ms, a 256 KB one not much more than twice that).  PETARI_MOVIEWIN=0 turns the
-// window off (plain reads, as before the read-ahead); PETARI_READAHEAD=0 turns both off.
-constexpr size_t kMovieWindow = 256 * 1024;
-constexpr size_t kMovieLow = 96 * 1024;
-struct MovieWindow {
-    u32 entry = ~0u;
-    u64 start = 0;  // file offset of data[0]
-    size_t len = 0;
-    alignas(64) u8 data[kMovieWindow];
-};
-static MovieWindow sMovieWin;
-static unsigned sMovieHits, sMovieMisses, sMovieTopUps;
-static u64 sMovieTopUpBytes;
-static int64_t sMovieTopUpNs, sMovieTopUpMaxNs;
+// Movies (.thp): see movie_stream.h. PETARI_MOVIEWIN=0 reads them plainly, frame by frame; PETARI_READAHEAD=0 turns both read-aheads off.
+constexpr size_t kMovieFrameMax = 256 * 1024;
+static unsigned sMoviePlain;
 
 static bool isMovieEntry(u32 entry) {
     const std::string& p = sFst[entry].hostPath;
     return p.size() > 4 && strcasecmp(p.c_str() + p.size() - 4, ".thp") == 0;
 }
 
-// Make the window cover the file from `end` on: keep what it already holds beyond `end`, read the rest of it from the card.
-static void movieTopUp(u32 entry, u64 end, int fdHint) {
-    MovieWindow& w = sMovieWin;
-    const s64 size = sFst[entry].size;
-    if (size <= 0 || (s64)end >= size) {
-        return;
-    }
-    size_t keep = 0;
-    if (w.entry == entry && end >= w.start && end < w.start + w.len) {
-        keep = (size_t)(w.start + w.len - end);
-    }
-    if (keep >= kMovieLow) {
-        return;
-    }
-    const int fd = fdHint >= 0 ? fdHint : openEntry(entry);
-    if (fd < 0) {
-        return;
-    }
-    const int64_t t0 = port_host_time_ns();
-    if (keep) {
-        memmove(w.data, w.data + (end - w.start), keep);
-    }
-    const u64 from = end + keep;
-    size_t room = kMovieWindow - keep;
-    if ((s64)from >= size) {
-        room = 0;
-    } else if ((u64)size - from < room) {
-        room = (size_t)((u64)size - from);
-    }
-    ssize_t got = room ? pread(fd, w.data + keep, room, (off_t)from) : 0;
-    if (got < 0) {
-        got = 0;
-    }
-    w.entry = entry;
-    w.start = end;
-    w.len = keep + (size_t)got;
-    const int64_t dt = port_host_time_ns() - t0;
-    ++sMovieTopUps;
-    sMovieTopUpBytes += (u64)got;
-    sMovieTopUpNs += dt;
-    if (dt > sMovieTopUpMaxNs) {
-        sMovieTopUpMaxNs = dt;
-    }
-}
+static port_dvd::MovieStream sMovieStream(port_dvd::MovieFile{
+    [](const char* path) { return open(path, O_RDONLY | O_CLOEXEC); },
+    [](int fd, void* dst, size_t size, uint64_t offset) { return (long)pread(fd, dst, size, (off_t)offset); },
+    [](int fd) { close(fd); },
+    [] {
+        PORT_QEMU_THREAD("dvd-movie");
+        port_thread_class(5);
+    },
+});
 
 static void workerMain() {
     PORT_QEMU_THREAD("dvd-worker");
@@ -1074,8 +1024,7 @@ static void workerMain() {
         const size_t want = b->length;
         const u64 offset = b->offset;
         const bool movie = readAheadOn && isMovieEntry(req.entry);
-        const bool fromMovieWin = movie && movieWindowOn && sMovieWin.entry == req.entry && offset >= sMovieWin.start &&
-                                  offset + want <= sMovieWin.start + sMovieWin.len;
+        const bool fromMovieWin = movie && movieWindowOn && sMovieStream.Serve(req.entry, offset, b->addr, want);
         const bool fromReadAhead = !movie && readAheadOn && sReadAhead.entry == req.entry && sReadAhead.offset == offset && sReadAhead.len == want;
         int fd = (fromReadAhead || fromMovieWin) ? -1 : openEntry(req.entry);
 #if defined(__vita__)
@@ -1101,9 +1050,7 @@ static void workerMain() {
             const int64_t readStart = port_host_time_ns();
             ssize_t got;
             if (fromMovieWin) {
-                memcpy(dst, sMovieWin.data + (offset - sMovieWin.start), want);
                 got = (ssize_t)want;
-                ++sMovieHits;
             } else if (fromReadAhead) {
                 memcpy(dst, sReadAhead.data, want);
                 got = (ssize_t)want;
@@ -1113,7 +1060,7 @@ static void workerMain() {
             } else {
                 got = pread(fd, dst, want, (off_t)offset);
                 if (movie) {
-                    ++sMovieMisses;
+                    ++sMoviePlain;
                 }
             }
             int64_t readEnd;
@@ -1147,26 +1094,24 @@ static void workerMain() {
         port_vclock_external_end();
 
         if (movie) {
-            // A movie frame that continues the one before it: keep the window ahead of the player.
-            if (movieWindowOn && result >= 0 && want >= 4096 && want <= kMovieWindow / 2) {
+            // A movie frame that continues the one before it, read plainly: the reader thread takes over from here.
+            if (movieWindowOn && result >= 0 && want >= 4096 && want <= kMovieFrameMax) {
                 const u64 end = offset + want;
                 const bool sequence = sSeqEntry == req.entry && sSeqEnd == offset;
                 sSeqEntry = req.entry;
                 sSeqEnd = end;
-                if (sequence && !pendingNow) {
-                    movieTopUp(req.entry, end, fd);
+                if (sequence && !fromMovieWin) {
+                    sMovieStream.Begin(req.entry, sFst[req.entry].hostPath.c_str(), (u64)sFst[req.entry].size, end);
                 }
             } else {
                 sSeqEntry = ~0u;
             }
-            if ((sMovieHits + sMovieMisses) % 300 == 0 && sMovieHits + sMovieMisses != 0 && (fromMovieWin || movieWindowOn)) {
-                static unsigned sLoggedAt = 0;
-                if (sLoggedAt != sMovieHits + sMovieMisses) {
-                    sLoggedAt = sMovieHits + sMovieMisses;
-                    port_log("dvd: movie reads %u from memory, %u from the card; %u window refills, %.0f KiB each, %.1f ms on average (longest %.1f ms)", sMovieHits,
-                             sMovieMisses, sMovieTopUps, sMovieTopUps ? sMovieTopUpBytes / 1024.0 / sMovieTopUps : 0.0,
-                             sMovieTopUps ? sMovieTopUpNs / 1e6 / sMovieTopUps : 0.0, sMovieTopUpMaxNs / 1e6);
-                }
+            const port_dvd::MovieStats m = sMovieStream.Stats();
+            if ((m.hits + sMoviePlain) % 300 == 0 && m.hits + sMoviePlain != 0) {
+                port_log("dvd: movie reads %u from memory, %u plain; %u read ahead, %.0f KiB each, %.1f ms on average (longest %.1f ms); "
+                         "%u waits for the reader, %.1f ms on average (longest %.1f ms)", m.hits, sMoviePlain, m.reads,
+                         m.reads ? m.bytes / 1024.0 / m.reads : 0.0, m.reads ? m.readNs / 1e6 / m.reads : 0.0, m.readMaxNs / 1e6, m.waits,
+                         m.waits ? m.waitNs / 1e6 / m.waits : 0.0, m.waitMaxNs / 1e6);
             }
         } else if (readAheadOn && result >= 0 && want >= 4096 && want <= kReadAheadMax) {
             const bool sequence = sSeqEntry == req.entry && sSeqEnd == offset;

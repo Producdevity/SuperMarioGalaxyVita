@@ -5660,7 +5660,7 @@
     },
     {
       "path": "decomp/include/Game/Screen/THPSimplePlayerWrapper.hpp",
-      "sha256": "0a8489248c76ebe422dfa3ce43f49ad13db7b11c2d26da0511fd45fe3b2254b1"
+      "sha256": "d4dfb94feb344e8a55de3950460818ea649510ede643e223368c03b338100959"
     },
     {
       "path": "decomp/include/Game/Screen/TimeLimitLayout.hpp",
@@ -14672,7 +14672,7 @@
     },
     {
       "path": "decomp/src/Game/Screen/MoviePlayerSimple.cpp",
-      "sha256": "39b3aef31c417b39503dc5b7d31c50a9b187fe4825a8e2d3af0878819a346f06"
+      "sha256": "f2451f5106c9b105cc33473c58f361ecd416d749ebdd99cb55df1f7715ce4eff"
     },
     {
       "path": "decomp/src/Game/Screen/MoviePlayingSequence.cpp",
@@ -14856,7 +14856,7 @@
     },
     {
       "path": "decomp/src/Game/Screen/THPSimplePlayerWrapper.cpp",
-      "sha256": "557ca53a9a760d14f0f15d64ad64c4830ef75263b20686d351872c80f647c59e"
+      "sha256": "f65b52c9c77ea815abc207427034e21129052b49a6efb000b5db1765cc1a78a8"
     },
     {
       "path": "decomp/src/Game/Screen/TimeLimitLayout.cpp",
@@ -18616,7 +18616,11 @@
     },
     {
       "path": "platform/src/dvd/dvd.cpp",
-      "sha256": "f29e8d6a7168b0dc7835c2cbf3862ebd63e603b595b758582d60f56ee23fa0a7"
+      "sha256": "937ba2571de5fc35440190e00d864e93b457f9e5fdb68b0b4288465fb3d4b8c3"
+    },
+    {
+      "path": "platform/src/dvd/movie_stream.h",
+      "sha256": "937faa3073edeb909c3452798ae2ed68918f3c37fee999cb2a6e32b4a5e8352e"
     },
     {
       "path": "platform/src/gx/cpu_xf.cpp",
@@ -18900,7 +18904,7 @@
     },
     {
       "path": "platform/src/sdk/thp_video.cpp",
-      "sha256": "0ef393284ef2701df71bdf093606a5ab7cc46452727b11bf9dd26c81c6ef9beb"
+      "sha256": "f38056e4176d8555c1ef1427a4ed9d38a9fd2e821173bfc2e06cd4d807919272"
     },
     {
       "path": "platform/src/settings/player_settings.cpp",
@@ -19253,6 +19257,10 @@
     {
       "path": "tests/dvd_heap_routing.cpp",
       "sha256": "d071c367cab1d5320857864a2296e594f33a6ee31766dc43a3f299e5b02e7618"
+    },
+    {
+      "path": "tests/dvd_movie_stream.cpp",
+      "sha256": "4fcb8ada05cc6cc6febc1e618095daa078ae6f5cd91bb6789d722cee58266dac"
     },
     {
       "path": "tests/gd_material_writers.cpp",
@@ -20311,6 +20319,10 @@
       "sha256": "22a526d02ff848b75b750eb687f826a18ddcd30016bcaf5a146a6c32412e0d05"
     },
     {
+      "path": "tools/test_dvd_movie_stream.sh",
+      "sha256": "012a47216e53a72aad7320fdcb9511ceba9c2963fbe5a4abb3e83ff64112f621"
+    },
+    {
       "path": "tools/test_gd_material_writers.sh",
       "sha256": "6688fd43cce9a95db19b3e14bed00278eeffc1a2f68b6633ad2a239447207a45"
     },
@@ -21000,11 +21012,11 @@
     },
     {
       "path": "vita/runtime/memory.cpp",
-      "sha256": "3e1e602f193990cf83590252b904bfe9581b08db54048c13c102f912dafb20ad"
+      "sha256": "99b4d8636b359ed6ca265a6e2f0b3cd028aa20b38013c144e6f162c7885cdc01"
     },
     {
       "path": "vita/runtime/memory.h",
-      "sha256": "6f5c8d4ac5e1f4d5a601bc68b27c10df6526068612e857d0dd681840f583825f"
+      "sha256": "d23996929ee0c8948914ffed5926194961b3829dcd467067bb939597abfe7580"
     },
     {
       "path": "vita/runtime/tex_image.cpp",

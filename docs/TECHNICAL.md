@@ -108,6 +108,16 @@ not console timings.
 - Helper threads (audio, input, clocks) moved off the game thread's core 0 to cores 1-2
   (`GXV_HELPER_CORES=0` restores the old placement).
 
+### Movies
+
+- **Decoders:** three threads at the lowest priority, one on each core; while a movie plays the game
+  thread uses a tenth of core 0, so the third decoder's core matters most (`platform/src/sdk/thp_video.cpp`).
+- **Reading:** a thread of its own reads ahead into a 2 MiB ring at priority `0x70`
+  (`platform/src/dvd/movie_stream.h`); `PETARI_MOVIEWIN=0` reads frame by frame instead.
+- **Sound:** the player keeps 6 to 8 frames of sound decoded, about as far ahead as the pictures run
+  behind on the decoders. The `movie:` log line counts frames read late and silent blocks: the
+  `audio:` line sees blocks arrive on time, not that a movie had nothing to put in them.
+
 ### Back end and GPU
 
 - **Fewer GPU scenes per picture.** Every EFB copy used to end a GXM scene (store, then reload).

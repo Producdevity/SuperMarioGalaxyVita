@@ -100,18 +100,20 @@ bool selectRaw(SceCtrlData& data, PortVitaRawInput& out) {
 // version followed report[0] wherever it was, so the pointer jumped between resting fingers and squiggled across the screen.
 // Here a contact only takes the pointer once it has slid kRearArm panel units from where it landed (resting fingers do not slide),
 // the pointer then follows that contact by its id alone until it lifts, the movement is smoothed over a few samples and a
-// movement below the pad's noise is ignored. Not on the game's 2D menus (the left stick and Cross work there) and never while a
-// finger is on the front screen.
+// movement below the pad's noise is ignored. A slide that took the pointer within kRearArmQuick of landing moves it from where
+// it landed, so the start of a deliberate slide is not lost. Not on the game's 2D menus (the left stick and Cross work there)
+// and never while a finger is on the front screen.
 float clamp(float x, float lo, float hi) { return fminf(hi, fmaxf(lo, x)); }
 float pointerLife;
 constexpr float kPointerSeconds = 3.0f;
-struct RearContact { int id; float x0, y0; bool used; };
+struct RearContact { int id; float x0, y0, age; bool used; };
 RearContact rearSeen[8];
 int rearSeenCount;
 int rearId = -1;          // the contact that moves the pointer, -1 none
 float rearLastX, rearLastY, rearVelX, rearVelY;
 bool rearAccumulate = true;  // PETARI_REAR_ACCUM (default 1): movements below the noise step add up (see rearAim)
 constexpr float kRearArm = 40.0f;     // panel units (the rear pad is about 1920 x 890): about 2 % of its width
+constexpr float kRearArmQuick = 0.25f;  // seconds; slower than kRearArm in this long is a resting finger creeping
 constexpr float kRearNoise = 1.5f;    // panel units per sample
 constexpr float kRearGain = 2.0f / 1100.0f;  // pointer units (-1..1 across the picture) per panel unit: 1100 units = the whole width
 
@@ -128,27 +130,35 @@ void resetTransient() {
     blockLeftStick = blockRightStick = blockFront = blockRear = true;
 }
 
-void rearAim(bool frontDown) {
+void rearAim(bool frontDown, float dt) {
     if (!rearStarted) return;
     SceTouchData rear{};
-    const bool contact = ((!frontDown && port_rear_aim_enabled()) || blockRear) &&
-        sceTouchPeek(SCE_TOUCH_PORT_BACK, &rear, 1) > 0 && rear.reportNum > 0;
-    if (blockRear && !contact) blockRear = false;
-    const bool any = !blockRear && !frontDown && port_rear_aim_enabled() && contact;
-    if (!any) {
+    const bool enabled = !frontDown && port_rear_aim_enabled();
+    const bool contact = (enabled || blockRear) && sceTouchPeek(SCE_TOUCH_PORT_BACK, &rear, 1) > 0 && rear.reportNum > 0;
+    const int n = contact ? (rear.reportNum < 8 ? rear.reportNum : 8) : 0;
+    if (blockRear) {
+        // After an input reset (the Settings menu has closed) the contacts already on the pad never take the pointer; one put
+        // down afterwards can. Waiting for an empty pad instead kept rear aiming off while a hand holding the console rested
+        // a finger on it.
+        blockRear = false;
+        rearId = -1;
+        rearSeenCount = 0;
+        for (int i = 0; i < n; i++) rearSeen[rearSeenCount++] = {rear.report[i].id, float(rear.report[i].x), float(rear.report[i].y), 0, true};
+        return;
+    }
+    if (!enabled || !contact) {
         rearId = -1;
         rearSeenCount = 0;
         return;
     }
-    const int n = rear.reportNum < 8 ? rear.reportNum : 8;
     // forget contacts that have lifted, note new ones where they landed
     RearContact kept[8];
     int keptCount = 0;
     for (int i = 0; i < n; i++) {
         const SceTouchReport& r = rear.report[i];
-        RearContact c{r.id, float(r.x), float(r.y), false};
+        RearContact c{r.id, float(r.x), float(r.y), 0, false};
         for (int k = 0; k < rearSeenCount; k++) {
-            if (rearSeen[k].id == r.id) { c = rearSeen[k]; break; }
+            if (rearSeen[k].id == r.id) { c = rearSeen[k]; c.age += dt; break; }
         }
         kept[keptCount++] = c;
     }
@@ -169,8 +179,9 @@ void rearAim(bool frontDown) {
                 c.used = true;
                 aim = &r;
                 rearId = r.id;
-                rearLastX = r.x;
-                rearLastY = r.y;
+                const bool quick = c.age <= kRearArmQuick;
+                rearLastX = quick ? c.x0 : r.x;
+                rearLastY = quick ? c.y0 : r.y;
                 rearVelX = rearVelY = 0;
                 if (pointerLife <= 0) pointerX = pointerY = 0; // (a fresh pointer starts in the middle)
             }
@@ -511,7 +522,7 @@ extern "C" void port_vita_input_poll(float elapsedSeconds, PortPadState* pad) {
         if (touchA && !touchMoved && touchTime < 0.20f) tapA = 0.10f; // a tap: A where it landed
     }
     // the rear pad (if chosen): in play only, never with a finger on the front screen
-    rearAim(contact || menuPointer || (remap && !sampled.caps.rearTouch));
+    rearAim(contact || menuPointer || (remap && !sampled.caps.rearTouch), dt);
     if (tapA > 0) {
         pad->buttons |= 0x0800;
         tapA -= dt;

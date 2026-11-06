@@ -118,7 +118,8 @@ int main(int argc, char** argv) {
             raw.timeStamp += 16667; menus = i % 100 < 30; zoom = i % 130 < 40; tilt = i % 90 < 50;
             front = rear = {};
             if (i % 60 < 22) { front.reportNum = 1; front.report[0].x = 600 + i % 10; front.report[0].y = 500; }
-            if (i % 90 < 70) { rear.reportNum = 1; rear.report[0].id = 4; rear.report[0].x = 300 + i % 90 * 5; rear.report[0].y = 400; }
+            // (a resting rear finger: how a sliding one aims has changed since the oracle; tools/test_vita_rear_touch.sh covers it)
+            if (i % 90 < 70) { rear.reportNum = 1; rear.report[0].id = 4; rear.report[0].x = 300; rear.report[0].y = 400; }
             const float dt = i % 7 == 0 ? std::numeric_limits<float>::quiet_NaN() : (i % 5) * .02f;
             const auto actual = poll(dt); PortPadState expected; oracle_poll(dt, &expected); assertSame(actual, expected);
         }

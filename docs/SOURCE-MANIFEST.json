@@ -19756,7 +19756,7 @@
     },
     {
       "path": "tests/vita_controls.cpp",
-      "sha256": "048da7794189c3a92ead92703db974f405e9b6d9db12ecabada5f7acccbd6150"
+      "sha256": "f9aceaf605c77d0927a1019066eaaac014e214b15e5181284b22030f5b64f6d2"
     },
     {
       "path": "tests/vita_csv_status.cpp",
@@ -19828,7 +19828,7 @@
     },
     {
       "path": "tests/vita_rear_touch.cpp",
-      "sha256": "7a88642c4ac112aef6acc4a5d7e4df0af96e792b70de7c8b116ac3cf2493b94f"
+      "sha256": "d6bf198450b1592e9f3e93b0d491b321df7a8ede1a698fc4d726e94cc1078f2d"
     },
     {
       "path": "tests/vita_scheduling_audit.cpp",
@@ -21020,7 +21020,7 @@
     },
     {
       "path": "vita/runtime/input.cpp",
-      "sha256": "87cf79107782491b406233e92b12d12dac8e9aadbfd3e4e8534f35ece4739cae"
+      "sha256": "364cb89c94857dd62a571670a1c33569a85346f675ce1c617a32ce1a2ffbac79"
     },
     {
       "path": "vita/runtime/input.h",

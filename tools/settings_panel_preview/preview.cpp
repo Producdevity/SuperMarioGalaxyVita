@@ -47,6 +47,7 @@ int main(int argc, char** argv) {
     st.rearAim = atoi(argv[3]) != 0;
     st.knob = static_cast<float>(atof(argv[4]));
     st.stickKnob = argc > 9 ? static_cast<float>(atof(argv[9])) : 0.0f;
+    st.starBitReach = argc > 10 ? atoi(argv[10]) : 1;
     st.pulse = static_cast<float>(atof(argv[5]));
     st.alpha = static_cast<float>(atof(argv[6]));
     st.compact = atoi(argv[7]) != 0;

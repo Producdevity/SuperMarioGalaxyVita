@@ -270,6 +270,9 @@ def main():
         ("panel-en-max", 20, 1, 1.0, 0.0, 0, "UsEnglish"),
         ("panel-en-letter", 15, 0, 0.0, 0.0, 1, "UsEnglish"),
         ("panel-en-pointer", 15, 0, 0.0, 0.0, 0, "UsEnglish", 1.0),
+        ("panel-en-reach", 15, 0, 0.0, 0.0, 0, "UsEnglish", 0.0, 3),
+        ("panel-en-reach-all", 15, 1, 1.0, 0.0, 0, "UsEnglish", 1.0, 5),
+        ("panel-en-letter-all", 15, 1, 1.0, 0.0, 1, "UsEnglish", 1.0, 5),
         ("panel-fr", 15, 1, 1.0, 0.0, 0, "UsFrench"),
         ("panel-es", 15, 0, 0.0, 0.0, 0, "UsSpanish"),
         ("panel-de", 13, 1, 1.0, 0.0, 0, "EuGerman"),
@@ -278,7 +281,7 @@ def main():
         ("panel-ja", 15, 1, 1.0, 0.0, 0, "JpJapanese"),
     ]
     for name, zoom, rear, knob, pulse, compact, lang, *stick in scenes:
-        txt = subprocess.check_output([exe, metrics, str(zoom), str(rear), str(knob), str(pulse), "1", str(compact), lang, str(stick[0] if stick else 0.0)]).decode()
+        txt = subprocess.check_output([exe, metrics, str(zoom), str(rear), str(knob), str(pulse), "1", str(compact), lang, str(stick[0] if stick else 0.0), str(stick[1] if len(stick) > 1 else 1)]).decode()
         lines = txt.splitlines()
         head = lines[0].split()
         W, H = float(head[1]), float(head[2])

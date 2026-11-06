@@ -33,6 +33,8 @@ void StarPointerUtil_FORCE_MATCH_SDATA2() {
     (void)-1.0f;
 }
 
+extern "C" int port_star_bit_reach(void);
+
 namespace {
 
     static const f32 hPointColRayLength = 99999.0f;
@@ -40,12 +42,13 @@ namespace {
     class StarPointerTargetInfo {
     public:
         StarPointerTargetInfo(StarPointerTarget* pTarget, HitInfo* pHitInfo, CollisionParts* pCollisionParts)
-            : mTarget(pTarget), mHitInfo(pHitInfo), mCollisionParts(pCollisionParts) {
+            : mTarget(pTarget), mHitInfo(pHitInfo), mCollisionParts(pCollisionParts), mRadiusScale(1.0f) {
         }
 
         /* 0x00 */ StarPointerTarget* mTarget;
         /* 0x04 */ HitInfo* mHitInfo;
         /* 0x08 */ CollisionParts* mCollisionParts;
+        f32 mRadiusScale;
     };
 
     typedef bool (*StarPointerFunc1)(StarPointerTargetInfo*, const TVec3f&, const TVec2f&, f32, f32);
@@ -88,6 +91,11 @@ namespace {
 
     bool checkPointingTarget(StarPointerTargetInfo* pTargetInfo, const TVec3f& rOffset, const TVec2f& rPointerPos, f32 zMargin, f32 radiusMargin) {
         return pTargetInfo->mTarget->isPointing(rPointerPos, zMargin, radiusMargin);
+    }
+
+    bool checkPointingTargetWide(StarPointerTargetInfo* pTargetInfo, const TVec3f& rOffset, const TVec2f& rPointerPos, f32 zMargin,
+                                 f32 radiusMargin) {
+        return pTargetInfo->mTarget->isPointingScaled(rPointerPos, radiusMargin, pTargetInfo->mRadiusScale);
     }
 
     bool checkPointingWithoutCheckZ(StarPointerTargetInfo* pTargetInfo, const TVec3f& rOffset, const TVec2f& rPointerPos, f32 zMargin,
@@ -374,6 +382,31 @@ namespace MR {
             return true;
         }
         return false;
+    }
+
+    // Native: the port's Star Bit reach (port_star_bit_reach). Levels 2 to 4 widen the target's screen radius at any depth. Level 5
+    // takes any target on screen, whether or not the pointer is out: on the handhelds it is hidden while nothing aims.
+    bool isStarPointerPointingStarPieceAssist(const LiveActor* pActor) {
+        static const f32 sRadiusScales[] = {1.5f, 2.0f, 3.0f};
+        const int level = port_star_bit_reach();
+        if (level <= 1) {
+            return false;
+        }
+
+        StarPointerTarget* target = pActor->mStarPointerTarget;
+        if (level >= 5) {
+            if (!::getStarPointerLayout(WPAD_CHAN0)->mIsPointerValid || !MR::isConnectedWPad(WPAD_CHAN0) ||
+                ::getStarPointerOnOffController()->compareMode(StarPointerMode_1PInvalid2PValid) || !target->isOnScreen()) {
+                return false;
+            }
+            target->mLastPointedChannel = WPAD_CHAN0;
+            return true;
+        }
+
+        StarPointerTargetInfo info(target, nullptr, nullptr);
+        info.mRadiusScale = sRadiusScales[level - 2];
+        return ::isStarPointerPointingCore(&info, pActor, WPAD_CHAN0, ::checkPointingTargetWide, ::always, false, false, false) ||
+               ::isStarPointerPointingCore(&info, pActor, WPAD_CHAN1, ::checkPointingTargetWide, ::always, false, false, false);
     }
 
     bool requestBlueStarGuidance() {

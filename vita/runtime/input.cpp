@@ -12,6 +12,7 @@ extern "C" int port_rear_aim_enabled(void);  // platform/src/port/perf.cpp: the 
 extern "C" int port_rear_aim_toggle(void);
 extern "C" int port_stick_pointer_enabled(void);  // the same file: the right stick moves the pointer, not the camera
 extern "C" int port_stick_pointer_toggle(void);
+extern "C" int port_star_bit_reach_next(void);
 
 namespace {
 struct Vec { float x, y, z; };
@@ -38,7 +39,7 @@ float tapA; // seconds of A still to give after a tap
 bool menuPointer; // the left stick is moving the pointer (a 2D menu is up)
 std::atomic<bool> pendingReset{false}, mappingAvailable{true};
 bool tiltWasActive;
-bool zoomArmed, rearToggleArmed, stickToggleArmed;
+bool zoomArmed, rearToggleArmed, stickToggleArmed, reachToggleArmed;
 int zoomHeldDir;
 float zoomRepeat;
 unsigned blockedButtons;
@@ -124,7 +125,7 @@ void resetTransient() {
     rearId = -1; rearSeenCount = 0;
     memset(rearSeen, 0, sizeof rearSeen);
     rearLastX = rearLastY = rearVelX = rearVelY = 0;
-    zoomArmed = rearToggleArmed = stickToggleArmed = false;
+    zoomArmed = rearToggleArmed = stickToggleArmed = reachToggleArmed = false;
     zoomHeldDir = 0; zoomRepeat = 0;
     blockedButtons = ~0u;
     blockLeftStick = blockRightStick = blockFront = blockRear = true;
@@ -286,8 +287,8 @@ static void zoomButtons(unsigned buttons, float dt) {
     }
 }
 
-// In the pause menu Triangle turns rear touch aiming on or off and Square switches the right stick between the camera and the
-// pointer (a press; held, nothing more happens).
+// In the pause menu Triangle turns rear touch aiming on or off, Square switches the right stick between the camera and the
+// pointer and Select steps the Star Bit reach (a press; held, nothing more happens).
 static void toggleButton(unsigned buttons, unsigned button, bool& armed, int (*toggle)(void)) {
     if (!port_zoom_menu_active()) {
         armed = false;
@@ -393,6 +394,7 @@ extern "C" void port_vita_input_poll(float elapsedSeconds, PortPadState* pad) {
         if (normalized & R1) commandButtons |= SCE_CTRL_RTRIGGER;
         if (normalized & Triangle) commandButtons |= SCE_CTRL_TRIANGLE;
         if (normalized & Square) commandButtons |= SCE_CTRL_SQUARE;
+        if (normalized & Select) commandButtons |= SCE_CTRL_SELECT;
         uint64_t required = 0;
         for (auto mask : active.masks) required |= mask;
         const auto& promptCaps = ActiveCapabilities();
@@ -417,7 +419,8 @@ extern "C" void port_vita_input_poll(float elapsedSeconds, PortPadState* pad) {
             if (state < 0) { pad->connected = 1; return; }
             mapping = &fallback[static_cast<unsigned>(kind)];
         }
-        // In the pause menu L1/R1/Triangle drive zoom and rear aiming, so the game does not get them,
+        // In the pause menu L1/R1/Triangle/Select drive the settings panel, so the game does not get them
+        // (Minus would close the menu),
         // except a button the player bound to confirm, back, pause or menu movement: those always pass,
         // so a custom layout can never trap the player in the menu.
         if (port_zoom_menu_active()) {
@@ -425,7 +428,7 @@ extern "C" void port_vita_input_poll(float elapsedSeconds, PortPadState* pad) {
             for (Action a : {Action::Jump, Action::StarBits, Action::Pause, Action::CameraUp, Action::CameraDown,
                              Action::CameraLeft, Action::CameraRight})
                 menuKeys |= mapping->masks[static_cast<size_t>(a)];
-            normalized &= ~((L1 | R1 | Triangle) & ~menuKeys);
+            normalized &= ~((L1 | R1 | Triangle | Select) & ~menuKeys);
         }
         const auto translated = Translate(*mapping, normalized);
         mappedSpin = translated.spin;
@@ -450,7 +453,7 @@ extern "C" void port_vita_input_poll(float elapsedSeconds, PortPadState* pad) {
     // (In the pause menu the shoulder buttons set the camera zoom: the game does not get them.)
     const bool zoomMenu = port_zoom_menu_active() != 0;
     for (auto button : buttons) {
-        if (!remap && zoomMenu && (button.vita == SCE_CTRL_LTRIGGER || button.vita == SCE_CTRL_TRIANGLE)) continue;
+        if (!remap && zoomMenu && (button.vita == SCE_CTRL_LTRIGGER || button.vita == SCE_CTRL_TRIANGLE || button.vita == SCE_CTRL_SELECT)) continue;
         if (control.buttons & button.vita) pad->buttons |= button.wii;
     }
     stick(control.lx, control.ly, pad->stickX, pad->stickY);
@@ -461,6 +464,7 @@ extern "C" void port_vita_input_poll(float elapsedSeconds, PortPadState* pad) {
     zoomButtons(commandButtons, dt);
     toggleButton(commandButtons, SCE_CTRL_TRIANGLE, rearToggleArmed, port_rear_aim_toggle);
     toggleButton(commandButtons, SCE_CTRL_SQUARE, stickToggleArmed, port_stick_pointer_toggle);
+    toggleButton(commandButtons, SCE_CTRL_SELECT, reachToggleArmed, port_star_bit_reach_next);
     const bool aiming = (control.buttons & SCE_CTRL_CIRCLE) != 0;
     if (rstickPointer || port_stick_pointer_enabled() || aiming) {
         if (aiming && pointerLife <= 0) pointerX = pointerY = 0; // (a fresh aim starts from the middle)

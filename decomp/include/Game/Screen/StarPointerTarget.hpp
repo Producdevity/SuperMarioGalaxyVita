@@ -10,6 +10,8 @@ public:
 
     bool calcScreenPosition(TVec2f*) const;
     bool isPointing(const TVec2f&, f32, f32) const;
+    bool isPointingScaled(const TVec2f&, f32, f32) const;
+    bool isOnScreen() const;
     void calcPosition(TVec3f*) const;
     f32 calcRadius2d(f32, f32, f32) const;
     bool calcScreenPositionFromView(TVec2f*, const TVec3f&) const;

@@ -13,7 +13,7 @@ using namespace port::controls;
 static SceCtrlData raw;
 static SceTouchData front, rear;
 static int type = SCE_CTRL_TYPE_PHY, readResult = 1, menus = 0, zoom = 0, tilt = 0;
-static int reads = 0, zoomSteps = 0, toggles = 0, stickToggles = 0, stickPointer = 0, stickFollows = 0;
+static int reads = 0, zoomSteps = 0, toggles = 0, stickToggles = 0, stickPointer = 0, stickFollows = 0, reachSteps = 0;
 static bool motionOk = true;
 static SceMotionState motionState;
 extern "C" {
@@ -51,6 +51,7 @@ int port_rear_aim_enabled() { return 1; }
 int port_rear_aim_toggle() { return ++toggles; }
 int port_stick_pointer_enabled() { return stickPointer; }
 int port_stick_pointer_toggle() { ++stickToggles; stickPointer = stickFollows && !stickPointer; return stickPointer; }
+int port_star_bit_reach_next() { return ++reachSteps; }
 }
 static PortPadState poll(float dt = 1.0f / 60) { PortPadState p; port_vita_input_poll(dt, &p); return p; }
 static void neutral() { raw = {}; raw.lx = raw.ly = raw.rx = raw.ry = 128; front = rear = {}; }
@@ -121,7 +122,9 @@ int main(int argc, char** argv) {
             // (a resting rear finger: how a sliding one aims has changed since the oracle; tools/test_vita_rear_touch.sh covers it)
             if (i % 90 < 70) { rear.reportNum = 1; rear.report[0].id = 4; rear.report[0].x = 300; rear.report[0].y = 400; }
             const float dt = i % 7 == 0 ? std::numeric_limits<float>::quiet_NaN() : (i % 5) * .02f;
-            const auto actual = poll(dt); PortPadState expected; oracle_poll(dt, &expected); assertSame(actual, expected);
+            const auto actual = poll(dt); PortPadState expected; oracle_poll(dt, &expected);
+            if (zoom) expected.buttons &= ~0x1000u; // (since the oracle, Select steps the Star Bit reach in the pause menu)
+            assertSame(actual, expected);
         }
         // Settings raw acquisition must still normalize a PSTV source with remap off.
         type = SCE_CTRL_TYPE_DS4; raw.buttons = SCE_CTRL_L1 | SCE_CTRL_R2;
@@ -167,6 +170,14 @@ int main(int argc, char** argv) {
     stickFollows = 1;
     neutral(); poll(); raw.buttons = SCE_CTRL_SQUARE; for (int i = 0; i < 20; ++i) poll();
     assert(stickToggles == keptStick+1 && stickPointer);
+    // Select in the pause menu steps the Star Bit reach, once a press.
+    const int keptReach = reachSteps;
+    neutral(); poll(); raw.buttons = SCE_CTRL_SELECT; for (int i = 0; i < 20; ++i) assert(!(poll().buttons & 0x1000)); // (Minus would close the menu)
+    assert(reachSteps == keptReach+1);
+    zoom = 0;
+    neutral(); poll(); raw.buttons = SCE_CTRL_SELECT; poll(); assert(reachSteps == keptReach+1);
+    zoom = 1;
+    neutral(); poll();
     zoom = 0;
     neutral(); poll(); raw.buttons = SCE_CTRL_SQUARE; poll(); assert(stickToggles == keptStick+1);
     // Pointer: the right stick moves it and turns nothing. Camera: it is the D-pad, as before.

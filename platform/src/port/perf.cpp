@@ -448,9 +448,12 @@ int ZoomFromFile() {
 }
 
 // "rear_aim = 1" in the same file: the rear touch pad aims the pointer; "stick_pointer = 1": the right stick moves the pointer, not the
-// camera (vita/runtime/input.cpp). Off unless chosen: -1 = not read.
+// camera (vita/runtime/input.cpp). Off unless chosen: -1 = not read. "star_bit_reach = 1" to 5: 1 is the original game,
+// 2 to 4 widen what the pointer collects, 5 collects every Star Bit on screen (MR::isStarPointerPointingStarPieceAssist).
 std::atomic<int> sRearAim{-1};
 std::atomic<int> sStickPointer{-1};
+std::atomic<int> sStarBitReach{-1};
+constexpr int kStarBitReachLevels = 5;
 int OptionFromFile(const char* key) {
     if (sZoomFile.empty()) return 0;
     FILE* f = fopen(sZoomFile.c_str(), "r");
@@ -467,7 +470,7 @@ int OptionFromFile(const char* key) {
         if (*p != '=') continue;
         ++p;
         while (*p == ' ' || *p == '\t') ++p;
-        on = (*p == '1') ? 1 : 0;
+        on = (*p >= '0' && *p <= '9') ? *p - '0' : 0;
     }
     fclose(f);
     return on;
@@ -475,7 +478,7 @@ int OptionFromFile(const char* key) {
 int RearAimRead() {
     int v = sRearAim.load(std::memory_order_relaxed);
     if (v >= 0) return v;
-    v = OptionFromFile("rear_aim");
+    v = OptionFromFile("rear_aim") == 1;
     int expected = -1;
     if (sRearAim.compare_exchange_strong(expected, v)) port_log_summary("rear touch aiming: %s", v ? "on (from the settings file)" : "off");
     return sRearAim.load();
@@ -483,10 +486,19 @@ int RearAimRead() {
 int StickPointerRead() {
     int v = sStickPointer.load(std::memory_order_relaxed);
     if (v >= 0) return v;
-    v = OptionFromFile("stick_pointer");
+    v = OptionFromFile("stick_pointer") == 1;
     int expected = -1;
     if (sStickPointer.compare_exchange_strong(expected, v)) port_log_summary("right stick: %s", v ? "pointer (from the settings file)" : "camera");
     return sStickPointer.load();
+}
+int StarBitReachRead() {
+    int v = sStarBitReach.load(std::memory_order_relaxed);
+    if (v >= 0) return v;
+    v = OptionFromFile("star_bit_reach");
+    if (v < 1 || v > kStarBitReachLevels) v = 1;
+    int expected = -1;
+    if (sStarBitReach.compare_exchange_strong(expected, v)) port_log_summary("Star Bit reach: %d", v);
+    return sStarBitReach.load();
 }
 
 void ZoomSave() {
@@ -495,9 +507,9 @@ void ZoomSave() {
     FILE* f = fopen(tmp.c_str(), "w");
     if (!f) return;
     const int t = sZoomTenths.load();
-    fprintf(f, "# Settings of the Vita port, changed in the game's pause menu (L and R: zoom; Triangle: rear touch aiming; Square: right stick).\n"
-               "zoom = %d.%d\nrear_aim = %d\nstick_pointer = %d\n",
-            t / 10, t % 10, RearAimRead(), StickPointerRead());
+    fprintf(f, "# Settings of the Vita port, changed in the game's pause menu (L and R: zoom; Triangle: rear touch aiming; Square: right stick; Select: Star Bit reach).\n"
+               "zoom = %d.%d\nrear_aim = %d\nstick_pointer = %d\nstar_bit_reach = %d\n",
+            t / 10, t % 10, RearAimRead(), StickPointerRead(), StarBitReachRead());
     const bool ok = fclose(f) == 0;
     if (ok) {
         remove(sZoomFile.c_str());  // (a rename onto an existing file fails on some of the console's file systems)
@@ -507,8 +519,8 @@ void ZoomSave() {
         }
     }
     sZoomSavedChange = sZoomChange.load();
-    port_log_summary("zoom: %d.%d, rear touch aiming %s, right stick %s, saved in %s", t / 10, t % 10, RearAimRead() ? "on" : "off",
-                     StickPointerRead() ? "pointer" : "camera", sZoomFile.c_str());
+    port_log_summary("zoom: %d.%d, rear touch aiming %s, right stick %s, Star Bit reach %d, saved in %s", t / 10, t % 10, RearAimRead() ? "on" : "off",
+                     StickPointerRead() ? "pointer" : "camera", StarBitReachRead(), sZoomFile.c_str());
 }
 
 int ZoomRead() {
@@ -540,6 +552,7 @@ extern "C" void port_zoom_set_root(const char* saveRoot) {
     sZoomTenths.store(-1);  // (read again, with the file)
     sRearAim.store(-1);
     sStickPointer.store(-1);
+    sStarBitReach.store(-1);
 }
 
 // Rear touch aiming (pause menu: Triangle toggles it; saved with the zoom). 1 = on.
@@ -556,6 +569,15 @@ extern "C" int port_stick_pointer_enabled(void) { return port_handheld() ? Stick
 extern "C" int port_stick_pointer_toggle(void) {
     const int now = StickPointerRead() ? 0 : 1;
     sStickPointer.store(now);
+    sZoomChange.fetch_add(1);
+    return now;
+}
+
+// Star Bit reach (pause menu: Select steps through the levels; saved with the zoom). 1 = the original game.
+extern "C" int port_star_bit_reach(void) { return port_handheld() ? StarBitReachRead() : 1; }
+extern "C" int port_star_bit_reach_next(void) {
+    const int now = StarBitReachRead() % kStarBitReachLevels + 1;
+    sStarBitReach.store(now);
     sZoomChange.fetch_add(1);
     return now;
 }

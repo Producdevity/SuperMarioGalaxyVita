@@ -77,6 +77,38 @@ bool StarPointerTarget::isPointing(const TVec2f& rPointerPos, f32 zMargin, f32 r
     return false;
 }
 
+// Native: the port's Star Bit reach. Like isPointing, without the depth limit and with the screen radius scaled.
+bool StarPointerTarget::isPointingScaled(const TVec2f& rPointerPos, f32 radiusMargin, f32 scale) const {
+    TVec3f worldPos, viewPos;
+    calcPosition(&worldPos);
+    PSMTXMultVec(MR::getStarPointerViewMtx(), &worldPos, &viewPos);
+
+    if (-viewPos.z <= 0.0f) {
+        return false;
+    }
+
+    TVec2f screenPos;
+    if (!calcScreenPositionFromView(&screenPos, viewPos)) {
+        return false;
+    }
+
+    f32 radius = calcRadius2d(mRadius3d, radiusMargin, -viewPos.z) * scale;
+    return rPointerPos.squared(screenPos) < radius * radius;
+}
+
+bool StarPointerTarget::isOnScreen() const {
+    TVec3f worldPos, viewPos;
+    calcPosition(&worldPos);
+    PSMTXMultVec(MR::getStarPointerViewMtx(), &worldPos, &viewPos);
+
+    if (-viewPos.z <= 0.0f) {
+        return false;
+    }
+
+    TVec2f screenPos;
+    return calcScreenPositionFromView(&screenPos, viewPos);
+}
+
 void StarPointerTarget::calcPosition(TVec3f* pWorldPos) const {
     if (mMtx != nullptr) {
         if (mPosition != nullptr) {

@@ -5,7 +5,7 @@
 // lower one ends at y -118; the dark band of the counters (PicStagebase1) starts at -123, with the star and lives counters at
 // its left (they end 172 square units left of the middle) and the coin and Star Bit counters at its right (from 223 right of the
 // middle, with four figures of Star Bits). The star list and the stage's name are at the top. The panel takes the middle of the
-// counter band, 420 x 92 square units, from 122 to 214 below the middle of the picture, under the buttons and between the counters.
+// counter band, 420 x 98 square units, from 122 to 220 below the middle of the picture, under the buttons and between the counters.
 // The Luigi letter button (shown only while Luigi waits for a rescue) sits in the bottom middle from 178 below the middle down:
 // then the panel is 54 high, without the hint line.
 #include "settings_panel_plan.h"
@@ -26,22 +26,24 @@ struct Words {
     const char16_t* stick;       // the right stick row
     const char16_t* camera;
     const char16_t* pointer;
+    const char16_t* reach;       // the Star Bit reach row
+    const char16_t* all;
 };
 const Words kWords[] = {
     {"English", u"Camera Zoom", u"Rear Touch Aiming", u"On", u"Off",
-     u"Right Stick", u"Camera", u"Pointer"},
+     u"Right Stick", u"Camera", u"Pointer", u"Star Bit Reach", u"All"},
     {"French", u"Zoom de la caméra", u"Visée tactile arrière", u"Oui", u"Non",
-     u"Stick droit", u"Caméra", u"Pointeur"},
+     u"Stick droit", u"Caméra", u"Pointeur", u"Portée des fragments", u"Tous"},
     {"Spanish", u"Zoom de la cámara", u"Apuntar con panel trasero", u"Sí", u"No",
-     u"Palanca derecha", u"Cámara", u"Puntero"},
+     u"Palanca derecha", u"Cámara", u"Puntero", u"Alcance de trozos", u"Todos"},
     {"German", u"Kamera-Zoom", u"Zielen mit Rück-Touchpad", u"An", u"Aus",
-     u"Rechter Stick", u"Kamera", u"Pointer"},
+     u"Rechter Stick", u"Kamera", u"Pointer", u"Sternteil-Reichweite", u"Alle"},
     {"Italian", u"Zoom della telecamera", u"Mira col pannello posteriore", u"Sì", u"No",
-     u"Levetta destra", u"Telecamera", u"Puntatore"},
+     u"Levetta destra", u"Telecamera", u"Puntatore", u"Portata astroschegge", u"Tutte"},
     {"Dutch", u"Camerazoom", u"Richten met achterpaneel", u"Aan", u"Uit",
-     u"Rechterstick", u"Camera", u"Aanwijzer"},
+     u"Rechterstick", u"Camera", u"Aanwijzer", u"Bereik sterstukjes", u"Alle"},
     {"Japanese", u"カメラズーム", u"背面タッチでねらう", u"オン", u"オフ",
-     u"右スティック", u"カメラ", u"ポインター"},
+     u"右スティック", u"カメラ", u"ポインター", u"スターピース範囲", u"ぜんぶ"},
 };
 constexpr int kLanguages = sizeof(kWords) / sizeof(kWords[0]);
 
@@ -245,6 +247,7 @@ const char16_t kTriangleText[2] = {kPicTriangle, 0};
 const char16_t kSquareText[2] = {kPicSquare, 0};
 const char16_t kLText[2] = {kPicL, 0};
 const char16_t kRText[2] = {kPicR, 0};
+const char16_t kSelectText[2] = {kPicSelect, 0};
 
 }  // namespace
 
@@ -270,20 +273,21 @@ void Build(const State& st, const FontMetrics fonts[2], Plan* plan) {
     const Words* words = &kWords[st.language >= 0 && st.language < kLanguages ? st.language : 0];
     if (!t.Has(FONT_MESSAGE, words->zoom) || !t.Has(FONT_MESSAGE, words->rear) || !t.Has(FONT_MESSAGE, words->on) ||
         !t.Has(FONT_MESSAGE, words->off) || !t.Has(FONT_MESSAGE, words->stick) || !t.Has(FONT_MESSAGE, words->camera) ||
-        !t.Has(FONT_MESSAGE, words->pointer))
+        !t.Has(FONT_MESSAGE, words->pointer) || !t.Has(FONT_MESSAGE, words->reach) || !t.Has(FONT_MESSAGE, words->all))
         words = &kWords[0];
 
     const float midX = st.width * 0.5f, midY = st.height * 0.5f;
     const float w = 420.0f;
     const float x0 = midX - w * 0.5f, x1 = midX + w * 0.5f;
-    const float y0 = midY + 122.0f, y1 = midY + (st.compact ? 176.0f : 214.0f);
+    const float y0 = midY + 122.0f, y1 = midY + (st.compact ? 176.0f : 220.0f);
     // rows (middles), sizes
-    const float rowZoom = y0 + (st.compact ? 10.0f : 17.0f);
-    const float rowPips = y0 + 33.0f;
-    const float rowLine = y0 + (st.compact ? 19.0f : 41.0f);
-    const float rowRear = y0 + (st.compact ? 28.5f : 56.0f);
-    const float rowStick = y0 + (st.compact ? 44.0f : 78.0f);
-    const float labelSize = st.compact ? 15.0f : 20.0f, icon = st.compact ? 16.0f : 24.0f;
+    const float rowZoom = y0 + (st.compact ? 8.5f : 15.0f);
+    const float rowPips = y0 + 29.0f;
+    const float rowLine = y0 + (st.compact ? 15.0f : 36.0f);
+    const float rowRear = y0 + (st.compact ? 21.5f : 48.0f);
+    const float rowStick = y0 + (st.compact ? 33.5f : 67.0f);
+    const float rowReach = y0 + (st.compact ? 45.5f : 86.0f);
+    const float labelSize = st.compact ? 12.5f : 18.0f, icon = st.compact ? 13.0f : 20.0f;
     plan->x0 = x0, plan->y0 = y0, plan->x1 = x1, plan->y1 = y1;
 
     // the window: a soft dark glow round it, the indigo body with a sheen on its upper part, a light rim with a soft edge
@@ -338,7 +342,7 @@ void Build(const State& st, const FontMetrics fonts[2], Plan* plan) {
     }
 
     // ---- two switches:  label   [button]  ( left | right )
-    const float sx0 = cl + icon + 8.0f, sx1 = cr, sh = st.compact ? 14.5f : 22.0f;
+    const float sx0 = cl + icon + 8.0f, sx1 = cr, sh = st.compact ? 11.0f : 17.0f;
     const float half = (sx1 - sx0) * 0.5f, wordSize = labelSize * 0.9f;
     auto Switch = [&](float row, const char16_t* label, uint16_t code, const char16_t* button, const char16_t* left, const char16_t* right, float at) {
         t.Text(label, labelX, row, labelSize, kWhite, 0, labelMax);
@@ -359,6 +363,16 @@ void Build(const State& st, const FontMetrics fonts[2], Plan* plan) {
     };
     Switch(rowRear, words->rear, kPicTriangle, kTriangleText, words->off, words->on, st.knob);
     Switch(rowStick, words->stick, kPicSquare, kSquareText, words->camera, words->pointer, st.stickKnob);
+
+    // ---- Star Bit reach:  label   [button]  ● ● ● ○ ○   value
+    t.Text(words->reach, labelX, rowReach, labelSize, kWhite, 0, labelMax);
+    t.Button(kPicSelect, cl + icon * 0.5f, rowReach, icon, kSelectText);
+    const int reach = st.starBitReach < 1 ? 1 : (st.starBitReach > 5 ? 5 : st.starBitReach);
+    const float pipStep = st.compact ? 13.0f : 17.0f, pipRadius = st.compact ? 3.0f : 4.0f;
+    for (int i = 1; i <= 5; i++) g.Disc(sx0 + pipRadius + 2.0f + (i - 1) * pipStep, rowReach, pipRadius, i <= reach ? kYellow : kPipOff);
+    static const char16_t* const kReachValues[] = {u"1.5×", u"2×", u"3×"};
+    const char16_t* reachValue = reach == 1 ? words->off : (reach == 5 ? words->all : kReachValues[reach - 2]);
+    t.Text(reachValue, sx1 - 4.0f, rowReach, wordSize, reach == 1 ? kDim : kYellow, 2, 0);
 }
 
 }  // namespace settings_panel

@@ -1094,7 +1094,7 @@ void StarPiece::tryGotJudge() {
     }
 
     if (mGettableDelayCounter < 0) {
-        bool isPointing = MR::isStarPointerPointing1Por2P(this, "\x8e\xe3", false, false);
+        bool isPointing = MR::isStarPointerPointing1Por2P(this, "\x8e\xe3", false, false) || MR::isStarPointerPointingStarPieceAssist(this);
         MR::getStarPointerLastPointedPort(this);
 
         if (isPointing == true) {

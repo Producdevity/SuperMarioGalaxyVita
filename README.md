@@ -29,7 +29,7 @@ Galaxy was made for the Wii pointer, so touch got more work than anything else i
   Select re-centers it.
 - **Buttons where the Wii used motion.** Spin with Square or R instead of shaking a remote, and shoot Star Bits with Circle.
 - **Settings in the pause menu.** A panel in the game's own style: L and R set the camera zoom (1.0× to 2.0×), Triangle
-  turns rear touch aiming on or off, Square switches the right stick between the camera and the pointer.
+  turns rear touch aiming on or off, Square switches the right stick between the camera and the pointer, Select steps the Star Bit reach.
 
 The full list is in [Controls](CONTROLS.md).
 
@@ -118,7 +118,7 @@ Open [CBOC Vita Installer](https://github.com/CBOC-Vita-Lab/vita-installer/relea
 | **Rear touch** (optional) | Slide to aim the pointer |
 | **START** | Pause |
 
-**In the pause menu:** L and R set the camera zoom, Triangle turns rear touch aiming on or off, and Square switches the right stick between the camera and the pointer. Your choices are saved for next time. The full list is in [Controls](CONTROLS.md).
+**In the pause menu:** L and R set the camera zoom, Triangle turns rear touch aiming on or off, Square switches the right stick between the camera and the pointer, and Select steps the Star Bit reach: off, 1.5×, 2×, 3×, or All, which collects every Star Bit on screen without aiming. Your choices are saved for next time. The full list is in [Controls](CONTROLS.md).
 
 ## Download Contents
 

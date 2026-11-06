@@ -43,6 +43,7 @@ int port_rear_aim_enabled(void) { return gRearAim; }
 int port_rear_aim_toggle(void) { ++gToggles; gRearAim = !gRearAim; return gRearAim; }
 int port_stick_pointer_enabled(void) { return 0; }
 int port_stick_pointer_toggle(void) { return 0; }
+int port_star_bit_reach_next(void) { return 1; }
 }
 
 struct Contact { int id; float x, y; };

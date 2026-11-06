@@ -41,6 +41,7 @@ struct State {
     bool rearAim = false;
     float knob = 0.0f;   // the On / Off switch's highlight, 0 = Off .. 1 = On (eased towards the setting)
     float stickKnob = 0.0f;  // the right stick's switch, 0 = Camera .. 1 = Pointer
+    int starBitReach = 1;    // 1..5
     float pulse = 0.0f;  // 1 just after the zoom changed, easing to 0
     float alpha = 1.0f;  // the panel's fade-in
     bool compact = false;  // the Luigi letter button is at the bottom of the screen: a lower panel, tighter rows
@@ -52,7 +53,7 @@ int LanguageIndex(const char* gamePrefix);  // MR::getCurrentLanguagePrefix(): "
 const char* LanguageName(int index);
 
 constexpr int kMaxVertices = 6144;  // triangles: 3 to a triangle (the panel uses about 3,500)
-constexpr int kMaxRuns = 24;
+constexpr int kMaxRuns = 32;
 
 struct Plan {
     Vertex vertices[kMaxVertices];
@@ -72,5 +73,6 @@ constexpr uint16_t kPicTriangle = 0x32;  // the font's "C" button
 constexpr uint16_t kPicSquare = 0x35;    // "1"
 constexpr uint16_t kPicL = 0x49;         // "Z"
 constexpr uint16_t kPicR = 0x36;         // "2"
+constexpr uint16_t kPicSelect = 0x47;    // "-"
 
 }  // namespace settings_panel

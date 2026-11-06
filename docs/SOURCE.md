@@ -1,5 +1,9 @@
 # Source Record
 
+## Version 1.4 (`galaxy-v1.4`)
+
+Version 1.3 plus the commits since the `v1.3` tag, built from `ee9b7d7` with the player build flags, the execution profile `tools/vgx_build/pgo/game.profdata` and vitaGL `nhustd` (8 patches). The compiled-shader seed is the one 1.3 shipped.
+
 ## Version 1.3 (`galaxy-v1.3`)
 
 Version 1.2 plus the commits since the `v1.2` tag, built from `a08cbc3da082b9b94f6e09651fd9c53f26d59bfa` with the player build flags, the execution profile `tools/vgx_build/pgo/game.profdata` and vitaGL `nhustd` (8 patches). The compiled-shader seed is 1.2's: the fixes in this version leave the shader text unchanged.

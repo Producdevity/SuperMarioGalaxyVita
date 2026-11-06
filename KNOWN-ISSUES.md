@@ -10,7 +10,7 @@ Thanks for playing! If something here bothers you, or you find something new, op
 - **The first start takes about 4 minutes** while the graphics are unpacked, with a progress bar on screen. It only happens once, and the next start reaches the graphics in under a second.
 
 ## Reported And Not Fixed Yet
-- **Crashes around water.** People reported crashes getting in or out of water in Beach Bowl and Deep Dark, and while racing Guppy in Sea Slide ([#13](https://github.com/CBOC-Vita-Lab/galaxy-vita/issues/13), [#19](https://github.com/CBOC-Vita-Lab/galaxy-vita/issues/19), [#23](https://github.com/CBOC-Vita-Lab/galaxy-vita/issues/23)). They aren't fixed yet and weren't re-tested.
+- **Opening Settings while the game is running** failed in testing, with `settings: the menu could not open` in the log. Close the game and open Settings from the LiveArea instead. That way wasn't re-tested for this version.
 - **Music after sleep** ([#7](https://github.com/CBOC-Vita-Lab/galaxy-vita/issues/7)). 1.3 opens a music file again when a read fails. It kept playing after a long sleep in testing, but leaving the game with the PS button wasn't tested. If it still stops, please say so in the issue.
 - **Some visual glitches** from the original build are still open, such as black flashing ground in Matter Splatter ([#21](https://github.com/CBOC-Vita-Lab/galaxy-vita/issues/21)) and Bowser's model twisting in cutscenes ([#11](https://github.com/CBOC-Vita-Lab/galaxy-vita/issues/11)).
 

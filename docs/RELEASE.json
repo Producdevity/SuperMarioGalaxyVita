@@ -1,16 +1,16 @@
 {
   "schemaVersion": 2,
-  "releaseId": "galaxy-v1.3",
-  "version": "1.3",
+  "releaseId": "galaxy-v1.4",
+  "version": "1.4",
   "date": "2026-11-06",
   "titleId": "PDEV00001",
   "package": {
     "path": "SuperMarioGalaxyVita-Producdevity.vpk",
-    "sha256": "2fd8238c5234a0341c6da8ff62683f813865a7451e51976d603e54f0e4a26259",
-    "runtimeSha256": "1306a6a13946de54934ef533cc9b293fced1d5e04a3e9b0cd2dcb1b7f7e95791"
+    "sha256": "78c4dc36e6db6fe9b07345e488e34c7d5d8fcee2980e8570cab45d7dfc4634f0",
+    "runtimeSha256": "97a30513ec03880b051750fe0c83f5bb4b8ce3fcf049619e76f75838a42707e1"
   },
   "source": {
-    "revision": "a08cbc3da082b9b94f6e09651fd9c53f26d59bfa",
+    "revision": "ee9b7d7840514d30290719f79f508921e65647ea",
     "manifest": "docs/SOURCE-MANIFEST.json"
   },
   "buildOptions": {
@@ -34,9 +34,9 @@
     "destination": "ux0:data/smg/game"
   },
   "verification": {
-    "hostTests": "python3 -m unittest discover -s tests on a clone: 111 pass, and the tests workflow passes on GitHub at f8db449. At the same source on the Clang 18 image: controls, rear touch, guest memory, shader list, shader learning and seed cache tests pass. tools/test_dvd_errors.sh does not build on that image; built separately, its 325 read callbacks pass",
-    "consoleRuns": "A PS Vita on 6 Nov 2026. The test build of this source against 1.2: Lumas, ground pound trail, Honey Queen, pole damage, Good Egg scenario 6, shader list repair and replacement, five galaxies, a sleep of about 1 h 45 min. This package's eboot.bin and param.sfo, the only two files that differ from 1.2, over a 1.2 install: first start 12.2 s without unpacking shaders, repeat start 10.9 s, Good Egg 47.9 FPS with no new crash dump. Saves and settings byte-identical afterwards",
-    "notCovered": "Launch from the LiveArea; installing over 1.2 with VitaShell (the two changed files were copied through vitacompanion); CBOC Vita Installer; a PSVshell profile on PDEV00001; a console without PSVshell installed; closing the real Settings menu (the rear touch reset was called directly); leaving with the PS button; a failed read across a sleep (music kept playing, but the retry never ran)",
+    "hostTests": "python3 -m unittest discover -s tests on a clone: all pass. tools/test_vita_controls.sh and tools/test_vita_rear_touch.sh pass on the Clang 18 image, at this source",
+    "consoleRuns": "A PS Vita on 6 Nov 2026. The logging build of 1.3 crashed in Beach Bowl's eel cave 85 s after Mario got there: sceGxmCreateRenderTarget failed and the dump shows a null write in update_scissor_test. The logging build of this source in the same run: 3 min 15 s, 444 pooled objects replaced, at most 16 at a time, no failure. Deep Dark and a lap of Sea Slide's ring: the same limit reached, 276 and 214 objects replaced, no failure. Star Bit reach: Mario still and the pointer hidden, Star Bits 1 at Off and 37 at All; Select stepped the level in the pause menu and it was saved. This package's eboot.bin and param.sfo, the only two files that differ from 1.3, over the test build: first start 11.6 s without unpacking shaders, repeat start 11.7 s, 7 minutes in Beach Bowl with Mario by the eels and no crash dump. Saves and settings byte-identical afterwards",
+    "notCovered": "The race against Guppy itself in Sea Slide (a lap of its ring with warps instead); the 2x and 3x levels of Star Bit reach with a real pointer; Launch from the LiveArea; CBOC Vita Installer; a PSVshell profile on PDEV00001; a console without PSVshell installed; installing over 1.3 with VitaShell (the two changed files were copied through vitacompanion); opening the Settings menu while the game runs (it failed in a playtest, unsolved); leaving with the PS button; a failed read across a sleep",
     "physicalVita": true,
     "desktopInstaller": false
   },

@@ -1,3 +1,15 @@
+# Version 1.4 — November 6, 2026
+
+The crashes around water, and a new setting for collecting Star Bits.
+
+### New
+- **Star Bit Reach.** Press Select in the pause menu to step through Off, 1.5×, 2×, 3× and All. The middle levels let the pointer collect Star Bits from further away. All collects every Star Bit on screen without aiming. Off is the original game, and the default.
+
+### Fixed
+- **Crashes around water** ([#13](https://github.com/CBOC-Vita-Lab/galaxy-vita/issues/13), [#19](https://github.com/CBOC-Vita-Lab/galaxy-vita/issues/19), [#23](https://github.com/CBOC-Vita-Lab/galaxy-vita/issues/23)). Some copies of the picture change size with every frame around water, and each new size took one of the Vita's few dozen render targets. When they ran out the game crashed. The game now keeps at most 16 and reuses the oldest. Reproduced in the cave next to the eels in Beach Bowl, where it crashed within 90 seconds. With the fix the same run went on without an error. Deep Dark went through more than twice as many targets without a crash.
+
+Coming from 1.3? Install the VPK over it. Your saves and settings stay, and the shaders aren't unpacked again.
+
 # Version 1.3 — November 6, 2026
 
 Colours, fur, damage and a memory bug in the hidden stars. Most of these are places where the Wii's byte order or number format got lost on the Vita. Every fix below was compared with 1.2 on a PS Vita unless it says otherwise.

@@ -9,7 +9,7 @@
 //
 //   rung  size      samples  cost
 //   0     544x388   1        0.72   floor: only when the GPU is the limit AND a lower size shortens the frames
-//   1     592x422   1        0.86
+//   1     592x424   1        0.86
 //   2     640x456   1        1.00   start (today's picture)
 //   3     720x480   1        1.18
 //   4     800x504   1        1.38
@@ -114,7 +114,7 @@ struct Rung {
     uint16_t w, h;   // render size for a 640x456 EFB
     uint8_t samples; // the EFB's samples a pixel (1: no multisampling)
 };
-inline constexpr Rung kLadder[] = {{544, 388, 1}, {592, 422, 1}, {640, 456, 1}, {720, 480, 1}, {800, 504, 1},
+inline constexpr Rung kLadder[] = {{544, 388, 1}, {592, 424, 1}, {640, 456, 1}, {720, 480, 1}, {800, 504, 1},
                                    {880, 520, 1}, {960, 544, 1}, {960, 544, 2}, {960, 544, 4}};
 inline constexpr int kRungs = static_cast<int>(sizeof kLadder / sizeof kLadder[0]);
 inline constexpr int kToday = 2;      // 640x456: the size of every build before automatic quality
@@ -122,6 +122,15 @@ inline constexpr int kTopSingle = 6;  // 960x544, the highest rung without multi
 inline constexpr int kBaseW = 640, kBaseH = 456;
 inline constexpr int kEmergency = -1, kNoRung = -2;
 inline constexpr Rung kEmergencySize{480, 340, 1};
+// The image effects work in a corner of the EFB (a half or a quarter of it: 320x228, 160x114) and then draw the saved
+// corner back; the corner must end on whole render pixels. At 592x422 the quarter ended at row 105.5, a pixel's centre,
+// where the copy that saves it and the draws over it can round to different rows.
+constexpr bool CornersOnPixels() {
+    for (const Rung& r : kLadder)
+        if (r.w % 4 != 0 || r.h % 4 != 0) return false;
+    return kEmergencySize.w % 4 == 0 && kEmergencySize.h % 4 == 0;
+}
+static_assert(CornersOnPixels(), "every render size keeps the EFB's quarter on whole pixels");
 // Keep the public 0..8 rung IDs unchanged; the extra floor exists only in target mode.
 inline const Rung& RungAt(int rung) { return rung == kEmergency ? kEmergencySize : kLadder[rung]; }
 inline double MsaaCost(int samples) { return samples >= 4 ? 1.9 : (samples >= 2 ? 1.3 : 1.0); }

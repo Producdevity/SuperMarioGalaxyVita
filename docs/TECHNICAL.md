@@ -62,7 +62,7 @@ Developer switches (`GXV_*` in `platform/vgx/src/` and `platform/vgx/vita/vgx_ho
 (`=2`) that runs the fast path and the old path side by side and logs every difference:
 `GXV_STATELIST`, `GXV_RSCACHE`, `GXV_REGSHADOW`, `GXV_TEXMEMO`, `GXV_MERGEFAST`, `GXV_SPLIT`.
 
-The automatic quality's ladder (rungs 0-8): 544x388, 592x422, 640x456 (the Wii's EFB size and the
+The automatic quality's ladder (rungs 0-8): 544x388, 592x424, 640x456 (the Wii's EFB size and the
 start), 720x480, 800x504, 880x520, 960x544, then 960x544 with the EFB multisampled 2x and 4x.
 
 ## What's In Version 1.0

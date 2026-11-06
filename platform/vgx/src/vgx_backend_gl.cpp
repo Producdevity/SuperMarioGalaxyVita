@@ -2666,7 +2666,7 @@ void ResetCrowd();
 // expects) and the pooled framebuffer objects (those of the old sizes are let go).
 //   GXV_AUTOQ=1|0           the controller on (default on the Vita, where the GPU clock exists; off elsewhere) / off:
 //                           the EFB's own size, every build before this one
-//   GXV_AUTOQ_LEVEL=<rung>  a fixed rung, 0-8 (testing, no controller): 0 544x388, 1 592x422, 2 640x456, 3 720x480,
+//   GXV_AUTOQ_LEVEL=<rung>  a fixed rung, 0-8 (testing, no controller): 0 544x388, 1 592x424, 2 640x456, 3 720x480,
 //                           4 800x504, 5 880x520, 6 960x544, 7 960x544 with 2x multisampling, 8 960x544 4x (sizes for
 //                           the 640x456 EFB; another EFB scales alike)
 //   GXV_AUTOQ_MIN=<rung>, GXV_AUTOQ_MAX=<rung>   the lowest / highest rung the controller may use (default 0 / 8)

@@ -19004,11 +19004,11 @@
     },
     {
       "path": "platform/vgx/src/vgx_autoq.h",
-      "sha256": "69f7a594ccef61c04f8b46cc04cc7fc810a6338cae7161a6325a5ebe5d2e15b4"
+      "sha256": "fe7d573714f34834faac518d266e647045b66fdf2b0324e9841dcc6a178108b5"
     },
     {
       "path": "platform/vgx/src/vgx_backend_gl.cpp",
-      "sha256": "46a36149f62b8af6b7ab3a246f8eda1a0e4612d862c50e2d284da185b0f21afa"
+      "sha256": "c89c86b9b638768748aee2efca23d124b3f91b77b25a3eed17544a2008d96f0f"
     },
     {
       "path": "platform/vgx/src/vgx_backend_null.cpp",

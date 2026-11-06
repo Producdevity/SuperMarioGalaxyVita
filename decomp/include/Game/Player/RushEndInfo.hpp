@@ -17,9 +17,15 @@ public:
     /* 0x20 */ union {
         u32 _20;
         struct {
+#if defined(__MWERKS__) || defined(__BIG_ENDIAN__)
             u32 _0 : 4;
             u32 mDamageType : 4;
             u32 _8 : 24;
+#else
+            u32 _8 : 24;
+            u32 mDamageType : 4;
+            u32 _0 : 4;
+#endif
         } mFlags;
     };
 };

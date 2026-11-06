@@ -4892,7 +4892,7 @@
     },
     {
       "path": "decomp/include/Game/Player/RushEndInfo.hpp",
-      "sha256": "52162aba8f4d3e1db38f02ac136b9c5740f6fe61be0627f5611fef89fc60a76e"
+      "sha256": "cd058904acb600ce303a1d3ed10e2a6b30045fa8f72b4b5ad9c2b045c99294ee"
     },
     {
       "path": "decomp/include/Game/Player/TornadoMario.hpp",

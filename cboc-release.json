@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "releaseId": "galaxy-v1.2",
+  "releaseId": "galaxy-v1.3",
   "titleId": "PDEV00001",
   "displayName": "Super Mario Galaxy (Producdevity)",
-  "version": "1.2",
+  "version": "1.3",
   "minInstallerVersion": "1.1",
   "visibility": "public",
   "releaseState": "ready",
   "recipeId": "galaxy",
   "package": {
     "path": "SuperMarioGalaxyVita-Producdevity.vpk",
-    "sha256": "c6925706f4b4f313f99de9c1a9849efd4fc260a0638ba9c945ab6059c2d8cc59",
-    "runtimeSha256": "9dcdfd94c9b1d6fefc6f9d48f0e6a9c856c54c7dae909ba60bc7a972a473ea05"
+    "sha256": "2fd8238c5234a0341c6da8ff62683f813865a7451e51976d603e54f0e4a26259",
+    "runtimeSha256": "1306a6a13946de54934ef533cc9b293fced1d5e04a3e9b0cd2dcb1b7f7e95791"
   },
   "requiredInputs": [
     {
@@ -50,5 +50,7 @@
     "maxFileBytes": 17179869184,
     "maxTotalBytes": 34359738368
   },
-  "appUpdateFrom": []
+  "appUpdateFrom": [
+    "9dcdfd94c9b1d6fefc6f9d48f0e6a9c856c54c7dae909ba60bc7a972a473ea05"
+  ]
 }

@@ -1,3 +1,24 @@
+# Version 1.3 — November 6, 2026
+
+Colours, fur, damage and a memory bug in the hidden stars. Most of these are places where the Wii's byte order or number format got lost on the Vita. Every fix below was compared with 1.2 on a PS Vita unless it says otherwise.
+
+### Fixed
+- **Lumas are yellow again** ([#14](https://github.com/CBOC-Vita-Lab/galaxy-vita/issues/14)). They came out white because the Wii only reads the low byte of a colour value there and the port used the whole number. The same fix covers the cut in Mario's eyeball and Dino Piranha's shiny look, which weren't checked in game.
+- **Effect colours** ([#14](https://github.com/CBOC-Vita-Lab/galaxy-vita/issues/14)). Mario's ground pound trail was green and is red-violet now. The black hole trail, Boo glows and launch star path glows went through the same code, as did Mario's dark silhouette behind walls. Those weren't checked in game.
+- **Fur.** The Honey Queen was dull and washed out. She has her bright yellow, dark stripes and fur back.
+- **Damage while holding on.** An enemy's hit that releases Mario, like on a pole, took no health. It does now.
+- **Hidden stars.** In 16 galaxies, the last scenarios wrote past the end of a block of memory. Luigi on the Roof in Good Egg runs and pauses normally.
+- **Music after sleep** ([#7](https://github.com/CBOC-Vita-Lab/galaxy-vita/issues/7)). A music file that fails to read is now opened again, up to 4 tries in 300 ms, instead of staying silent. After a real sleep of 1 hour 45 minutes the music kept streaming, but no read failed in that run, so the retry itself hasn't run on a console yet.
+- **Rear touch right after Settings.** A finger resting on the rear pad no longer blocks aiming until every finger is off. Checked with the same reset the menu does, not by closing the real menu.
+- **The list of graphics effects on the card.** Rewriting it never finished on a console, so the game stopped learning new effects for that session. A list from an older version is now replaced by the package's. Before, a console updated from 1.0 to 1.1 could stall for 10.8 seconds on its first Comet Observatory entry.
+- **The line in Beach Bowl** ([#12](https://github.com/CBOC-Vita-Lab/galaxy-vita/issues/12)). The second picture size is 592x424, so the bloom's edge lands on a whole pixel. The picture is right at that size, but the line never showed up in my runs on either build, so this one isn't proven.
+- **HD texture packs.** The pack builder now uses the Wii's own palette weights, which matters at the edges of upscaled textures. Only packs you build from now on change.
+
+### Measured on a PS Vita
+No overclocking plugin, Mario moving, last 30 seconds of a scripted run: Good Egg 47.9 fps, Honeyhive 37.2, Toy Time 32.1, Comet Observatory 31.5, Beach Bowl 25.1. The game kept 58.6 to 60.2 of its 60 updates a second. Same speed as 1.2, the small differences are noise.
+
+Coming from 1.2? Install the VPK over it. Your saves and settings stay, and the shaders aren't unpacked again.
+
 # Version 1.2 — November 5, 2026
 
 The first release of Producdevity's build. It installs next to the original, the movies stop stuttering, and heavy scenes run a lot better.

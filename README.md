@@ -42,19 +42,19 @@ running, jumping and spinning:
 | | |
 |---|---|
 | **Good Egg Galaxy** | **47.9 fps** (47.7 at its lowest) |
-| **Honeyhive Galaxy** | **37.0 fps** (36.5 lowest) |
-| **Toy Time Galaxy** | **31.9 fps** (31.6 lowest) |
-| **Comet Observatory** | **31.4 fps** (30.9 lowest) |
-| **Beach Bowl Galaxy**, the heaviest place measured | **24.7 fps** (24.1 lowest) |
+| **Honeyhive Galaxy** | **37.2 fps** (36.9 lowest) |
+| **Toy Time Galaxy** | **32.1 fps** (31.8 lowest) |
+| **Comet Observatory** | **31.5 fps** (31.2 lowest) |
+| **Beach Bowl Galaxy**, the heaviest place measured | **25.1 fps** (24.4 lowest) |
 | **Stutters longer than a tenth of a second** | **0** in those stretches |
-| **Game speed** | 58.5 to 60.2 of the game's 60 updates a second. When a moment is too busy, a picture is skipped instead of the game slowing down. |
+| **Game speed** | 58.6 to 60.2 of the game's 60 updates a second. When a moment is too busy, a picture is skipped instead of the game slowing down. |
 | **Sharpness** | 640×456 up to the Vita's full 960×544 with anti-aliasing, chosen automatically. It only changes during pauses and fades, so it never hitches mid-jump. |
 | **Graphics effects compiled ahead of time** | 1,405, so new effects don't pause the game |
 | **Download** | about 7 MB (2.5 GB on the memory card with your game files) |
 
 (The lowest number is the slowest 5-second stretch.)
 
-An overclock helps a lot here. On the same route, the build just before this one with a PSVshell profile at about 490 MHz
+An overclock helps a lot here. On the same route, the build just before 1.2 with a PSVshell profile at about 490 MHz
 ran Good Egg at 57.4 fps and Beach Bowl at 31.8. PSVshell profiles are per title, so make one for this build if you use it.
 
 ![The Comet Observatory on the PS Vita](store/screenshots/02-comet-observatory.png)

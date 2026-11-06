@@ -1,5 +1,5 @@
 {
-  "release": "galaxy-v1.2",
+  "release": "galaxy-v1.3",
   "scope": "Every source file of the release (decomp/, platform/, vita/, tests/, tools/, armhf/ and the root build files) with its SHA-256",
   "files": [
     {
@@ -20772,7 +20772,7 @@
     },
     {
       "path": "tools/vgx_build/README.md",
-      "sha256": "9b6d305e0d0d12eeda4bb4a2a6aad74f849d4501b6307a494c51ab1fd1a1b8aa"
+      "sha256": "9174b9894b1fc7a324babcc72dcc5d1a9378028a9a1997c2c1331dc2f6bdc50a"
     },
     {
       "path": "tools/vgx_build/build.py",

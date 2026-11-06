@@ -110,8 +110,8 @@ def _cmpr_blocks(d, nb):
     p0 = _rgb565(c0).astype(np.int32)
     p1 = _rgb565(c1).astype(np.int32)
     gt = (c0 > c1)[..., None]
-    p2 = np.where(gt, (2 * p0 + p1) // 3, (p0 + p1) // 2)
-    p3 = np.where(gt, (p0 + 2 * p1) // 3, 0)
+    p2 = np.where(gt, (5 * p0 + 3 * p1) // 8, (p0 + p1) // 2)
+    p3 = np.where(gt, (3 * p0 + 5 * p1) // 8, (p0 + p1) // 2)
     p2[..., 3] = 255
     p3[..., 3] = np.where(gt[..., 0], 255, 0)
     pal = np.stack([p0, p1, p2, p3], 2).astype(np.uint8)  # (nb, 4 sub, 4 colours, 4)

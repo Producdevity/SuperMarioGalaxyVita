@@ -20164,7 +20164,7 @@
     },
     {
       "path": "tools/hdtex/gxdecode.py",
-      "sha256": "ef4a60f3548e7a1130664bb1ec6997317e9784d7f464fc4b1a2f8fb07175bc8c"
+      "sha256": "020512fa1d759b3cdf14130a042c42f7c8e340f77ed3e487bef9f4c241c689c6"
     },
     {
       "path": "tools/hdtex/make_test_pack.py",
@@ -20749,6 +20749,10 @@
     {
       "path": "tools/test_xfburst.sh",
       "sha256": "96d61b76eefda4fd6ea06d5db7d8570575355491f40beef1d2ac4d428d4b6668"
+    },
+    {
+      "path": "tools/tests/test_hdtex_decode.py",
+      "sha256": "5b23adabbf7bb4df4960c028154a688ba6bb3329732b11735e42454e21eb90bf"
     },
     {
       "path": "tools/tests/test_installer.py",

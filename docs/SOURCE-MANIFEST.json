@@ -20776,7 +20776,7 @@
     },
     {
       "path": "tools/vgx_build/build.py",
-      "sha256": "1d3bd86d13140eb35a9d9eb26c52ece469a3e35c6248c937dc08d40edb3495c8"
+      "sha256": "e7ebf163248f5e22e0a3bfec0147ada8b343c6f0ed3de16a86b27cc4b58a3c23"
     },
     {
       "path": "tools/vgx_build/inputs.json",
@@ -21064,7 +21064,7 @@
     },
     {
       "path": "vita/vgx-game/CMakeLists.txt",
-      "sha256": "5c26460749945ed1f5066ce733e64c2f1d1eefcc4bb4157f1b8f960cea28eaef"
+      "sha256": "30d4247cff72eb2a17ccd9396ee50307c13a3e02fcc85a88030e1e7190156e77"
     },
     {
       "path": "vita/vgx-game/coldtrace_export.cpp",

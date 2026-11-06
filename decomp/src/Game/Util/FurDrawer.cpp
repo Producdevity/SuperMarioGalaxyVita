@@ -263,6 +263,18 @@ void FurDrawer::setupLayerMaterial(s32 layer) const {
     }
 }
 
+#ifdef TARGET_PC
+namespace {
+    // GX reads an IA8 texel as alpha, then intensity: the Wii's big-endian u16 order. A u16 store on a
+    // little-endian host swaps them, and every fur shell turned opaque.
+    inline void setFurTexel(u16* pTexel, u16 value) {
+        u8* pBytes = reinterpret_cast< u8* >(pTexel);
+        pBytes[0] = value >> 8;
+        pBytes[1] = value & 0xFF;
+    }
+}  // namespace
+#endif
+
 void FurDrawer::createFurMap() {
     u32 count;
     u16* pPixels;
@@ -272,7 +284,11 @@ void FurDrawer::createFurMap() {
     count = height * width;
 
     for (u32 i = 0; i < count; i++) {
+#ifdef TARGET_PC
+        setFurTexel(&pPixels[i], 255);
+#else
         pPixels[i] = 255;
+#endif
     }
 
     for (u32 type = 0; type < 4; type++) {
@@ -290,7 +306,11 @@ void FurDrawer::createFurMap() {
                 x = s32(width) - 1;
             }
 
+#ifdef TARGET_PC
+            setFurTexel(&pPixels[x + width * y], (u16(255.0f * mThickness[type]) << 8) | u16(255 - mLengthMap[type]));
+#else
             pPixels[x + width * y] = (u16(255.0f * mThickness[type]) << 8) | u16(255 - mLengthMap[type]);
+#endif
         }
     }
 

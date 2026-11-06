@@ -15420,7 +15420,7 @@
     },
     {
       "path": "decomp/src/Game/Util/FurDrawer.cpp",
-      "sha256": "5d8f9a362820875cfa93106bcc6daa91c7c5a581d73e06bdaeac4e89448022af"
+      "sha256": "d09a087777df68e3840e9427c091aabbe0fe41afc5c70213bed5d5cb0fb5b405"
     },
     {
       "path": "decomp/src/Game/Util/FurMulti.cpp",

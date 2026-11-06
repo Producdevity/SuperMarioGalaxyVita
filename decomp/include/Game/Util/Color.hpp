@@ -16,8 +16,13 @@ public:
         set(r, g, b, a);
     }
 
+    // (a u32 colour is 0xRRGGBBAA, as JUtility::TColor's)
     Color8(u32 color) {
+#if defined(__MWERKS__) || defined(__BIG_ENDIAN__)
         mColor = color;
+#else
+        set(u8(color >> 24), u8(color >> 16), u8(color >> 8), u8(color));
+#endif
     }
 
     inline operator GXColor() const {
@@ -25,7 +30,11 @@ public:
     }
 
     inline operator u32() const {
+#if defined(__MWERKS__) || defined(__BIG_ENDIAN__)
         return mColor;
+#else
+        return (u32(r) << 24) | (u32(g) << 16) | (u32(b) << 8) | u32(a);
+#endif
     }
 
     inline const Color8& operator=(const GXColor& rOther) {

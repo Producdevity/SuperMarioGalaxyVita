@@ -6204,7 +6204,7 @@
     },
     {
       "path": "decomp/include/Game/Util/Color.hpp",
-      "sha256": "23662a908c4d6d36cb82dadda956421519f4305878ebce37ec98529b11b14604"
+      "sha256": "eabc6d71eec99be91da5ba89681bfcf514f46f7c0f1a47197c2c6cb1626504a1"
     },
     {
       "path": "decomp/include/Game/Util/DemoUtil.hpp",

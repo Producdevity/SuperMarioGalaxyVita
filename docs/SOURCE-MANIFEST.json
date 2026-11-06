@@ -19615,6 +19615,10 @@
       "sha256": "d99dfb866ef10af1546451624f286c92dea6e7cce1aeb18c6982d1e9b1515cad"
     },
     {
+      "path": "tests/vgx_guestmem_generation.cpp",
+      "sha256": "66ef345cc206dc6a2a2e0e9d32f3a308b5dfb04d3ac519535d5c9d7e85bd937c"
+    },
+    {
       "path": "tests/vgx_hdtex.cpp",
       "sha256": "6e949f3a3ff8c6c4a64b3f4d9840c6345daffd8dda220e78d6d8dc8397edb1e0"
     },
@@ -20529,6 +20533,10 @@
     {
       "path": "tools/test_vgx_fxscan_gl.sh",
       "sha256": "261b47ccdd802ce94d33c66bce325eca059a6d030b7d51b57ff3b767583c4db4"
+    },
+    {
+      "path": "tools/test_vgx_guestmem_generation.sh",
+      "sha256": "e223d10a3eabc9c2f8a210fccacf0ca212e5022fcf334964072d8fc587e7f6b8"
     },
     {
       "path": "tools/test_vgx_hdtex.sh",

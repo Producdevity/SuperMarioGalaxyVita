@@ -5636,7 +5636,7 @@
     },
     {
       "path": "decomp/include/Game/Screen/StarPointerTarget.hpp",
-      "sha256": "499cd69e5d9a664345a7a5a4f38c18651a6e2df149ec57a141fb1f2299b62d5d"
+      "sha256": "48bbe6b298659151cd57fe063522381c48cce2fd6bb4b3c7369a3a47b9b5fb03"
     },
     {
       "path": "decomp/include/Game/Screen/SubMeterLayout.hpp",
@@ -6436,7 +6436,7 @@
     },
     {
       "path": "decomp/include/Game/Util/StarPointerUtil.hpp",
-      "sha256": "6658e5addcadcf9c9dd4d9a6a0cd831197b16350119ab3999bda58a9725f844a"
+      "sha256": "6063fbd09a0d946b0e4056bfaa44ef20e36ed8c9c967ac32e4b1cf3cb97afe97"
     },
     {
       "path": "decomp/include/Game/Util/StringUtil.hpp",
@@ -13140,7 +13140,7 @@
     },
     {
       "path": "decomp/src/Game/MapObj/StarPiece.cpp",
-      "sha256": "3622877e1b052786b3e903ea375600d6b88a3a83b5b4d3421ee2d97d7594264b"
+      "sha256": "98a6c275f388bc7d71b6dbce01d355861daf0c2dd56e138f3ac71cfbf88410ea"
     },
     {
       "path": "decomp/src/Game/MapObj/StarPieceDirector.cpp",
@@ -14828,7 +14828,7 @@
     },
     {
       "path": "decomp/src/Game/Screen/StarPointerTarget.cpp",
-      "sha256": "3b0dcf8bf0859b7a830f8d6f23e0bf2487432dcfc5a64fdef7bfd9be57dbc58f"
+      "sha256": "02dc8b984505358b5969c2f4b1bd51d0b772225f1b0881266335f73475109b04"
     },
     {
       "path": "decomp/src/Game/Screen/SubMeterLayout.cpp",
@@ -15592,7 +15592,7 @@
     },
     {
       "path": "decomp/src/Game/Util/StarPointerUtil.cpp",
-      "sha256": "f5b42990564475279b64678216043e84e65597ce7f896b4adca60a1a50e6e5fe"
+      "sha256": "f3b2944b3fa4a18e0593039c1710372dff57e69005c0ab87ae0640e523c6e56b"
     },
     {
       "path": "decomp/src/Game/Util/StringUtil.cpp",
@@ -18864,7 +18864,7 @@
     },
     {
       "path": "platform/src/port/perf.cpp",
-      "sha256": "b74f6b07117d1c42acf1ccc6ef0246cf56b65cf1c5e3e57b87ada4a0140aa60a"
+      "sha256": "c5cf47d6b3d2399e5938b2265f4877e7d6e2ce99bc3db7b888c145b09bc72963"
     },
     {
       "path": "platform/src/port/phase_cpu.h",
@@ -18876,15 +18876,15 @@
     },
     {
       "path": "platform/src/port/settings_panel.cpp",
-      "sha256": "080c913b75ab6cc3c7939a96e947d6a3c3ca53fa77a9bdd9c547e895be3abdab"
+      "sha256": "3a816aa5e68d320e45f07ff025f166d57ab48bed83819a13ab989b92efef0aa0"
     },
     {
       "path": "platform/src/port/settings_panel_plan.cpp",
-      "sha256": "d42dac740860654486406c84a661e04f572aa342b4fc71f204d92f5e501e76ec"
+      "sha256": "ba2b2267a98470376915d37c2fc3eed72d975f7184a920b671829a1e796309d0"
     },
     {
       "path": "platform/src/port/settings_panel_plan.h",
-      "sha256": "3539cfd6b6e545a8f0b82d2be88840398abc73885398b08dbe6f00dddd8c1a2a"
+      "sha256": "a9eba524cd27e8055eb853c4d7ee5ffe774eaa3075999da1ece0db62972a5ca7"
     },
     {
       "path": "platform/src/port/wstring.cpp",
@@ -19008,7 +19008,7 @@
     },
     {
       "path": "platform/vgx/src/vgx_backend_gl.cpp",
-      "sha256": "c89c86b9b638768748aee2efca23d124b3f91b77b25a3eed17544a2008d96f0f"
+      "sha256": "0c727dedde6c7cdc2078bbf088724ad43a9e37c715a79820f29dc0953c093048"
     },
     {
       "path": "platform/vgx/src/vgx_backend_null.cpp",
@@ -19760,7 +19760,7 @@
     },
     {
       "path": "tests/vita_controls.cpp",
-      "sha256": "f9aceaf605c77d0927a1019066eaaac014e214b15e5181284b22030f5b64f6d2"
+      "sha256": "db2eaf21f002ef75c2a88e766bd69695fb042edc9b7e436bfd5047ab853f42e9"
     },
     {
       "path": "tests/vita_csv_status.cpp",
@@ -19832,7 +19832,7 @@
     },
     {
       "path": "tests/vita_rear_touch.cpp",
-      "sha256": "d6bf198450b1592e9f3e93b0d491b321df7a8ede1a698fc4d726e94cc1078f2d"
+      "sha256": "f6ec3c5dd99b7b79bcf4ebbcedbff3a3e15d66ec0f9be70461fa97fd4546384a"
     },
     {
       "path": "tests/vita_scheduling_audit.cpp",
@@ -20260,11 +20260,11 @@
     },
     {
       "path": "tools/settings_panel_preview/preview.cpp",
-      "sha256": "d0fe66a3e67673fc96f31b985fa0d4c300a14002b2e4b2a33432e1bffa77732d"
+      "sha256": "a8b4606ef1787f8d604f3eaabaacdc34929fb46566d1288d9ca565ddaa4ed911"
     },
     {
       "path": "tools/settings_panel_preview/render.py",
-      "sha256": "ce7f10e2a0d7fcc269b19ec0ece0ed1c191f5d492d78b319310ccd29fbe4a03c"
+      "sha256": "199119074183b57ac66ce6680b9753976a2c0b6ea9480cf4c0363f5d7a9add93"
     },
     {
       "path": "tools/sjis_literals.py",
@@ -20776,7 +20776,7 @@
     },
     {
       "path": "tools/vgx_build/build.py",
-      "sha256": "e7ebf163248f5e22e0a3bfec0147ada8b343c6f0ed3de16a86b27cc4b58a3c23"
+      "sha256": "7bc7ccd2d42fd10b2f12026985ec82c4776cec094b8c68a8cb9dd72abb36bc82"
     },
     {
       "path": "tools/vgx_build/inputs.json",
@@ -21032,7 +21032,7 @@
     },
     {
       "path": "vita/runtime/input.cpp",
-      "sha256": "364cb89c94857dd62a571670a1c33569a85346f675ce1c617a32ce1a2ffbac79"
+      "sha256": "b2f1c3da9b2da29dc94ebdb5c7ad7a9840b8ab0ce4561e5a7f55034e7a0c6128"
     },
     {
       "path": "vita/runtime/input.h",
@@ -21064,7 +21064,7 @@
     },
     {
       "path": "vita/vgx-game/CMakeLists.txt",
-      "sha256": "30d4247cff72eb2a17ccd9396ee50307c13a3e02fcc85a88030e1e7190156e77"
+      "sha256": "be971bd182084054ede25939d1ce5779275537a254906a3f8b1517cedb6c4c4a"
     },
     {
       "path": "vita/vgx-game/coldtrace_export.cpp",

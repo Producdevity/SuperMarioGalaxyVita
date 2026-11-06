@@ -330,6 +330,11 @@ struct PoolFbo {
 namespace PoolHeld { constexpr uint8_t FX = 1; }
 std::vector<PoolFbo> g_pool;
 uint64_t g_presents = 0; // CMD_PRESENTs executed (pool ageing)
+uint64_t g_poolEvicted = 0;   // pooled objects deleted by EvictIdlePool and RecycleFbo (status line)
+// Stages use 2 to 5 objects. Around water a copy can change size with every picture; the system's render targets then run out
+// faster than GXV_POOL_IDLE frees them, sceGxmCreateRenderTarget fails, the scene does not begin and vitaGL writes through a null
+// uniform buffer. A full pool gives up its oldest object instead (RecycleFbo).
+constexpr size_t kPoolMax = 16;
 uint32_t g_fboMaxUses = 8;
 // The usage hint of the display-list cache's static vertex and index buffers.
 // GXV_STATIC_USAGE=dynamic (the Vita host's default; "static" elsewhere): on vitaGL the
@@ -2126,6 +2131,30 @@ void ClearEfb(const ClearSpec& c, const EfbRect& r) {
     }
 }
 
+// A full pool: the object unused the longest becomes a new one of w x h, in its slot, so the indexes of open passes stay valid.
+// An object used this frame stays: its colour may still be sampled. -1: nothing to give up, the pool grows.
+int RecycleFbo(int w, int h) {
+    if (KeepRenderTargets() || g_pool.size() < kPoolMax) return -1;
+    int oldest = -1;
+    for (size_t i = 0; i < g_pool.size(); ++i) {
+        const PoolFbo& f = g_pool[i];
+        if (f.held || f.lastUse == g_presents || f.fbo == g_inUseFbo || f.fbo == S.fbo || static_cast<int>(i) == g_pass) continue;
+        if (oldest < 0 || f.lastUse < g_pool[oldest].lastUse) oldest = static_cast<int>(i);
+    }
+    if (oldest < 0) return -1;
+    PoolFbo& f = g_pool[oldest];
+    G(glDeleteFramebuffers(1, &f.fbo));
+    if (f.color) { ForgetTex(f.color); G(glDeleteTextures(1, &f.color)); }
+    if (f.depthTex) { ForgetTex(f.depthTex); G(glDeleteTextures(1, &f.depthTex)); }
+    if (f.depthRb) G(glDeleteRenderbuffers(1, &f.depthRb));
+    f = PoolFbo{};
+    f.w = w;
+    f.h = h;
+    G(glGenFramebuffers(1, &f.fbo));
+    ++g_poolEvicted;
+    return oldest;
+}
+
 // A pooled framebuffer object of w x h that has uses left this frame (bound on return).
 // tex: the colour texture to draw into (of exactly this size); 0: the object's own colour
 // texture. wantDepth: with a depth buffer. An object that already has `tex` attached is
@@ -2150,6 +2179,7 @@ int AcquireFbo(int w, int h, GLuint tex, bool wantDepth) {
     if (idx < 0)
         for (size_t i = 0; i < g_pool.size(); ++i)
             if (g_pool[i].w == w && g_pool[i].h == h && g_pool[i].uses < g_fboMaxUses) { idx = static_cast<int>(i); break; }
+    if (idx < 0) idx = RecycleFbo(w, h);
     if (idx < 0) {
         PoolFbo f;
         f.w = w;
@@ -2695,7 +2725,6 @@ namespace {
 std::unique_ptr<autoq::Controller> g_autoq;
 bool g_autoqLog = false;
 uint64_t g_autoqStatusUs = 0;
-uint64_t g_poolEvicted = 0;   // pooled objects deleted by EvictIdlePool (status line)
 unsigned g_autoqTimed = 0;    // frames the GPU clock has timed (status line)
 int g_forceRung = autoq::kNoRung; // ForceQualityRung (-1 is the target-only emergency rung)
 long g_cycleSec = 0;          // GXV_AUTOQ_CYCLE

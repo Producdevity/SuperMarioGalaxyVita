@@ -6056,7 +6056,7 @@
     },
     {
       "path": "decomp/include/Game/System/SpinDriverPathStorage.hpp",
-      "sha256": "2fcd10c8d71ea4dbd990cc621df53adf1b109f9990cbcc04566ac630b77de682"
+      "sha256": "fac78232174ac39419b2cb19c6df299c11f484056470513d59080c5528ad86db"
     },
     {
       "path": "decomp/include/Game/System/StageResultSequenceChecker.hpp",
@@ -15240,7 +15240,7 @@
     },
     {
       "path": "decomp/src/Game/System/SpinDriverPathStorage.cpp",
-      "sha256": "cae16b1a3eb53d5c5f5ef6c5ae764c0f3ace2af70ff9a36ac2a5d8926a62696a"
+      "sha256": "bcb3c0253da3dc2dd1e1cc6f6b3edac333011deea09e59522352f3ba8700c77d"
     },
     {
       "path": "decomp/src/Game/System/StageResultSequenceChecker.cpp",

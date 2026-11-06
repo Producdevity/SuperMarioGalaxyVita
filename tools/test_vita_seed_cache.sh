@@ -17,7 +17,7 @@ docker run --rm --pull=never --platform linux/arm64 --network none --cpus=2 \
       tests/vita_seed_cache.cpp -o /tmp/seed-cache -l:libasan.so.8 -l:libubsan.so.1
     export ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1
     if test -n "$SEED_CASE"; then timeout 30s /tmp/seed-cache "$SEED_CASE"; continue; fi
-    for mode in equal-size copy-short-read copy-read-error copy-close-error copy-short-write same changed dir-error cap cap-exact partial-list stamp-read-error stamp-close-error legacy marker-nul marker-short-write zero-gxp existing-gxp adopt-read-error adopt-write-error adopt-close-error bucket-early bucket-lengths list-stat-error adopt-stat-error adopt-missing adopt-retry adopt-crash-before-list adopt-large stamp-known stamp-chunks stamp-io-count list-override adopt-close-retry adopt-restore-fail adopt-marker-fail adopt-preread-close-error; do
+    for mode in equal-size copy-short-read copy-read-error copy-close-error copy-short-write same changed dir-error cap cap-exact partial-list stamp-read-error stamp-close-error legacy marker-nul marker-short-write zero-gxp existing-gxp adopt-read-error adopt-write-error adopt-close-error bucket-early bucket-lengths list-stat-error adopt-stat-error adopt-missing adopt-retry adopt-crash-before-list adopt-large stamp-known stamp-chunks stamp-io-count list-override adopt-close-retry adopt-restore-fail adopt-marker-fail adopt-preread-close-error other-generator short-list other-generator-partial other-generator-seeded; do
       timeout 30s /tmp/seed-cache "$mode"
     done
     done

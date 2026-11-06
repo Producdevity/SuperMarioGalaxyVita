@@ -965,10 +965,12 @@ void MigrateOldShaderCaches(const char* folder, const char* cur) {
     }
 }
 bool g_seedIsNew = false;
+bool g_seedComplete = false; // every compiled shader of the package is in the cache folder
 char g_seedPendingStamp[80] = {}, g_seedPendingMarker[200] = {};
 // Returns the folder vitaGL is to use as its cache.
 const char* SeedShaderCache(const char* folder) {
     g_seedIsNew = false;
+    g_seedComplete = false;
     g_seedPendingStamp[0] = g_seedPendingMarker[0] = 0;
     const char* key = std::strrchr(folder, '/');
     static char seed[200];
@@ -988,13 +990,17 @@ const char* SeedShaderCache(const char* folder) {
     }
     if (const char* e = std::getenv("GXV_VITA_SEED"); e && std::strcmp(e, "app0") == 0) {
         port_log("[vgx-vita] GXV_VITA_SEED=app0: vitaGL reads the package's compiled shaders in place (%s)", seed);
+        g_seedComplete = true;
         return seed;
     }
     char stamp[80];
     uint64_t listSize = 0;
     const bool stamped = PackageStamp(stamp, sizeof(stamp), &listSize);
     const SeedMarker previous = stamped ? CheckSeedMarker(marker, stamp, listSize) : SeedMarker{};
-    if (previous.matches) return folder;
+    if (previous.matches) {
+        g_seedComplete = true;
+        return folder;
+    }
     const uint64_t t0 = NowUs();
     st.total = CountTree(seed, 0);
     splash::UnpackBegin(static_cast<int>(st.total));
@@ -1003,6 +1009,7 @@ const char* SeedShaderCache(const char* folder) {
     port_log("[vgx-vita] compiled shaders from the package copied to %s: %u files (%u KiB), %u already there, %u failed; %u folders; %u ms in all", folder,
              st.files - st.kept, st.bytes / 1024u, st.kept, st.failed, st.folders, static_cast<unsigned>((NowUs() - t0) / 1000u));
     if (st.failed == 0 && stamped && !previous.readError) {
+        g_seedComplete = true;
         if (previous.replaceList && !std::getenv("GXV_SHADERLIST") && !std::getenv("GXV_NO_SHADERLIST")) {
             // Keep the old fingerprint until list adoption succeeds, including across process restarts.
             std::snprintf(g_seedPendingStamp, sizeof g_seedPendingStamp, "%s", stamp);
@@ -1015,16 +1022,44 @@ const char* SeedShaderCache(const char* folder) {
     }
     return folder;
 }
+// A warm-up list begins with vgx_draw.cpp's ListHeader: magic, key sizes and the shader generator's version.
+constexpr size_t kListHeaderBytes = 24;
+// The bytes of the header read (fewer: a shorter file), or -1 when the file cannot be read.
+int ReadListHeader(const char* path, uint8_t (&out)[kListHeaderBytes]) {
+    const SceUID f = sceIoOpen(path, SCE_O_RDONLY, 0);
+    if (f < 0) return -1;
+    size_t got = 0;
+    bool ok = true;
+    while (got < kListHeaderBytes) {
+        const int n = sceIoRead(f, out + got, static_cast<SceSize>(kListHeaderBytes - got));
+        if (n < 0 || static_cast<size_t>(n) > kListHeaderBytes - got) { ok = false; break; }
+        if (n == 0) break;
+        got += static_cast<size_t>(n);
+    }
+    const bool closed = sceIoClose(f) == 0;
+    return ok && closed ? static_cast<int>(got) : -1;
+}
+// The card's list was written by another shader generator than the package's (1.0's lists are version 2, 1.1's 3): the
+// renderer would start it over empty. A header that cannot be read keeps the card's list.
+bool ListFromOtherGenerator(const char* packaged) {
+    uint8_t card[kListHeaderBytes], package[kListHeaderBytes];
+    if (ReadListHeader(packaged, package) != static_cast<int>(kListHeaderBytes)) return false;
+    const int got = ReadListHeader(kShaderListFile, card);
+    return got >= 0 && (got < static_cast<int>(kListHeaderBytes) || std::memcmp(card, package, kListHeaderBytes) != 0);
+}
 void SeedShaderList() {
     char seed[200];
     std::snprintf(seed, sizeof(seed), "%s/vgx_shaderlist.bin", kSeedDir);
     if (const char* e = std::getenv("GXV_VITA_SEED"); e && std::strcmp(e, "off") == 0) return;
-    // The card's own list is kept unless the package is new to this card: then the package's
-    // list (made from a tour of the game) replaces it. Shaders only the card's list knew are
-    // still in the compiled-shader cache and are added to the list again when they are met.
+    // The card's own list is kept unless the package is new to this card, or the list is another generator's and the package's
+    // compiled shaders are all in the cache: then the package's list (made from a tour of the game) replaces it. Shaders only
+    // the card's list knew are still in the compiled-shader cache and are added to the list again when they are met. (A new
+    // generator also means a new cache folder, with no marker to say the package is new: an update from 1.0 kept 1.0's list,
+    // and the renderer then started it over empty.)
     SceIoStat info{};
     const int status = sceIoGetstat(kShaderListFile, &info);
-    if (!g_seedIsNew && (status >= 0 || static_cast<uint32_t>(status) != kIoNotFound)) return;
+    const bool missing = status < 0 && static_cast<uint32_t>(status) == kIoNotFound;
+    if (!g_seedIsNew && !missing && (status < 0 || !g_seedComplete || !ListFromOtherGenerator(seed))) return;
     std::vector<uint8_t> packaged, old;
     bool ok = ReadSeedBytes(seed, packaged, kSeedMaxListBytes) == SeedRead::Ok && !packaged.empty();
     const SeedRead previous = ok ? ReadSeedBytes(kShaderListFile, old, kSeedMaxListBytes) : SeedRead::Error;

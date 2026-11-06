@@ -192,6 +192,12 @@ not console timings.
 - The vitaGL in use (upstream HEAD) keeps its cache in `v3`; the port's folder, the package's
   compiled-shader seed and the shader RAM pack follow it (`GXV_VGL_CACHE_DIR`).
 - **Caches stay valid across updates:** an older cache layout is moved in place, in whole folders, before the graphics library starts.
+- **A warm-up list from another shader generator is replaced** by the package's once the package's compiled shaders are all
+  in the cache. 1.1 kept 1.0's list (generator 2), which the renderer then started over empty: an updated console had no
+  warm-up, and the shaders of a new stage were prepared during its loading. A console updated that way had 214 of the
+  package's 955 shaders listed; its first Comet Observatory entry prepared 80 shaders and showed no new picture for 10.8 s.
+- **The list's rewrite replaces the old file first:** the console's rename refuses an existing destination, so a rewrite
+  through a temporary file and a rename never completed there, and the session learned nothing more.
 ### Controls and settings
 
 - **Settings panel:** the pause menu's camera zoom, rear-touch and right-stick settings are drawn as a panel in

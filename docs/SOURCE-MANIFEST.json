@@ -19172,7 +19172,7 @@
     },
     {
       "path": "platform/vgx/vita/vgx_host_galaxy_vita.cpp",
-      "sha256": "d02fd31e40d47b4aa06a88602bc142f098f5c78c21e51f3b45e53e9cd751eeb6"
+      "sha256": "7a18862488034555a8d23cc86d683431e63c300c4a54da369b0f20a5f4f01429"
     },
     {
       "path": "platform/vgx/vita/vgx_host_vita.cpp",
@@ -19836,7 +19836,7 @@
     },
     {
       "path": "tests/vita_seed_cache.cpp",
-      "sha256": "9b80c3234181354d038994a881c6206d6af543e0c3dc94a19613764636f2fd67"
+      "sha256": "681ebff0a52d588c6969d3f6b0dc5cfee9bf9be627dc938690e7ac478017955c"
     },
     {
       "path": "tests/vita_shader_cache.cpp",
@@ -20712,7 +20712,7 @@
     },
     {
       "path": "tools/test_vita_seed_cache.sh",
-      "sha256": "043b402e1978e3acc9c6894654431d9408b3c61f9f2151bd3839590ba0abf555"
+      "sha256": "e2c814c9655d0f8254ae9fd491c88b15f947dd68228844e5634a94b8bdba637b"
     },
     {
       "path": "tools/test_vita_shader_cache.sh",

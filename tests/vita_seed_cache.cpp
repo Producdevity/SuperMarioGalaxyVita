@@ -34,11 +34,19 @@ void File(const std::string& name, std::vector<uint8_t> data) {
     files[name] = std::move(data); Directory(name.substr(0,name.rfind('/')));
 }
 std::vector<uint8_t> Text(const std::string& value) { return {value.begin(),value.end()}; }
+// A warm-up list: vgx_draw.cpp's header (magic, key sizes, generator version) and then `body`.
+std::vector<uint8_t> List(uint32_t generator, const std::vector<uint8_t>& body) {
+    std::vector<uint8_t> bytes = Text("VGXSHL01");
+    for (uint32_t word : {100u, 412u, generator, 0u})
+        for (int i = 0; i < 4; ++i) bytes.push_back(static_cast<uint8_t>(word >> (8 * i)));
+    bytes.insert(bytes.end(), body.begin(), body.end());
+    return bytes;
+}
 void Fixture() {
-    File(packageList, std::vector<uint8_t>(100, 0x31));
+    File(packageList, List(3, std::vector<uint8_t>(76, 0x31)));
     File(seed + "/v2/v/00/111.gxp", {1,2,3,4});
     File(std::string(cache) + "/v2/f/02/personal.gxp", {9,8,7,6});
-    File(kShaderListFile, Text("personal learned shader list"));
+    File(kShaderListFile, List(3, Text("personal learned shader list")));
 }
 std::vector<std::string> Children(const std::string& parent) {
     std::set<std::string> names;
@@ -199,17 +207,17 @@ int main(int argc, char** argv) {
             File(marker,Text("list 100")); files[packageList][50]^=1;
             File(seed+"/v2/v/00/222.gxp",{5,6});
             SeedShaderCache(cache); SeedShaderList();
-            Require(files.count(std::string(cache)+"/v2/v/00/222.gxp"),"legacy size match cannot conceal a changed package's new GXP");
+            Require(files.count(std::string(cache)+"/"+kVglCacheVersionDir+"/v/00/222.gxp"),"legacy size match cannot conceal a changed package's new GXP");
             Require(files.at(kShaderListFile)==personal,"marker-format migration preserves the personal learned list");
         } else if(mode=="marker-nul") {
             SeedShaderCache(cache); files[marker].insert(files[marker].end(),{0,'x'});
             File(seed+"/v2/v/00/222.gxp",{5,6}); SeedShaderCache(cache);
-            Require(files.count(std::string(cache)+"/v2/v/00/222.gxp"),"embedded NUL cannot make a malformed marker match a valid fingerprint");
+            Require(files.count(std::string(cache)+"/"+kVglCacheVersionDir+"/v/00/222.gxp"),"embedded NUL cannot make a malformed marker match a valid fingerprint");
         } else if(mode=="marker-short-write") {
             writeError=marker; writeChunk=3; SeedShaderCache(cache);
             Require(!files.count(marker) && !g_seedIsNew,"short marker write cannot publish a complete seed or authorize list adoption");
         } else {
-            const std::string to=std::string(cache)+"/v2/v/00/111.gxp";
+            const std::string to=std::string(cache)+"/"+kVglCacheVersionDir+"/v/00/111.gxp";
             File(to, mode=="zero-gxp" ? std::vector<uint8_t>{} : std::vector<uint8_t>{0x7f});
             SeedShaderCache(cache);
             Require(files.at(to)==(mode=="zero-gxp" ? std::vector<uint8_t>{1,2,3,4} : std::vector<uint8_t>{0x7f}),
@@ -294,11 +302,32 @@ int main(int argc, char** argv) {
             if(mode=="changed") {
                 files[packageList][50]^=1; File(seed+"/v2/v/00/222.gxp",{5,6});
                 SeedShaderCache(cache);
-                Require(files.count(std::string(cache)+"/v2/v/00/222.gxp"),"same-size changed package copies newly packaged compiled shaders");
+                Require(files.count(std::string(cache)+"/"+kVglCacheVersionDir+"/v/00/222.gxp"),"same-size changed package copies newly packaged compiled shaders");
             } else {
                 SeedShaderCache(cache);
                 Require(directoryOpens==0 && outputOpens==beforeWrites,"unchanged package avoids directory rescans and writes");
             }
+        }
+    } else if(mode=="other-generator" || mode=="short-list" || mode=="other-generator-partial" || mode=="other-generator-seeded") {
+        // An update whose generator changed: its cache folder is new, so no marker says the package is new, and the card's list
+        // is one the renderer would start over empty.
+        const auto old = mode=="short-list" ? Text("VGXSHL") : List(2, Text("an older generator's list"));
+        File(kShaderListFile, old);
+        if(mode=="other-generator-seeded") {
+            File(kShaderListFile, personal); SeedShaderCache(cache); SeedShaderList(); File(kShaderListFile, old);
+        }
+        if(mode=="other-generator-partial")dirError=seed+"/v2/v";
+        SeedShaderCache(cache);
+        Require(!g_seedIsNew,"a first copy into a new folder is not a changed package");
+        SeedShaderList();
+        if(mode=="other-generator-partial") {
+            Require(files.at(kShaderListFile)==old,"a partial copy keeps the card's list: the package's would compile what is missing");
+        } else {
+            Require(files.at(kShaderListFile)==files.at(packageList),"another generator's list is replaced by the package's");
+            char stamp[80]; Require(PackageStamp(stamp,sizeof stamp) && files.at(marker)==Text(stamp),"the completed copy keeps its marker");
+            const unsigned beforeWrites=personalOutputOpens;
+            SeedShaderCache(cache); SeedShaderList();
+            Require(personalOutputOpens==beforeWrites,"the adopted list is not written again at the next start");
         }
     } else if(mode=="stamp-read-error" || mode=="stamp-close-error") {
         SeedShaderCache(cache); const auto good=files.at(marker); g_seedIsNew=false;

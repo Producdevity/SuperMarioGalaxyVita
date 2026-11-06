@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <condition_variable>
 #include <array>
+#include <chrono>
 #include <deque>
 #include <mutex>
 #include <string>
@@ -920,6 +921,15 @@ static int openEntry(u32 entry) {
     return fd;
 }
 
+static void closeEntry(u32 entry) {
+    for (auto& slot : sOpenFiles) {
+        if (slot.fd >= 0 && slot.entry == entry) {
+            close(slot.fd);
+            slot.fd = -1;
+        }
+    }
+}
+
 // What the drive worker spent reading (handhelds log it: a long read stalls the thread that waits for it).
 struct DriveStats {
     int64_t windowStart = 0, ns = 0, maxNs = 0;
@@ -1059,6 +1069,20 @@ static void workerMain() {
                 }
             } else {
                 got = pread(fd, dst, want, (off_t)offset);
+                if (got < 0) {
+                    // A file's descriptor stays open for as long as the game reads it (a music stream: minutes, across a
+                    // suspend of the console), and a stream stops for good at its first failed read. A descriptor that has
+                    // gone bad would fail every later read of the file, so a failed read is tried again on a new one, a few
+                    // times in the next 300 ms (a memory card that is not back yet).
+                    const int error = errno;
+                    for (int attempt = 0; attempt < 4 && got < 0; ++attempt) {
+                        if (attempt) std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                        closeEntry(req.entry);
+                        fd = openEntry(req.entry);
+                        if (fd >= 0) got = pread(fd, dst, want, (off_t)offset);
+                    }
+                    if (got < 0 && fd < 0) errno = error;
+                }
                 if (movie) {
                     ++sMoviePlain;
                 }

@@ -18616,7 +18616,7 @@
     },
     {
       "path": "platform/src/dvd/dvd.cpp",
-      "sha256": "937ba2571de5fc35440190e00d864e93b457f9e5fdb68b0b4288465fb3d4b8c3"
+      "sha256": "c7f26039425e3d29421e7eedb15279eaa1f802057fd76225593e4e9b8dcef594"
     },
     {
       "path": "platform/src/dvd/movie_stream.h",
@@ -19252,7 +19252,7 @@
     },
     {
       "path": "tests/dvd_errors.cpp",
-      "sha256": "c458a443d0448de2ac38ea08d53f87e060c5aeb8fc11ab0a4e81c8582f82d24e"
+      "sha256": "c5c50ebdf5f4a4b2fbd900f8429a3fbb936db06aed4068cf7b0df6dbcba02769"
     },
     {
       "path": "tests/dvd_heap_routing.cpp",

@@ -116,6 +116,10 @@ int main(int argc, char** argv) {
     readEntry(0, false);
     readEntry(1, false);
     require(readLog(log) == repeated, "recovery and expected EOF padding produce no diagnostic");
+    // A console suspend invalidates the descriptors the worker keeps: the next read of that file opens it again.
+    for (auto& slot : sOpenFiles) if (slot.fd >= 0 && slot.entry == 1) close(slot.fd);
+    readEntry(1, false);
+    require(readLog(log) == repeated, "a read after a stale descriptor succeeds with no diagnostic");
     readEntry(2, true);
     const std::string readError = readLog(log);
     if (enabled) {
@@ -137,8 +141,8 @@ int main(int argc, char** argv) {
         require(all.find("further errors suppressed") != std::string::npos, "the last record explains the ceiling");
         std::fprintf(stderr, "%s", all.c_str());
     } else require(all.empty(), "all disabled failures remain absent from the basic log");
-    require(callbacks == 324 && interrupts == callbacks, "all repeated, repaired and distinct reads completed");
-    std::printf("PASS: 324 real DVD callbacks; results-and-bytes=%08x; quiet logger; synthetic host fixture\n", resultHash);
+    require(callbacks == 325 && interrupts == callbacks, "all repeated, repaired and distinct reads completed");
+    std::printf("PASS: 325 real DVD callbacks; results-and-bytes=%08x; quiet logger; synthetic host fixture\n", resultHash);
 
     for (auto& slot : sOpenFiles) if (slot.fd >= 0) { close(slot.fd); slot.fd = -1; }
     require(unlink(sFst[0].hostPath.c_str()) == 0 && unlink(sFst[1].hostPath.c_str()) == 0, "fixture files removed");

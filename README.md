@@ -1,6 +1,6 @@
 # Super Mario Galaxy Vita
 
-> Producdevity's build of [CBOC's port](https://github.com/CBOC-Vita-Lab/galaxy-vita). It installs next to the original as its own bubble, uses the same game files,
+> My build of [CBOC's port](https://github.com/CBOC-Vita-Lab/galaxy-vita) with many improvements and fixes. It installs next to the original as its own bubble, uses the same game files,
 > and copies your saves on its first start. What changed is in the [changelog](CHANGELOG.md).
 
 This is Super Mario Galaxy running natively on a PS Vita. There's no emulator and no streaming involved: the game itself

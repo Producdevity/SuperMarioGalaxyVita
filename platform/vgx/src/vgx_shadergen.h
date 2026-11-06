@@ -73,6 +73,11 @@ bool UniformPacking();
 // Sizes in vec4 of what a shader with this key declares.
 int FsTevCount(const FsKey& k);  // u_tev
 int VsLightCount(const VsKey& k); // u_lt
+// GX reads a TEV register's low 8 bits as an a, b or c operand and its signed 11 bits only as d. Bit 2i (colour) / 2i + 1
+// (alpha): register i (PREV, REG0..2) as loaded is read, before a stage overwrites it, as a, b or c and never as d, so its
+// low 8 bits are exactly what the program needs. Mario's eyeball cuts its iris with an A0 of -122 that GX reads as 134; the
+// Lumas' bodies tint with registers loaded as 821 and -107.
+uint8_t TevLowByteRegs(const FsKey& k);
 constexpr int kPalRowsFull = 96, kPalRowsShort = 60, kPalShortMaxRow = 27;
 void GenerateFragmentShader(const FsKey& key, ShaderSource& out);
 void GenerateVertexShader(const VsKey& key, ShaderSource& out);

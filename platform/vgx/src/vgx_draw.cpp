@@ -891,10 +891,16 @@ void split::BuildTevC(BlockCtx& bc, const State& g, const FsKey& fs, const uint1
 #else
     std::memset(tb, 0, tevLen * sizeof(float));
 #endif
+    int wide = -1; // (TevLowByteRegs(fs), worked out for the rare register loaded outside 0..255)
     for (int i = 0; i < 4; ++i)
         for (int c = 0; c < 4; ++c) {
+            int v = g.tevReg[i][c];
+            if (v < 0 || v > 255) {
+                if (wide < 0) wide = TevLowByteRegs(fs);
+                if (wide & (1 << (i * 2 + (c == 3)))) v &= 0xFF;
+            }
             // (folded: registers 0 and 1 travel in the vertices, and the block must not differ by them)
-            tb[TEV_REG + i * 4 + c] = (fold && (i == 1 || i == 2)) ? 0.0f : static_cast<float>(g.tevReg[i][c]) / 255.0f;
+            tb[TEV_REG + i * 4 + c] = (fold && (i == 1 || i == 2)) ? 0.0f : static_cast<float>(v) / 255.0f;
             tb[TEV_KONST + i * 4 + c] = static_cast<float>(g.tevKonst[i][c] & 0xFF) / 255.0f;
         }
     tb[TEV_MISC + 0] = static_cast<float>(bits(g.bp[0xF3], 0, 8));

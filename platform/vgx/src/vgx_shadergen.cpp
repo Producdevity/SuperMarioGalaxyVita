@@ -22,6 +22,22 @@ bool UniformPacking() {
     static const bool on = EnvInt("GXV_UNIPACK", 1) != 0;
     return on;
 }
+uint8_t TevLowByteRegs(const FsKey& k) {
+    uint8_t loaded = 0xFF, abc = 0, signedUse = 0;
+    for (int s = 0; s < k.numStages; ++s) {
+        const uint32_t tc = k.stage[s].color, ta = k.stage[s].alpha;
+        for (int i = 0; i < 4; ++i) {
+            const uint32_t c = bits(tc, 12 - i * 4, 4), a = bits(ta, 13 - i * 3, 3);
+            const uint8_t cb = c < 8 ? static_cast<uint8_t>(1u << ((c >> 1) * 2 + (c & 1))) : 0;
+            const uint8_t ab = a < 4 ? static_cast<uint8_t>(1u << (a * 2 + 1)) : 0;
+            (i < 3 ? abc : signedUse) |= static_cast<uint8_t>((cb | ab) & loaded);
+        }
+        // (a stage reads all of its operands before it writes its destinations)
+        loaded &= static_cast<uint8_t>(~((1u << (bits(tc, 22, 2) * 2)) | (1u << (bits(ta, 22, 2) * 2 + 1))));
+    }
+    return static_cast<uint8_t>(abc & ~signedUse);
+}
+
 int FsTevCount(const FsKey& k) {
     if (!UniformPacking() || k.numIndStages) return 28;
     return k.fog ? 11 : 9; // registers, konst, misc (+ fog parameters and colour)

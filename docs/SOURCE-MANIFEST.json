@@ -19048,7 +19048,7 @@
     },
     {
       "path": "platform/vgx/src/vgx_draw.cpp",
-      "sha256": "5a2518c80720106e1b8777ca3973ba5d461655d4014a21ea18b4bed349f3a1bf"
+      "sha256": "4de3685d019f1e4232f8679b9e25580d02ca64c4f18df957ffabf4f6efaa2637"
     },
     {
       "path": "platform/vgx/src/vgx_fesplit.cpp",
@@ -19084,11 +19084,11 @@
     },
     {
       "path": "platform/vgx/src/vgx_shadergen.cpp",
-      "sha256": "23d8b030c67329402ce27a85406cc8744ba8877cd6c4fbc55b1694a831fa80e7"
+      "sha256": "455b50c63390954c1620ceeb88be3d0305f677d5704792da880748d6f5b3bc55"
     },
     {
       "path": "platform/vgx/src/vgx_shadergen.h",
-      "sha256": "76afda76e5d2c268e5df13e2913aadb3b2c521ee243478c18626219b93304fc3"
+      "sha256": "d8a0f71bbc518a1bc538f6f249f538e8d46a8232acecd0949114bda2347b2e24"
     },
     {
       "path": "platform/vgx/src/vgx_state.cpp",
@@ -19669,6 +19669,10 @@
     {
       "path": "tests/vgx_statelist.cpp",
       "sha256": "af6d70f077307f8342a3290c49ecd8b99ef685683c4116e1d4a5bd611a81378a"
+    },
+    {
+      "path": "tests/vgx_tev_lowbyte.cpp",
+      "sha256": "801df3547ebecff16ead3712fddb8337f429b19363e14f943f64943d4991cc40"
     },
     {
       "path": "tests/vgx_tevwrap_elide.cpp",
@@ -20577,6 +20581,10 @@
     {
       "path": "tools/test_vgx_statelist.sh",
       "sha256": "a868015fe4351d5c68ac9a83b4a1db69478f9ceb269fa7152a0bd901d47696e8"
+    },
+    {
+      "path": "tools/test_vgx_tev_lowbyte.sh",
+      "sha256": "520fbd000c83ed6efa01f365953099aae0336580bdbd1e7d200a0e3a1a45bb84"
     },
     {
       "path": "tools/test_vgx_tevwrap_elide.sh",

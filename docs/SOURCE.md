@@ -56,3 +56,7 @@ ARM instruction-count harness for the performance work. Test builds from this li
 PS Vita on 23 October 2026; the release build itself is checked on a console before it is
 published (see [Known Issues](../KNOWN-ISSUES.md)).
 
+Vita3K 55239f9c ignores `O_TRUNC` and does not implement `sceIoChstatByFd`.
+Shader-list recovery writes a fresh file and renames it into place, preventing stale records
+from surviving a shorter rewrite. Replay also rejects shader pairs with incompatible
+texture-coordinate counts. Host tests cover nontruncating opens and interrupted rewrites.

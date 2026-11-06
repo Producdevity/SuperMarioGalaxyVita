@@ -44,7 +44,7 @@ docker run --rm --pull=never --platform linux/arm64 --network none --cpus=2 \
       timeout 20s "$@" /tmp/learning read-open-fail /tmp/learning.bin
       timeout 20s "$@" /tmp/learning no-list /tmp/learning.bin
       timeout 20s "$@" /tmp/learning unwritable /tmp/nonexistent-learning-parent/file.bin
-      timeout 20s "$@" /tmp/learning device-full /dev/full
+      timeout 20s "$@" /tmp/learning device-full /tmp/full-learning.bin
       timeout 20s "$@" /tmp/learning reset /tmp/learning.bin
       timeout 20s "$@" /tmp/learning path-change /tmp/learning.bin
       if test "$seed" = 1; then

@@ -23,8 +23,8 @@ docker run --rm --pull=never --platform linux/arm64 --network none --cpus=2 \
         tests/vgx_shader_list.cpp platform/vgx/src/vgx_state.cpp platform/vgx/src/vgx_draw.cpp platform/vgx/src/vgx_fesplit.cpp \
         platform/vgx/src/vgx_dlcache.cpp platform/vgx/src/vgx_guestmem.cpp platform/vgx/src/vgx_bpsync.cpp \
         platform/vgx/src/vgx_shadergen.cpp platform/vgx/src/vgx_texcache.cpp platform/vgx/src/vgx_texdecode.cpp \
-        platform/vgx/src/vgx_stats.cpp platform/vgx/src/vgx_backend_null.cpp -o /tmp/recipe $LIBS
-      for mode in clean duplicate tail-1 tail-2 tail-3 payload; do
+        platform/vgx/src/vgx_stats.cpp platform/vgx/src/vgx_backend_null.cpp -o /tmp/recipe -Wl,--wrap=fopen -Wl,--wrap=rename $LIBS
+      for mode in clean duplicate tail-1 tail-2 tail-3 payload bad-program bad-variant no-truncate console-rename; do
         for deferred in 0 1; do timeout 30s "$@" /tmp/recipe "$mode" "$deferred"; done
       done
     done

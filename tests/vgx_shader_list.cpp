@@ -1,4 +1,5 @@
 #include "vgx_state.h"
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -9,6 +10,8 @@ constexpr unsigned kVs = 20, kFs = 150, kPairs = kVs * kFs;
 unsigned frames = 0;
 bool deferred = false;
 bool truncatedVariant = false;
+bool extraShader = false;
+bool ignoreTruncate = false;
 void Require(bool ok, const char* why) {
     if (!ok) { std::fprintf(stderr, "FAIL: %s\n", why); std::exit(1); }
 }
@@ -44,10 +47,16 @@ std::vector<uint8_t> Recipe() {
 }
 void Observe(vgx::CmdBuf& buf) {
     const auto& commands = deferred ? buf.warm : buf.cmds;
-    const size_t work = frames == 0 ? kVs + kFs + 2 * kPairs - (truncatedVariant ? 1 : 0) : 0;
+    const size_t originalWork = kVs + kFs + 2 * kPairs - (truncatedVariant ? 1 : 0);
+    const size_t work = frames == 0 ? originalWork + unsigned(extraShader) : 0;
     Require(commands.size() == work + (deferred ? 0 : 1), "replay produces every unique work command exactly once");
     for (size_t i = 0; i < work; ++i) {
         const auto& c = commands[i];
+        if (i == originalWork) {
+            Require(extraShader && c.type == vgx::CMD_SHADER && buf.shaders.at(c.arg)->fragment &&
+                    buf.shaders.at(c.arg)->id == kFs, "valid key survives rejection of its incompatible pair");
+            continue;
+        }
         if (i < kVs + kFs) {
             Require(c.type == vgx::CMD_SHADER, "shader commands precede all programs/variants");
             const auto* shader = buf.shaders.at(c.arg);
@@ -70,6 +79,25 @@ void Observe(vgx::CmdBuf& buf) {
     vgx::backend::Execute(buf);
 }
 }
+extern "C" FILE* __real_fopen(const char*, const char*);
+extern "C" FILE* __wrap_fopen(const char* path, const char* mode) {
+    if (ignoreTruncate && std::strcmp(mode, "wb") == 0) {
+        if (FILE* f = __real_fopen(path, "rb+")) return f;
+    }
+    return __real_fopen(path, mode);
+}
+bool consoleRename = false; // rename refuses an existing destination, as the Vita's sceIoRename does
+extern "C" int __real_rename(const char*, const char*);
+extern "C" int __wrap_rename(const char* from, const char* to) {
+    if (consoleRename) {
+        if (FILE* existing = __real_fopen(to, "rb")) {
+            std::fclose(existing);
+            errno = EEXIST;
+            return -1;
+        }
+    }
+    return __real_rename(from, to);
+}
 namespace vgx {
 bool LogEnabled() { return false; }
 void SubmitToBackend(CmdBuf& b) { backend::Execute(b); }
@@ -80,7 +108,23 @@ int main(int argc, char** argv) {
     const auto expected = Recipe();
     auto canonical = expected, input = expected;
     const std::string mode = argv[1];
-    if (mode == "duplicate") input.insert(input.end(), expected.end() - 20, expected.end());
+    if (mode == "bad-program" || mode == "bad-variant") {
+        extraShader = true;
+        vgx::FsKey incompatible{};
+        incompatible.numTexGens = 1;
+        Bytes(input, 2u); Bytes(input, incompatible);
+        const size_t keyEnd = expected.size() - kPairs * (12u + 20u);
+        canonical.insert(canonical.begin() + keyEnd, input.begin() + expected.size(), input.end());
+        Bytes(input, mode == "bad-program" ? 3u : 4u);
+        Bytes(input, 0u); Bytes(input, kFs);
+        if (mode == "bad-variant") { Bytes(input, 0u); Bytes(input, 0xC01u); }
+    } else if (mode == "no-truncate") {
+        ignoreTruncate = true;
+        input.push_back(4);
+    } else if (mode == "duplicate" || mode == "console-rename") {
+        consoleRename = mode == "console-rename";
+        input.insert(input.end(), expected.end() - 20, expected.end());
+    }
     else if (mode.rfind("tail-", 0) == 0) {
         const unsigned n = std::stoul(mode.substr(5));
         Require(n >= 1 && n <= 3, "tail fixture is an incomplete record type");
@@ -96,6 +140,12 @@ int main(int argc, char** argv) {
     FILE* f = fdopen(fd, "wb");
     Require(f && std::fwrite(input.data(), 1, input.size(), f) == input.size() && std::fclose(f) == 0,
             "synthetic recipe fixture is complete");
+    if (ignoreTruncate) {
+        const std::string stale = std::string(path) + ".tmp";
+        FILE* old = __real_fopen(stale.c_str(), "wb");
+        Require(old && std::fwrite(input.data(), 1, input.size(), old) == input.size() && std::fclose(old) == 0,
+                "stale replacement from an interrupted rewrite exists before recovery");
+    }
     vgx::SetShaderListFile(path);
     vgx::SetShaderWarmupDeferred(deferred);
     vgx::ResetState();

@@ -268,6 +268,13 @@ void PersistRecipeDraw(uint16_t vsId, uint16_t fsId, uint32_t layoutMask, uint32
 }
 #endif
 
+// The console's rename (sceIoRename) refuses an existing destination, so the old file goes first there; a list lost in
+// between is missing at the next start, and the host gives it the package's again.
+bool ReplaceFile(const std::string& from, const std::string& to) {
+    if (std::rename(from.c_str(), to.c_str()) == 0) return true;
+    return std::remove(to.c_str()) == 0 && std::rename(from.c_str(), to.c_str()) == 0;
+}
+
 void EnsureShaderList() {
     g_shaderListDone = true;
     if (g_shaderListPath.empty()) {
@@ -308,12 +315,14 @@ void EnsureShaderList() {
                 } else if (type == 3) {
                     uint32_t v[2];
                     if (std::fread(v, sizeof v, 1, f) != 1 || v[0] >= vsIds.size() || v[1] >= fsIds.size()) { rewrite = true; break; }
+                    if (g_vsReg.keys[vsIds[v[0]]].numTexGens != g_fsReg.keys[fsIds[v[1]]].numTexGens) { rewrite = true; break; }
                     const uint32_t pk = (static_cast<uint32_t>(vsIds[v[0]]) << 16) | fsIds[v[1]];
                     if (g_progSeen.insert(pk).second) ReplayCmds().push_back(Cmd{CMD_PROGRAM, pk});
                     else rewrite = true;
                 } else if (type == 4) {
                     uint32_t v[4];
                     if (std::fread(v, sizeof v, 1, f) != 1 || v[0] >= vsIds.size() || v[1] >= fsIds.size() || v[2] > 0xFFFu || v[3] > 0xFFFu) { rewrite = true; break; }
+                    if (g_vsReg.keys[vsIds[v[0]]].numTexGens != g_fsReg.keys[fsIds[v[1]]].numTexGens) { rewrite = true; break; }
                     if (g_varSeen.insert(VariantKey(vsIds[v[0]], fsIds[v[1]], v[2], v[3])).second) {
                         g_buf.variants.push_back(VariantCmd{vsIds[v[0]], fsIds[v[1]], static_cast<uint16_t>(v[2]), static_cast<uint16_t>(v[3])});
                         ReplayCmds().push_back(Cmd{CMD_VARIANT, static_cast<uint32_t>(g_buf.variants.size() - 1)});
@@ -339,7 +348,10 @@ void EnsureShaderList() {
         return;
     }
     if (rewrite) {
-        if (FILE* f = std::fopen(g_shaderListPath.c_str(), "wb")) {
+        // Vita3K ignores O_TRUNC; write a fresh file so old records cannot survive recovery.
+        const std::string replacement = g_shaderListPath + ".tmp";
+        if (std::remove(replacement.c_str()) != 0 && errno != ENOENT) return;
+        if (FILE* f = std::fopen(replacement.c_str(), "wb")) {
             ListHeader hd{};
             std::memcpy(hd.magic, kListMagic, 8);
             hd.vsKeySize = sizeof(VsKey);
@@ -364,7 +376,10 @@ void EnsureShaderList() {
                 written = std::fwrite(rec, sizeof rec, 1, f) == 1;
             }
             const bool closed = std::fclose(f) == 0;
-            if (!written || !closed) return;
+            if (!written || !closed || !ReplaceFile(replacement, g_shaderListPath)) {
+                std::remove(replacement.c_str());
+                return;
+            }
         } else return;
     }
     g_shaderList = std::fopen(g_shaderListPath.c_str(), "ab");

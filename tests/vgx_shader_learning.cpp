@@ -136,7 +136,7 @@ static int CloseRead(void* context) {
     const int result = __real_fclose(c->input); delete c; return result;
 }
 static FILE* TrackOpen(FILE* f, const char* name, const char* access) {
-    if (name == listPath && f) {
+    if ((name == listPath || name == listPath + ".tmp") && f) {
         if (!std::strcmp(access, "ab")) { appendFile = f; ++appendOpens; }
         else if (!std::strcmp(access, "wb")) rewriteFile = f;
         else if (mode == "read-open-fail" && !std::strcmp(access, "rb")) {
@@ -153,8 +153,11 @@ static FILE* TrackOpen(FILE* f, const char* name, const char* access) {
     }
     return f;
 }
-extern "C" FILE* __wrap_fopen(const char* name, const char* access) { return TrackOpen(__real_fopen(name, access), name, access); }
-extern "C" FILE* __wrap_fopen64(const char* name, const char* access) { return TrackOpen(__real_fopen64(name, access), name, access); }
+static const char* WriteTarget(const char* name, const char* access) {
+    return mode == "device-full" && name == listPath + ".tmp" && !std::strcmp(access, "wb") ? "/dev/full" : name;
+}
+extern "C" FILE* __wrap_fopen(const char* name, const char* access) { return TrackOpen(__real_fopen(WriteTarget(name, access), access), name, access); }
+extern "C" FILE* __wrap_fopen64(const char* name, const char* access) { return TrackOpen(__real_fopen64(WriteTarget(name, access), access), name, access); }
 extern "C" int __wrap_fclose(FILE* f) {
     if (f == appendFile) appendFile = nullptr;
     if (f == rewriteFile) rewriteFile = nullptr;
@@ -214,7 +217,7 @@ int main(int argc, char** argv) {
     Require(argc == 3, "supply scenario and container-owned temporary path");
     mode = argv[1]; listPath = argv[2];
     const bool warm = mode == "warm", recover = mode == "recover", burst = mode == "burst";
-    if (!warm && !recover && mode != "device-full") std::remove(listPath.c_str());
+    if (!warm && !recover) std::remove(listPath.c_str());
     std::vector<uint8_t> original;
     if (mode == "read-fail" || mode == "read-open-fail") { ReadFailureFixture(); original = RawFile(); }
     if (mode.rfind("write-fail-", 0) == 0) failBudget = std::stoul(mode.substr(11));

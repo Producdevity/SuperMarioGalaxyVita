@@ -1,12 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<livearea style="a1" format-ver="01.00" content-rev="2">
+<livearea style="a1" format-ver="01.00" content-rev="3">
   <livearea-background>
     <image>bg.png</image>
   </livearea-background>
+  <frame id="frame1">
+    <liveitem>
+      <text origin="background" align="left" valign="bottom" y="56" margin-left="16" text-align="left" word-wrap="off" ellipsis="on">
+        <str size="18" color="#ffffff" shadow="on">Original port by CBOC-Vita-Lab</str>
+      </text>
+    </liveitem>
+  </frame>
+  <frame id="frame2">
+    <liveitem>
+      <text origin="background" align="left" valign="bottom" y="32" margin-left="16" text-align="left" word-wrap="off" ellipsis="on">
+        <str size="18" color="#ffffff" shadow="on">Performance, fixes and new features by Producdevity</str>
+      </text>
+    </liveitem>
+  </frame>
   <frame id="frame3">
     <liveitem>
       <image>settings.png</image>
       <target>psla:-settings</target>
+      <text origin="background" align="left" valign="bottom" y="8" margin-left="16" text-align="left" word-wrap="off" ellipsis="on">
+        <str size="18" color="#ffffff" shadow="on">LiveArea art by OtterPorts</str>
+      </text>
     </liveitem>
   </frame>
   <gate>

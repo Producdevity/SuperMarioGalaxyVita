@@ -3,6 +3,7 @@
 - **Producdevity:** this build: direction, testing on real hardware and the 1.2, 1.3 and 1.4 work.
 - **[CBOC](https://github.com/CBOC-Vita-Lab/galaxy-vita):** the original port, project direction, play-testing on real
   hardware and feedback.
+- **OtterPorts:** the bubble and LiveArea artwork.
 - **Claude:** the native port, the platform layer, the renderer and the
   version 1.0 work.
 - **ChatGPT:** earlier release preparation, documentation and source checks.

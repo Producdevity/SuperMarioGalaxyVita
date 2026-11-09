@@ -1,0 +1,17 @@
+Restore vertex constants after framebuffer blits.
+
+The blit reserves its own default vertex buffer. A following draw can reuse
+clean shader uniforms, so restore their binding before returning.
+
+diff --git a/source/framebuffers.c b/source/framebuffers.c
+--- a/source/framebuffers.c
++++ b/source/framebuffers.c
+@@ -928,6 +928,8 @@
+ 	validate_viewport();
+ 	change_cull_mode();
+ 	
++	vglRestoreVertexUniformBuffer();
++
+ 	// Restoring write framebuffer binding
+ 	active_write_fb = real_write_fb;
+ }

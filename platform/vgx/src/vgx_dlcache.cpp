@@ -556,7 +556,8 @@ void CallList(const uint8_t* list, uint32_t nbytes) {
         ProcessStream(list, nbytes);
         return;
     }
-    // A material list seen before and unchanged: replayed at once (the geometry cache never takes state lists).
+    // A material list seen before, unchanged or written again with the same bytes: replayed at once (the geometry cache
+    // never takes state lists).
     // (first: a hit is a list in guest RAM, its generation was read there; a replay reads no vertex array but through
     // the indexed loads, which bring their own arrays up to date)
     if (StateListFastHit(list, nbytes)) return;

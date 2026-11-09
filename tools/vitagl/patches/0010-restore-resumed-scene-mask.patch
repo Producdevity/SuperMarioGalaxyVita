@@ -1,0 +1,74 @@
+Restore scissor masks and draw programs when resuming a uniform-pool scene.
+
+Vita3K resets the mask at BeginScene. A mid-upload restart must rebuild it
+and restore the programs and cached uniforms that the mask draw replaces.
+
+diff --git a/source/gxm.c b/source/gxm.c
+--- a/source/gxm.c
++++ b/source/gxm.c
+@@ -68,6 +68,8 @@
+ static GLboolean needs_scene_reset = GL_TRUE; // Flag for when a scene reset is required
+ static GLboolean scene_not_flushed = GL_FALSE; // Flag for when a scene had been forcibly flushed as last operation
+ 
++const SceGxmVertexProgram *vgl_bound_vertex_program = NULL;
++const SceGxmFragmentProgram *vgl_bound_fragment_program = NULL;
+ SceGxmContext *gxm_context; // sceGxm context instance
+ GLenum vgl_error = GL_NO_ERROR; // Error returned by glGetError
+ SceGxmShaderPatcher *gxm_shader_patcher; // sceGxmShaderPatcher shader patcher instance
+@@ -609,6 +611,8 @@
+ void vglResumeUniformPoolScene(GLboolean resume) {
+ 	if (!resume)
+ 		return;
++	const SceGxmVertexProgram *vertex = vgl_bound_vertex_program;
++	const SceGxmFragmentProgram *fragment = vgl_bound_fragment_program;
+ 	int r;
+ 	if (!in_use_framebuffer) {
+ 		r = sceGxmBeginScene(gxm_context, 0, gxm_render_target, NULL, NULL,
+@@ -629,19 +633,11 @@
+ 	}
+ 	needs_end_scene = GL_TRUE;
+ 	scene_not_flushed = GL_TRUE;
+-	// Do not scene_reset here: its scissor draws replace an in-progress shader.
+-	vglSetViewport(gxm_context, x_port, x_scale, y_port, y_scale, z_port, z_scale);
+-#ifndef DISABLE_TILE_CLIPPER
+-	if (scissor_test_state) {
+-		uint32_t y = region.y;
+-#ifndef HAVE_UNFLIPPED_FBOS
+-		if (!is_rendering_display)
+-			y = region.gl_y > 0 ? region.gl_y : 0;
+-#endif
+-		sceGxmSetRegionClip(gxm_context, SCE_GXM_REGION_CLIP_OUTSIDE, region.x, y,
+-			region.x + region.w - 1, y + region.h - 1);
+-	}
+-#endif
++	update_scissor_test();
++	if (vertex) sceGxmSetVertexProgram(gxm_context, vertex);
++	if (fragment) sceGxmSetFragmentProgram(gxm_context, fragment);
++	vglRestoreVertexUniformBuffer();
++	vglRestoreFragmentUniformBuffer();
+ }
+ 
+ void scene_reset(void) {
+diff --git a/source/utils/gxm_utils.h b/source/utils/gxm_utils.h
+--- a/source/utils/gxm_utils.h
++++ b/source/utils/gxm_utils.h
+@@ -30,6 +30,19 @@
+ extern uint32_t vgl_def_vert_buf_size;
+ extern SceGxmContext *gxm_context;
+ 
++extern const SceGxmVertexProgram *vgl_bound_vertex_program;
++extern const SceGxmFragmentProgram *vgl_bound_fragment_program;
++static inline __attribute__((always_inline)) void vglTrackVertexProgram(SceGxmContext *context, const SceGxmVertexProgram *program) {
++    if (context == gxm_context) vgl_bound_vertex_program = program;
++    sceGxmSetVertexProgram(context, program);
++}
++static inline __attribute__((always_inline)) void vglTrackFragmentProgram(SceGxmContext *context, const SceGxmFragmentProgram *program) {
++    if (context == gxm_context) vgl_bound_fragment_program = program;
++    sceGxmSetFragmentProgram(context, program);
++}
++#define sceGxmSetVertexProgram vglTrackVertexProgram
++#define sceGxmSetFragmentProgram vglTrackFragmentProgram
++
+ void vglSetupUniformCircularPool(void);
+ void *vglReserveUniformCircularPoolBuffer(uint32_t size);
+ GLboolean vglFinishUniformPoolScene(void);

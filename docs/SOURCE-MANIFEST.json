@@ -19044,11 +19044,11 @@
     },
     {
       "path": "platform/vgx/src/vgx_dlcache.cpp",
-      "sha256": "e66a5409293c122806a5cfa32cbae74887d1b2f18bb66a644846b613a3dd7a16"
+      "sha256": "d0143498b30a90f5d771fa2e2205fdb26bd3a2a46bac68c24d5cdb07cc3d00c0"
     },
     {
       "path": "platform/vgx/src/vgx_draw.cpp",
-      "sha256": "e01966fcd5c9803099ad6bc6a391ed5823b953fbb665e41d7789523f49004d0e"
+      "sha256": "deccbd80ff15d31ff5ba9ee86c3e38d9091554f234f924291511167a822a19c2"
     },
     {
       "path": "platform/vgx/src/vgx_fesplit.cpp",
@@ -19092,7 +19092,7 @@
     },
     {
       "path": "platform/vgx/src/vgx_state.cpp",
-      "sha256": "e1df2a3ccf0da40fbc3ea038e84578a7f8646784d9aa05342dcf39504403f7eb"
+      "sha256": "b630cb52876e72d03be911f168e1f330dbb12fac741e78647f88d759eb6f2555"
     },
     {
       "path": "platform/vgx/src/vgx_state.h",
@@ -20808,7 +20808,7 @@
     },
     {
       "path": "tools/vitagl/README.md",
-      "sha256": "0b7127a300f52578977957f28bcd1a1ec299048737199122ac367d0207f2cc85"
+      "sha256": "5ea206f898f4f92ad9083d8c2abcd6e8cad7694cefb76a00ab96d80bf85f3bc9"
     },
     {
       "path": "tools/vitagl/build-release.sh",
@@ -20816,7 +20816,7 @@
     },
     {
       "path": "tools/vitagl/build-vitagl.sh",
-      "sha256": "ed14db76c034bf1748a159932615425200b5d9faec92e37242574a04a433d9f4"
+      "sha256": "e5633ad84b5da7defdf1c2a94e92052ef4d90f4809aaa67b16ba21d97553eee9"
     },
     {
       "path": "tools/vitagl/fbo_msaa.py",
@@ -20857,6 +20857,18 @@
     {
       "path": "tools/vitagl/patches/0008-no-present-submit.patch",
       "sha256": "d5fce407adf6c5933ca5d56940709ec786ea40a2aed5c8dc64a79aec2dcf7842"
+    },
+    {
+      "path": "tools/vitagl/patches/0009-refresh-display-scissor-mask.patch",
+      "sha256": "d5c73880e0df4200588ae980498e24dd7751521a33b4e29dd7c8d30feaf4887f"
+    },
+    {
+      "path": "tools/vitagl/patches/0010-restore-resumed-scene-mask.patch",
+      "sha256": "79dd5ad57bc989df019d8e9713883f4c5b9fcb73c3ad92aafc0a28cba3b28835"
+    },
+    {
+      "path": "tools/vitagl/patches/0011-restore-blit-vertex-uniforms.patch",
+      "sha256": "c71559a7d04085261183d8fc65d281a223ac67eb0e76453a8a086c24661f554b"
     },
     {
       "path": "vita/CMakeLists.txt",

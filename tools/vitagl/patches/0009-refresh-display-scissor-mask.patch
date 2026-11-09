@@ -1,0 +1,19 @@
+Refresh display scissor masks at scene boundaries.
+
+Vita3K initializes the mask from the surface background value even when depth
+loading is enabled. Refreshing FBO masks alone leaves display scenes masked out.
+
+diff --git a/source/gxm.c b/source/gxm.c
+--- a/source/gxm.c
++++ b/source/gxm.c
+@@ -703,9 +703,7 @@
+ 		}
+ #endif
+ #ifdef STORE_DEPTH_STENCIL
+-		if (in_use_framebuffer) {
+-			dirty_scissor_state = GL_TRUE;
+-		}
++		dirty_scissor_state = GL_TRUE;
+ #else
+ 		dirty_scissor_state = GL_TRUE;
+ 		skip_scissor_invalidation = GL_TRUE;

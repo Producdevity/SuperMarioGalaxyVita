@@ -1787,7 +1787,9 @@ void SlReplay(const SlEntry& e, int bpFast) {
 }
 } // namespace
 
-// The common case without the map: the list was parsed before, is state-only and its bytes have not been written since.
+// The common case without the map: the list was parsed before, is state-only, and its bytes have not been written since or
+// were written again with what they held (J3D writes its materials' lists at every update): StateListCall's checks for that
+// case, without the geometry cache's bookkeeping on the way there and a second read of the generation.
 bool StateListFastHit(const uint8_t* list, uint32_t nbytes) {
     static const int mode = static_cast<int>(EnvInt("GXV_STATELIST", 1));
     if (mode != 1) return false;
@@ -1796,7 +1798,13 @@ bool StateListFastHit(const uint8_t* list, uint32_t nbytes) {
     SlEntry& e = *f.e;
     if (!e.usable || e.nbytes != nbytes || e.lastFrame == 0) return false;
     const uint64_t frame = CurrentFrame();
-    if (frame < e.quietUntil || GuestWriteGeneration(list, nbytes) != e.gen) return false;
+    if (frame < e.quietUntil) return false;
+    const uint64_t gen = GuestWriteGeneration(list, nbytes);
+    if (gen != e.gen) {
+        static const bool keepBytes = EnvInt("GXV_SLBYTES", 1) != 0;
+        if (gen == kNotGuest || !keepBytes || e.bytes.size() != nbytes || !SameBytes(list, e.bytes.data(), nbytes)) return false;
+        e.gen = gen;
+    }
     static const int bpFastMode = static_cast<int>(EnvInt("GXV_BPFAST", 1));
     e.changes = 0;
     e.lastFrame = frame;

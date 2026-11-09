@@ -1916,6 +1916,16 @@ void split::NoteVariant(const DrawStateRef& st, uint32_t layoutMask) {
             else {
 #endif
             g_lastVariant = vk;
+            // (variants seen lately, which hold their programs too: the sets' lookups divide by a prime bucket count, a library
+            // call on the console's processor, for what is nearly always a known variant)
+            static std::array<uint64_t, 256> recent = [] {
+                std::array<uint64_t, 256> a;
+                a.fill(~0ull);
+                return a;
+            }();
+            uint32_t slot = static_cast<uint32_t>(vk) ^ static_cast<uint32_t>(vk >> 32);
+            slot = (slot * 0x9E3779B1u) >> 24;
+            if (recent[slot] == vk) return;
             const uint32_t pk = (static_cast<uint32_t>(st.vsId) << 16) | st.useFs;
             if (g_progSeen.insert(pk).second) {
                 const uint32_t v[2] = {st.vsId, st.useFs};
@@ -1925,6 +1935,7 @@ void split::NoteVariant(const DrawStateRef& st, uint32_t layoutMask) {
                 const uint32_t v[4] = {st.vsId, st.useFs, layoutMask & 0xFFFu, bk};
                 ListAppend(4u, v, sizeof v);
             }
+            recent[slot] = vk;
 #if GXV_RECIPE_SEED_BATCH
             }
 #endif

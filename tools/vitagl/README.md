@@ -10,7 +10,10 @@ that exact library.
 2. **[patches/](patches/)**, applied in order: fixes first made for the Mario Strikers Charged port
    (uniform pool lifetime and blit flip, allocation recovery, title ID buffer, shader cache and
    shader/program robustness, shader source length) and the shader cache file names the port's
-   compiled-shader seed uses.
+   compiled-shader seed uses. Patches 9–10 draw the scissor mask again at every scene start, the display's
+   and a uniform-pool restart's included (Vita3K begins a scene with the surface's background mask even when
+   it loads the depth/stencil surface); patch 10 also puts back the programs and uniforms the restart
+   interrupted. Patch 11 gives the cached vertex constants back after a framebuffer blit.
 3. **[gpu_timers.py](gpu_timers.py)**: `GPU_TIMERS`, the per-scene GPU time the automatic picture
    quality reads, and `ANISO_SWITCH` (off unless the game asks for it).
 4. **[fbo_msaa.py](fbo_msaa.py)**: `FBO_MSAA`, multisampling per framebuffer object, for the automatic
@@ -37,9 +40,8 @@ math-neon (`libmathneon.a`, `math_neon.h`) and the taiHEN and kubridge stubs (`l
 names. The script copies them next to the new `libvitaGL.a`, so `build/vitagl/nhustd` is a complete
 `VGL_DEPS` folder for [the game build](../vgx_build/README.md).
 
-With VitaSDK GCC 15.2.0 this recipe gives object files byte-identical to those of the library the
-1.0 source was built and tested with (31 of 31 compared; the archive itself differs only in member
-timestamps).
+Before patches 9–11, VitaSDK GCC 15.2.0 reproduced all 31 objects of the original library.
+The current recipe builds all 31 sources; console performance of the mask changes is unmeasured.
 
 ## Licence
 

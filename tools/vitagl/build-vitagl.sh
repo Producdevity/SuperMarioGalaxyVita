@@ -45,8 +45,8 @@ CFLAGS="-O3 -ffast-math -mcpu=cortex-a9 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=
 
 rm -rf "$OUT"
 mkdir -p "$OUT/lib" "$OUT/include" "$OUT/obj"
-cp "$VGL_SRC/vitaGL.h" "$OUT/include/"
 cp -r "$VGL_LIBS/include/." "$OUT/include/"
+cp "$VGL_SRC/vitaGL.h" "$OUT/include/"
 # Every other archive of the link set, from VGL_LIBS.
 for a in libvitashark.a libSceShaccCgExt.a libmathneon.a libtaihen_stub.a libkubridge_stub.a; do
   [ -f "$VGL_LIBS/lib/$a" ] && cp "$VGL_LIBS/lib/$a" "$OUT/lib/"

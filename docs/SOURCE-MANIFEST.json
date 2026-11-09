@@ -3088,7 +3088,7 @@
     },
     {
       "path": "decomp/include/Game/MapObj/BrightObj.hpp",
-      "sha256": "45ec45b50b97752f070f176bc63d00424ad1f452368af9d2a33d8a46018bef0f"
+      "sha256": "1b106c3a9566ab810d0c161a578e50a82df01df5b5d26690d1e54e439abf38c9"
     },
     {
       "path": "decomp/include/Game/MapObj/BumpAppearPlanet.hpp",
@@ -12188,7 +12188,7 @@
     },
     {
       "path": "decomp/src/Game/MapObj/BrightObj.cpp",
-      "sha256": "03f4bc3d127c1ae44633b92ac63db53c51c8aa3c630fc94511a3c5b3cc9f6e76"
+      "sha256": "ce648118fdc6e51af8c42087a9dc5e41b54b4361495622886ab5176e3ca96c8b"
     },
     {
       "path": "decomp/src/Game/MapObj/BumpAppearPlanet.cpp",
@@ -18460,7 +18460,7 @@
     },
     {
       "path": "platform/include/port/compat.h",
-      "sha256": "75d789c54ba7360c1e5b331a7e5035cf5268c97145387cbb56cfadfc6fb17f5a"
+      "sha256": "35a4470d2d8b7102658878483aa5523fff4c21221fa63f5b66f570e9d63e20b0"
     },
     {
       "path": "platform/include/port/control_bindings.h",
@@ -18684,7 +18684,7 @@
     },
     {
       "path": "platform/src/gx/gx_fifo.cpp",
-      "sha256": "e09797e4f217cc616c6ee1ac682b39ca1340765027133248b349a8c2633f18b6"
+      "sha256": "c342f5fc2f83b02c6f804ced53280b6e636e66428b9e2f740c1e3b6ad11a3345"
     },
     {
       "path": "platform/src/gx/gx_live.h",
@@ -18736,7 +18736,7 @@
     },
     {
       "path": "platform/src/gx/vgx_galaxy.cpp",
-      "sha256": "d9321775938bbbb3b47ea25b00c20bb144c375c5f9749f8c30fc0e07f3c6b6f0"
+      "sha256": "778ff1eb2491e87a123878255a130274f94b6f777531811606741fa17d9f05bf"
     },
     {
       "path": "platform/src/gx/vgx_galaxy.h",
@@ -19008,7 +19008,7 @@
     },
     {
       "path": "platform/vgx/src/vgx_backend_gl.cpp",
-      "sha256": "0c727dedde6c7cdc2078bbf088724ad43a9e37c715a79820f29dc0953c093048"
+      "sha256": "13b873d894f77c94bbad8a1e5e47817e8caa783529646e2d674cf7d45886a5e5"
     },
     {
       "path": "platform/vgx/src/vgx_backend_null.cpp",
@@ -19020,7 +19020,7 @@
     },
     {
       "path": "platform/vgx/src/vgx_cmd.h",
-      "sha256": "1b012628734506f559e2edb9b5af6fcf8cd105e5b584138187262af46c7cb4b0"
+      "sha256": "21076703af4b48bac6c7f4db0905d52ca829388f6f61018a577735fd4d76492e"
     },
     {
       "path": "platform/vgx/src/vgx_coldtrace.h",
@@ -19048,11 +19048,11 @@
     },
     {
       "path": "platform/vgx/src/vgx_draw.cpp",
-      "sha256": "d376fee1c6fc6830069d9c96bea4ac4043ca28b1f816f69724ad2d63cc0a5fce"
+      "sha256": "e01966fcd5c9803099ad6bc6a391ed5823b953fbb665e41d7789523f49004d0e"
     },
     {
       "path": "platform/vgx/src/vgx_fesplit.cpp",
-      "sha256": "ac770b43f305cde56748907a5878137eceb06eb767e24bb4019c8093a5018ca3"
+      "sha256": "fac2dd0da5be640843d8934a8ee726a39b0b78217abf36544d64e6423c839fbd"
     },
     {
       "path": "platform/vgx/src/vgx_fesplit.h",
@@ -19092,11 +19092,11 @@
     },
     {
       "path": "platform/vgx/src/vgx_state.cpp",
-      "sha256": "8737f991a8745440a1a31b0dc037e007ac4642198211a68fbc30fc744913fb43"
+      "sha256": "e1df2a3ccf0da40fbc3ea038e84578a7f8646784d9aa05342dcf39504403f7eb"
     },
     {
       "path": "platform/vgx/src/vgx_state.h",
-      "sha256": "54a65eec19a52972dfecd1381bba2d625bf9f40fab8c46d8c1b2198cb770865a"
+      "sha256": "ea8047207b30e2b0a1316566f1f4034970ea2e45dda144c004d57739a1db3305"
     },
     {
       "path": "platform/vgx/src/vgx_static_crowd.h",
@@ -19172,7 +19172,7 @@
     },
     {
       "path": "platform/vgx/vita/vgx_host_galaxy_vita.cpp",
-      "sha256": "7a18862488034555a8d23cc86d683431e63c300c4a54da369b0f20a5f4f01429"
+      "sha256": "d057867a20f03d013a7fe09aee2d6c9096d42bba6cd006bf9cd9e49f79ad4df4"
     },
     {
       "path": "platform/vgx/vita/vgx_host_vita.cpp",

@@ -735,10 +735,13 @@ void RegisterMemory() {
 
 // The game's GX markers (PORT_GX_MARK_*, platform/include/port/compat.h) for the vgx front end, in the GX stream at the point
 // the game calls them: a write of BP register 0xFF, which the console's GPU does not have (vgx_state.cpp WriteBP). Only the
-// HUD's markers, and only with GXV_CHARAA on (vgx_draw.cpp, character edge smoothing: the HUD is never smoothed); otherwise
-// nothing is written and the stream is the game's own, byte for byte. Game thread (the GX library's FIFO writer).
+// occlusion probes' markers, and the HUD's with GXV_CHARAA on (vgx_draw.cpp, character edge smoothing: the HUD is never
+// smoothed); otherwise nothing is written and the stream is the game's own, byte for byte. Game thread (the GX library's
+// FIFO writer).
 extern "C" void port_vgx_marker(uint32_t kind) {
-    if ((kind != 1u && kind != 2u) || vgx::CharaAAMode() == 0) return; // (PORT_GX_MARK_HUD_BEGIN, _END)
+    const uint32_t k = kind & 0xFFu;
+    const bool probe = k == vgx::kProbeBeginMarker || k == vgx::kProbeEndMarker;
+    if (!probe && ((k != 1u && k != 2u) || vgx::CharaAAMode() == 0)) return; // (PORT_GX_MARK_HUD_BEGIN, _END)
     __PortGXFifo_u8(0x61);
     __PortGXFifo_u32((0xFFu << 24) | kind);
 }

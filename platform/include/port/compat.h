@@ -91,6 +91,15 @@ void port_input_use_tilt(float neutralPitchDeg);
 #define PORT_GX_MARK_SCENE_DEPTH 7  // the 3D scene's depth is complete (image effects and a Z clear follow)
 #define PORT_GX_MARK_POINTER_BEGIN 8  // the pointer's 2D cursor (inside the HUD markers)
 #define PORT_GX_MARK_POINTER_END 9
+// Occlusion probe n (0..63): PORT_GX_MARK_PROBE_BEGIN | n << 8 before its draws, PORT_GX_MARK_PROBE_END after them. The
+// renderer counts the samples they pass the depth test with; port_gx_probe_samples(n) answers for the last frame it has
+// counted (-1: none yet, or a renderer that does not count). It stands in for reading the EFB back (GXPeekARGB).
+#define PORT_GX_MARK_PROBE_BEGIN 10
+#define PORT_GX_MARK_PROBE_END 11
+#define PORT_GX_PROBES 64
+int port_gx_probe_samples(unsigned int index);
+// 1 once the renderer has shown that it counts probes: game code then draws them in place of reading the EFB back.
+int port_gx_probes_counted(void);
 #define PORT_GX_CAMERA_WORDS 33
 // Word 25 of the camera record: presentation hints.
 #define PORT_GX_CAMERA_DIORAMA 1     // gameplay: show the scene as a VR diorama

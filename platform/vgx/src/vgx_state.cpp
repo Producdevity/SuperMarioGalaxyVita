@@ -234,6 +234,7 @@ void WriteBP(uint32_t rv) {
         {
             const uint32_t kind = val & 0xFFu;
             if (kind == kPresentAllowedMarker || kind == kPresentSuppressedMarker) PresentationMarker(kind);
+            else if (kind == kProbeBeginMarker || kind == kProbeEndMarker) ProbeMarker(val);
             else CharaMarker(kind);
         }
         return;

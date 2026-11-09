@@ -16,6 +16,7 @@
 #include "revolution/gx/GXFifo.h"
 #include "revolution/gx/GXPerf.h"
 #include "revolution/os/OSInterrupt.h"
+#include <atomic>
 #if defined(TARGET_PC)
 #include <errno.h>
 #include <fenv.h>
@@ -391,6 +392,20 @@ u32 __PortGXPeekARGB(u16 x, u16 y) {
     return b ? b->peekColor(x, y) : 0;
 #endif
 }
+
+// Occlusion probes (PORT_GX_MARK_PROBE_*): the visible samples the renderer last counted for each, plus one (0: none yet).
+static std::atomic<int> sProbeSamples[PORT_GX_PROBES];
+int port_gx_probe_samples(unsigned int index) {
+    return index < PORT_GX_PROBES ? sProbeSamples[index].load(std::memory_order_relaxed) - 1 : -1;
+}
+// The renderer's answer for probe `index` (its render thread).
+void port_gx_probe_report(unsigned int index, int samples) {
+    if (index < PORT_GX_PROBES) sProbeSamples[index].store(samples + 1, std::memory_order_relaxed);
+}
+// Whether the renderer counts probes (its host tested that its GL does: vgx_host_galaxy_vita.cpp).
+static std::atomic<int> sProbesCounted{0};
+int port_gx_probes_counted(void) { return sProbesCounted.load(std::memory_order_relaxed); }
+void port_gx_probes_set_counted(int counted) { sProbesCounted.store(counted, std::memory_order_relaxed); }
 
 u32 __PortGXPeekZ(u16 x, u16 y) {
     if (port_vgx_active()) return 0x00FFFFFFu; // far: see __PortGXPeekARGB

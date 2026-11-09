@@ -189,6 +189,39 @@ void EnvLong(const char* name, long& value, long lo, long hi) {
     if (value > hi) value = hi;
 }
 
+// ---- occlusion-query self-test: a triangle over the display, with nothing written, must pass samples. Older Vita3K builds
+// leave sceGxm's visibility test unimplemented and every count stays 0: then the game is not told to rely on its probes
+// (port_gx_probes_counted) and keeps the answer it had before them.
+extern "C" void port_gx_probe_report(unsigned int index, int samples);
+extern "C" void port_gx_probes_set_counted(int counted);
+bool g_queriesCount = false;
+bool OcclusionQueriesCount(GLuint program) {
+    static const float triangle[] = {-1, -1, 0, 1, 3, -1, 0, 1, -1, 3, 0, 1};
+    GLuint vbo = 0, query = 0;
+    glGenBuffers(1, &vbo);
+    glGenQueries(1, &query);
+    if (!vbo || !query) return false;
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof triangle, triangle, GL_STATIC_DRAW);
+    glUseProgram(program);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glDisable(GL_DEPTH_TEST);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glBeginQuery(GL_SAMPLES_PASSED, query);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glEndQuery(GL_SAMPLES_PASSED);
+    GLuint samples = 0;
+    glGetQueryObjectuiv(query, GL_QUERY_RESULT, &samples);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glDisableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDeleteBuffers(1, &vbo);
+    glDeleteQueries(1, &query);
+    port_log("[vgx-vita] occlusion queries: %u samples in the self-test (%s)", samples, samples ? "probes counted" : "not counted");
+    return samples != 0;
+}
+
 // ---- shader-compiler self-test: a trivial GLSL pair through GLSL -> Cg -> libshacccg -> link.
 // If this fails nothing the renderer generates can work, and the reason is in the returned text.
 bool ShaderCompilerSelfTest(char* error, size_t errorSize) {
@@ -226,6 +259,7 @@ bool ShaderCompilerSelfTest(char* error, size_t errorSize) {
     }
     port_log("[vgx-vita] shader compiler self-test passed in %u ms (u_add at location %d)", static_cast<unsigned>((NowUs() - t0) / 1000u),
              static_cast<int>(glGetUniformLocation(program, "u_add")));
+    g_queriesCount = OcclusionQueriesCount(program);
     glDeleteProgram(program);
     glDeleteShader(shaders[0]);
     glDeleteShader(shaders[1]);
@@ -233,6 +267,7 @@ bool ShaderCompilerSelfTest(char* error, size_t errorSize) {
 }
 
 void PresentDisplayCopy(unsigned efb, int x, int y, int w, int h);
+void ProbeDraw(unsigned index, bool begin);
 void PaceDisplay(void*);
 
 // =============================================================================================
@@ -1443,6 +1478,10 @@ bool StartGl(char* error, size_t errorSize) {
     // GXV_RENDER_SIZE (read by the glue) sets the back end's picture size; here the back end
     // is initialised by vgx_galaxy.cpp after this returns.
     vgx::backend::SetPresentHook(PresentDisplayCopy);
+    if (g_queriesCount) {
+        vgx::backend::SetProbeHook(ProbeDraw);
+        port_gx_probes_set_counted(1);
+    }
     vgx::backend::SetProgressDisplay(0, kScreenW, kScreenH, ShowProgressBar);
     // The bar is for start-up (the warm-up list's work in the first frames) and for a long wait; a
     // shader met in the middle of play costs a moment, not a flash of the bar.
@@ -1509,8 +1548,62 @@ void PaceDisplay(void*) {
 bool GamePresentAllowed(unsigned efb, int w, int h) {
     return efb != 0 && w > 0 && h > 0 && (g_presentAllowed || (g_fixedJob && g_wasSplash));
 }
+// Occlusion probes (the back end's probe hook, PORT_GX_MARK_PROBE_*): vitaGL counts a probe's samples with a query, and the
+// count goes to the game (port_gx_probe_report) once the GPU has finished that frame; nothing waits for it. Two queries per
+// probe, made at its first draw: a frame's draw takes the one whose last count has been read, or is not counted.
+struct ProbeQueries {
+    GLuint query[2] = {};
+    bool pending[2] = {};
+    int8_t active = -1; // the query between this draw's begin and end
+};
+ProbeQueries g_probes[vgx::kProbeCount];
+bool g_probesPending = false;
+void CollectProbe(unsigned index, int slot) {
+    ProbeQueries& p = g_probes[index];
+    GLuint ready = GL_FALSE;
+    glGetQueryObjectuiv(p.query[slot], GL_QUERY_RESULT_AVAILABLE, &ready);
+    if (!ready) return;
+    GLuint samples = 0;
+    glGetQueryObjectuiv(p.query[slot], GL_QUERY_RESULT, &samples);
+    p.pending[slot] = false;
+    port_gx_probe_report(index, static_cast<int>(samples));
+}
+void ProbeDraw(unsigned index, bool begin) {
+    if (index >= vgx::kProbeCount) return;
+    ProbeQueries& p = g_probes[index];
+    if (!begin) {
+        if (p.active >= 0) glEndQuery(GL_SAMPLES_PASSED);
+        p.active = -1;
+        return;
+    }
+    if (!p.query[0]) glGenQueries(2, p.query);
+    if (!p.query[0] || !p.query[1]) return;
+    int slot = p.pending[0] ? 1 : 0;
+    if (p.pending[slot]) {
+        CollectProbe(index, slot);
+        if (p.pending[slot]) return;
+    }
+    glBeginQuery(GL_SAMPLES_PASSED, p.query[slot]);
+    p.pending[slot] = true;
+    p.active = static_cast<int8_t>(slot);
+    g_probesPending = true;
+}
+// Once a picture: the counts the GPU has finished.
+void CollectProbes() {
+    if (!g_probesPending) return;
+    bool left = false;
+    for (unsigned i = 0; i < vgx::kProbeCount; ++i)
+        for (int slot = 0; slot < 2; ++slot)
+            if (g_probes[i].pending[slot]) {
+                CollectProbe(i, slot);
+                left |= g_probes[i].pending[slot];
+            }
+    g_probesPending = left;
+}
+
 void PresentDisplayCopy(unsigned efb, int x, int y, int w, int h) {
     ++g_presented;
+    CollectProbes();
     const uint64_t now = NowUs();
     const vgx::backend::Stats stats = vgx::backend::GetStats();
     if (g_richDraws && stats.drawCallsThisFrame >= g_richDraws && g_richFrame.load() == 0) {

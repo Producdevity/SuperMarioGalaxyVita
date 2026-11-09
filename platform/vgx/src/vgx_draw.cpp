@@ -595,8 +595,10 @@ uint8_t MapDstFactor(uint32_t f, bool hasAlpha) {
     }
 }
 
+uint8_t g_probe = 0; // RenderState::probe of the draws now (ProbeMarker)
 void BuildRenderState(RenderState& rs) {
     rs = RenderState{};
+    rs.probe = g_probe;
     const uint32_t cm0 = g.bp[0x41], zm = g.bp[0x40], gm = g.bp[0x00];
     const bool hasAlpha = EfbHasAlpha();
     if (bits(cm0, 11, 1)) { // subtract: dst - src
@@ -2398,6 +2400,12 @@ void RowBoxesOf(const uint8_t* verts, uint32_t count, uint32_t stride, std::vect
 void CharaMarker(uint32_t kind) {
     if (kind == 1) ++g_cha.hudDepth;                                   // PORT_GX_MARK_HUD_BEGIN
     else if (kind == 2 && g_cha.hudDepth > 0) --g_cha.hudDepth;         // PORT_GX_MARK_HUD_END
+}
+void ProbeMarker(uint32_t value) {
+    const uint8_t probe = (value & 0xFFu) == kProbeBeginMarker ? static_cast<uint8_t>(((value >> 8) & 0xFFu) + 1u) : 0;
+    if (probe == g_probe) return;
+    g_probe = probe;
+    g.bpRsDirty = true; // (a new render state, and with it a new record: a probe's draws are never merged with others)
 }
 void PresentationMarker(uint32_t kind) {
     g_buf.presentAllowed = kind != kPresentSuppressedMarker;

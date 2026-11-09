@@ -70,6 +70,9 @@ public:
     void checkVisible(CheckArg*, const TVec3f&, const TPos3f&, const TProj3f&);
     void setResult(const CheckArg&);
     void drawSphere(const TVec3f&, float) const;
+#ifdef TARGET_PC
+    void drawProbes(const TVec3f&, float) const;
+#endif
 
     /* 0x04 */ BrightInfo mInfo;
     /* 0x48 */ TVec2f mBrightCenter;
@@ -77,6 +80,9 @@ public:
     /* 0x58 */ f32 mBrightness;
     /* 0x5C */ bool mIsNotVisible;
     /* 0x60 */ BrightDrawInfo mDrawInfo;
+#ifdef TARGET_PC
+    u32 mProbeSlot;  // occlusion probes mProbeSlot * 17 .. + 16 stand in for the 17 peeks (see drawProbes)
+#endif
 };
 
 class BrightObj : public LiveActor, public BrightObjBase {

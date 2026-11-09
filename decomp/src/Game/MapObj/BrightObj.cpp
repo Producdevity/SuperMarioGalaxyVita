@@ -13,6 +13,7 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/ScreenUtil.hpp"
 #include <JSystem/JUtility/JUTVideo.hpp>
+#include <cmath>
 
 void BrightObj_FORCE_MATCH_SDATA2() {
     (void)1.0f;
@@ -175,6 +176,10 @@ void BrightCamInfo::write(u16 index, const TPos3f& rViewMtx, const TProj3f& rPro
 
 BrightObjBase::BrightObjBase() : mInfo(), mBrightCenter(0.0f, 0.0f), mNowCenter(0.0f, 0.0f), mBrightness(), mIsNotVisible(true), mDrawInfo() {
     MR::addBrightObj(this);
+#ifdef TARGET_PC
+    static u32 sNextProbeSlot = 0;
+    mProbeSlot = sNextProbeSlot++ % (PORT_GX_PROBES / 17);
+#endif
 }
 
 void BrightObjBase::checkVisibilityOfSphere(u16 index, const BrightCamInfo& rCamInfo) {
@@ -239,6 +244,13 @@ void BrightObjBase::checkVisible(BrightObjBase::CheckArg* pArg, const TVec3f& rT
 
         u32 color;
         GXPeekARGB(frameBufferPos.x, frameBufferPos.y, &color);
+#ifdef TARGET_PC
+        // The peeks come in drawProbes' order: mMaxBrightness numbers this one.
+        const s32 samples = port_gx_probe_samples(mProbeSlot * 17 + pArg->mMaxBrightness);
+        if (samples >= 0) {
+            color = samples > 0 ? 0xFF000000 : 0;
+        }
+#endif
 
         if ((color & 0xFF000000) >= 0xF0000000) {
             pArg->mCurrBrightness++;
@@ -287,9 +299,81 @@ void BrightObjBase::drawSphere(const TVec3f& rPos, float radius) const {
 
     TDDraw::drawSphere(TVec3f(0, 0, 0), radius, 0x00FF00FF, 0x10);
 
+#ifdef TARGET_PC
+    drawProbes(rPos, radius);
+#endif
+
     GXSetColorUpdate(GX_TRUE);
     GXSetAlphaUpdate(GX_FALSE);
 }
+
+#ifdef TARGET_PC
+// The port's renderer cannot read the EFB back for checkVisible's peeks (GXPeekARGB), which would find every sun visible,
+// through walls and ceilings. Each of the 17 points checkVisibilityOfSphere peeks at is drawn here instead as an
+// occlusion probe: a few pixels on the sphere's front surface, depth-tested against the scene and writing nothing. The
+// renderer counts the samples that pass, and checkVisible reads that count a frame or two later.
+void BrightObjBase::drawProbes(const TVec3f& rPos, float radius) const {
+    if (!port_gx_probes_counted()) {
+        return;
+    }
+
+    const TVec3f camPos(MR::getCamPos());
+    TVec3f camDir(MR::getCamYdir());
+    TVec3f drawDir(camPos - rPos);
+
+    if (MR::isNearZero(drawDir)) {
+        return;
+    }
+
+    const f32 distance = drawDir.length();
+    MR::normalize(&drawDir);
+
+    TVec3f side;
+    side.cross(camDir, drawDir);
+    camDir.cross(drawDir, side);
+
+    // At least a pixel and a half of the EFB around each point, so that a pixel centre falls inside.
+    const f32 pixel = 2.0f * distance / (MR::getCameraProjectionMtx()[1][1] * JUTVideo::getManager()->getRenderMode()->efbHeight);
+    const f32 half = MR::max(1.5f * pixel, 0.02f * radius);
+
+    TPos3f viewMtx(MR::getCameraViewMtx());
+    TDDraw::loadViewMtx(viewMtx);
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
+    GXSetColorUpdate(GX_FALSE);
+    GXSetAlphaUpdate(GX_FALSE);
+
+    for (u32 n = 0; n < 17; n++) {
+        // checkVisibilityOfSphere's points: the centre, eight at 0.4 of the radius, eight at 0.7 between them
+        f32 offset = 0.0f;
+        f32 angle = 0.0f;
+
+        if (n >= 9) {
+            offset = 0.7f;
+            angle = (n - 9 + 0.5f) * MR::pi() / 4.0f;
+        } else if (n >= 1) {
+            offset = 0.4f;
+            angle = (n - 1) * MR::pi() / 4.0f;
+        }
+
+        TVec3f point(rPos);
+        point += side * (MR::cos(angle) * offset * radius);
+        point += camDir * (MR::sin(angle) * offset * radius);
+        point += drawDir * (radius * std::sqrt(1.0f - offset * offset));
+
+        port_gx_marker(PORT_GX_MARK_PROBE_BEGIN | (mProbeSlot * 17 + n) << 8);
+        GXBegin(GX_QUADS, GX_VTXFMT0, 4);
+        for (u32 corner = 0; corner < 4; corner++) {
+            const f32 x = (corner == 0 || corner == 3) ? -half : half;
+            const f32 y = corner < 2 ? -half : half;
+            const TVec3f vertex(point + side * x + camDir * y);
+            GXPosition3f32(vertex.x, vertex.y, vertex.z);
+            GXColor1u32(0);
+        }
+        GXEnd();
+        port_gx_marker(PORT_GX_MARK_PROBE_END);
+    }
+}
+#endif
 
 BrightObj::BrightObj(const char* pName) : LiveActor(pName), BrightObjBase(), mRadius(::sSunModelScale) {
 }

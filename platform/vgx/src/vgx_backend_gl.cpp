@@ -291,6 +291,7 @@ ValidationFrame g_validationFrame;
 
 bool g_capture = false;
 PresentHook g_presentHook = nullptr;
+ProbeHook g_probeHook = nullptr;
 const CopyDispCmd* g_charaDisp = nullptr; // GXV_CHARAA: the display copy being presented (CopyDisp, around the present hook)
 int g_charaKernel = -1; // (CapturePresented) the kernel for this draw: -1 as GXV_CHARAA_KERNEL says
 bool g_charaFull = false; // (CapturePresented) the whole present instead of the rectangles (the whole-picture variant, for comparison)
@@ -1665,7 +1666,10 @@ void Draw(const CmdBuf& buf, const DrawRec& r) {
     }
     TouchTarget();
     DP(5);
+    const bool probe = r.rs.probe && g_probeHook;
+    if (probe) g_probeHook(r.rs.probe - 1u, true);
     G(glDrawElements(mode, static_cast<GLsizei>(r.idxCount), GL_UNSIGNED_SHORT, reinterpret_cast<const void*>(static_cast<size_t>(r.idxOffset) * 2)));
+    if (probe) g_probeHook(r.rs.probe - 1u, false);
     DP(6);
     ++C.draws;
     C.drawIndices += r.idxCount;
@@ -5856,6 +5860,7 @@ const std::vector<uint8_t>& LastDisplayCopy(int& width, int& height) {
 }
 void RequestCapture(bool enable) { g_capture = enable; }
 void SetPresentHook(PresentHook hook) { g_presentHook = hook; }
+void SetProbeHook(ProbeHook hook) { g_probeHook = hook; }
 #if VGX_COLDTRACE
 static_assert(VGX_COLDTRACE_DETAIL_VERSION==3);
 extern "C" void port_vgx_coldtrace_runtime_link_guard_v3() {}

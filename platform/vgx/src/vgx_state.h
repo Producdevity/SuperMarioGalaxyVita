@@ -373,6 +373,10 @@ void CharaMarker(uint32_t kind); // PORT_GX_MARK_* arriving in the stream (BP 0x
 constexpr uint32_t kPresentAllowedMarker = 0x10;
 constexpr uint32_t kPresentSuppressedMarker = 0x11;
 void PresentationMarker(uint32_t kind);
+// PORT_GX_MARK_PROBE_BEGIN / _END (platform/include/port/compat.h): the draws between them are occlusion probe
+// (value >> 8) & 0xFF, whose visible samples the host counts (RenderState::probe, SetProbeHook).
+constexpr uint32_t kProbeBeginMarker = 10, kProbeEndMarker = 11, kProbeCount = 64; // (PORT_GX_PROBES)
+void ProbeMarker(uint32_t value);
 // Totals since the start: display copies, of them with rectangles, character draws, of them without usable bounds, HUD draws
 // measured, rectangles handed to the back end, their EFB pixels, frames over GXV_CHARAA_AREA, rectangles dropped by clearing
 // copies, pieces lost to HUD cuts, rectangles too small to smooth (GXV_CHARAA_MIN).

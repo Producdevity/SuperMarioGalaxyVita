@@ -58,7 +58,8 @@ struct Chunk {
     Chunk* next = nullptr;
 };
 static_assert(sizeof(FsKey) % 4 == 0 && sizeof(VsKey) % 4 == 0 && sizeof(DrawJob) % 4 == 0, "keys and jobs travel as words");
-static_assert(sizeof(RenderState) == 44 && sizeof(TexBind) == 8, "render state / texture bindings travel as words");
+static_assert(sizeof(RenderState) == 48 && sizeof(TexBind) == 8, "render state / texture bindings travel as words");
+constexpr uint32_t kRsWords = sizeof(RenderState) / 4;
 constexpr uint32_t kJobWords = sizeof(DrawJob) / 4;
 
 int g_mode = -1;  // GXV_SPLIT
@@ -279,13 +280,13 @@ void SendState(const DrawStateRef& st) {
     g_sent.vsId = st.vsId;
     g_sent.useFs = st.useFs;
     g_sent.texMask = st.texMask;
-    constexpr uint32_t n = 3 + 11 + 16;
+    constexpr uint32_t n = 3 + kRsWords + 16;
     uint32_t* p = Begin(OP_STATE, n);
     p[0] = st.vsId | (static_cast<uint32_t>(st.useFs) << 16);
     p[1] = st.texMask;
     p[2] = st.serial;
-    CopyWords(p + 3, st.rs, 11);
-    CopyWords(p + 14, st.tex, 16);
+    CopyWords(p + 3, st.rs, kRsWords);
+    CopyWords(p + 3 + kRsWords, st.tex, 16);
     End(n);
 }
 
@@ -351,8 +352,8 @@ void Run(uint32_t type, const uint32_t* p) {
         F->useFs = static_cast<uint16_t>(p[0] >> 16);
         F->texMask = static_cast<uint8_t>(p[1]);
         F->serial = p[2];
-        CopyWords(&F->rs, p + 3, 11);
-        CopyWords(F->tex, p + 14, 16);
+        CopyWords(&F->rs, p + 3, kRsWords);
+        CopyWords(F->tex, p + 3 + kRsWords, 16);
         break;
     case OP_JOB: {
         DrawJob j;

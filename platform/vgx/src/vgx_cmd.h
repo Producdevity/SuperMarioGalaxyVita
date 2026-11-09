@@ -93,6 +93,8 @@ struct RenderState {
     uint8_t colorWrite = 1, alphaWrite = 1;
     uint8_t dstAlphaPass = 0; // second, alpha-only pass with constant alpha (blend + GXSetDstAlpha)
     uint8_t lineWidth6 = 6;   // GX line width / point size in 1/6 pixel
+    uint8_t probe = 0;        // 1 + the occlusion probe whose visible samples the draw counts (PORT_GX_MARK_PROBE_BEGIN); 0: none
+    uint8_t pad[3] = {};
     // Scissor and viewport in EFB pixels, origin top-left. The back end scales
     // them to the render target.
     int16_t scX = 0, scY = 0, scW = 640, scH = 528;
@@ -389,6 +391,11 @@ void RequestCapture(bool enable); // read back the next display copy
 // row of the picture.
 using PresentHook = void (*)(unsigned efbFramebuffer, int x, int y, int width, int height);
 void SetPresentHook(PresentHook hook);
+// Optional occlusion-probe hook for hosts whose GL counts visible samples (the console's vitaGL): called on the back end's
+// thread right before (begin true) and after each draw of probe `index` (RenderState::probe). Without one, probes are drawn
+// and nothing is counted.
+using ProbeHook = void (*)(unsigned index, bool begin);
+void SetProbeHook(ProbeHook hook);
 // Automatic quality (dynamic resolution, vgx_autoq.h): a host whose present hook swaps calls this right after the
 // swap, on the back end's thread. The GPU clock then knows the frame's last scene and times its completion.
 void AutoQualitySwapped();
